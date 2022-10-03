@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <assert.h>
+#include <stdlib.h>
 #include <math.h>
 
 #define RATIO 1.61803398875
@@ -23,4 +24,5 @@ void test(){
 	assert(fibword_phi(3) == 0);
 	assert(fibword_phi(4) == 0);
 	assert(fibword_phi(5) == 1);
+	assert(fibword_phi(7) == 1);
 }

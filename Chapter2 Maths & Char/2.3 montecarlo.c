@@ -1,20 +1,19 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#define N 100000000
+#define N 10000000000
 #define R 2
 
-double dart(int limit);
+double dart(long limit);
 	
 
 int main(void){
 	srand((unsigned)time(NULL));
 	double pi = dart(N);
-	printf("Dart times : %d, Approximation for PI: %f", N, pi);
+	printf("Dart times : %ld, Approximation for PI: %f", N, pi);
 }
 
-double dart(int limit){
+double dart(long limit){
 	double p1, p2;
 	p1 = p2 = 0;
 	while (limit-- > 0){

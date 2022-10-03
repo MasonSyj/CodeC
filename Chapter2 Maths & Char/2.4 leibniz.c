@@ -3,27 +3,20 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
-//0.15
-//0.150 - 0.159
-//0.001 - 0.009 
-//< 0.01
-#define D 0.000000001
-#define PI 3.141592653
+
+#define D 0.00000001
+#define PI 3.14159265
 
 double leibniz(long n);
-double eachleibniz(long n);
+double nthleibniz(long n);
 bool difference(double a, double b, double range);
 
 int main(void){
 	long i = 1;
-	double x = eachleibniz(i);
-	while (!difference(x, PI, D)){
+	double leibnizsum = nthleibniz(i);
+	while (!difference(leibnizsum, PI, D)){
 		i++;
-		x += eachleibniz(i);
-		if (i == 0){
-		printf("Out of Range.");		
-		break;		
-		}
+		leibnizsum += nthleibniz(i);
 	}
 	printf("%ld", i);
 }
@@ -39,7 +32,7 @@ double leibniz(long n){
 	return sum;
 }
 
-double eachleibniz(long n){
+double nthleibniz(long n){
 	int opt = 1;
 	long fenmu = 2 * n - 1;
 	if (n % 2 == 0){

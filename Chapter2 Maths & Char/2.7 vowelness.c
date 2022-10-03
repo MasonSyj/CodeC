@@ -5,29 +5,18 @@
 
 void test();
 bool isvowel(char c);
-char writeletter(char c);
 
 int main(void){
 	test();
-	char c;
-	while ((c = getchar()) != '!'){
-		putchar(writeletter(c));
-	}
+
 }
 
-
 bool isvowel(char c){
+	c = tolower(c);
 	if (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u'){
 		return true;
 	}
 	return false;
-}
-
-char writeletter(char c){
-	if (isvowel(c)){
-		c = toupper(c);
-	}
-	return c;
 }
 
 void test(){

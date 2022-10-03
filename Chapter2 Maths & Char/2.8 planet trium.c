@@ -4,7 +4,7 @@
 #include <ctype.h>
 
 bool isvowel(char c);
-char writeletter(char c);
+
 
 int main(void){
 
@@ -33,9 +33,4 @@ bool isvowel(char c){
 	return false;
 }
 
-char writeletter(char c){
-	if (isvowel(c)){
-		c = toupper(c);
-	}
-	return c;
-}
+

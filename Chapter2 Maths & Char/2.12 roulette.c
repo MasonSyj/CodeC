@@ -1,23 +1,13 @@
-// rand 0 - 35
-// bet choice three:
-// one: odd
-// two: even
-// three: particular
-
-//result
-// first: pick particular one correctly win 35 times to 1
-// second: pick 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <assert.h>
 
-#define result rand() % 36
+#define MAX 36
 #define CAPITAL 1000
 
-int odd_even_bet(int money, int number);
-int particular_bet(int money, int number);
+int odd_even_bet(int money, int number, int result);
+int particular_bet(int money, int number, int result);
 
 int main(void){
 	srand((unsigned)time(NULL));
@@ -29,61 +19,55 @@ int main(void){
 	int c;
 	
 	do{	
-		int money_final;
-		printf("Input 1 if you choose to have an odd/even bet, or 2 for particular bet.\n");
-		int pick;
-		scanf("%d", &pick);
+		int pick, number, money_bet;	
 
-		printf("What number would you choose. (0-35)");
-		int number;
-		scanf("%d", &number);
+		
+		do{		
+			printf("Input 1 if you choose to have an odd/even bet, or 2 for particular bet.\n");
+		} while(scanf("%d", &pick) == 1 && pick != 1 && pick != 2);
 
-		printf("How much would you bet.");
-		int money_bet;
-		scanf("%d", &money_bet);
+		do{
+			printf("What number would you choose. (0-35)");
+		} while(scanf("%d", &number) == 1 && number < 0 && number > 35);
 
-		capital -= money_bet;
-		assert(capital >= 0);
-
+		do{		
+			printf("How much would you bet.");
+		}while(scanf("%d", &money_bet) == 1 && money_bet > capital);
+		
+		int result = rand () % MAX;
+		printf("The roulette machine show number: %d\n", result);
+		int money_after;
 		switch(pick){
-			case 1:money_final = odd_even_bet(money_bet, number);break;
-			case 2:money_final = particular_bet(money_bet, number);break;
+			case 1:money_after = odd_even_bet(money_bet, number, result);break;
+			case 2:money_after = particular_bet(money_bet, number, result);break;
 			default: printf("Wrong Input!"); 
 		}
 
-		capital += money_final;
+		capital += money_after;
 		printf("Now you have $%d\n", capital);
-		printf("Input 0 to have next round, n to end game.  \n");		
+		printf("Input y/Y to have next round, n to end game.  \n");		
 		
-		scanf("%d", &c);	
-	} while (capital > 0 && c == 0);				
-			
-
-
-//		scanf("%c", &c);		
-//		char c = getchar();
-		
-//		getchar();
-//		c = getchar();
-//	} while (capital > 0 && (c == 'y' || c == 'Y'));
+		getchar();
+		c = getchar();
+	} while (capital > 0 && (c == 'y' || c == 'Y'));
 }
 
-int odd_even_bet(int money, int number){
+int odd_even_bet(int money, int number, int result){
 
 	if (result == 0){
 		return 0;
 	}else if (number % 2 == result % 2){
 		return money * 2;
 	}else{
-		return 0;
+		return -1 * money;
 	}
 }
 
-int particular_bet(int money, int number){
+int particular_bet(int money, int number, int result){
 
 	if (number == result){
 		return money * 35;
 	}else{
-		return 0;
+		return -1 * money;
 	}
 }

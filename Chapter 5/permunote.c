@@ -25,13 +25,14 @@ void swap(int a[], int i, int j){
 void swaponearound(int a[], int n){
 	int i = n - 1;
 	while (i >= 0){ 
-		printarray(a);    
+//		printarray(a);    
 		swap(a, i, n);
 		swaponearound(a, n-1);
-		printarray(a);
+//		printarray(a);
 		swap(a, i, n);
 		i--;
     }
+	printarray(a);
 }
 
 void printarray(int a[]){

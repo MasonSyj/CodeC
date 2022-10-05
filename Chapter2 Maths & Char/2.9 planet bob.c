@@ -3,29 +3,37 @@
 #include <stdbool.h>
 #include <assert.h>
 
+void test();
 bool isvowel(char c);
 bool iscvc(char a, char b, char c);
 bool isvcv(char a, char b, char c);
-bool fequaltot(char a, char c);
+bool isequal(char a, char c);
 bool isprime(char a, char b, char c);
 
 int main(void){
-	assert(iscvc('z', 'i', 'c'));
-	assert(isvcv('i', 'x', 'e'));
-	assert(fequaltot('a', 'a'));
-	assert(fequaltot('z', 'z'));
-	assert(!fequaltot('a', 'x'));
-
+	test();
+	
 	int cnt = 1;
 	for (char a = 'a'; a <= 'z'; a++){
 		for (char b = 'a'; b <= 'z'; b++){
 			for (char c = 'a'; c <= 'z'; c++){
-				if ((iscvc(a, b, c) || isvcv(a, b, c)) && fequaltot(a, c) && isprime (a, b, c)){
+				if ((iscvc(a, b, c) || isvcv(a, b, c)) && isequal(a, c) && isprime (a, b, c)){
 					printf("%2d %c%c%c\n", cnt++, a, b, c);
 				}
 			}
 		}
 	}
+}
+
+void test(){
+	assert(isvowel('u'));
+	assert(!isvowel('z'));
+	assert(iscvc('z', 'i', 'c'));
+	assert(isvcv('i', 'x', 'e'));
+	assert(isequal('a', 'a'));
+	assert(isequal('z', 'z'));
+	assert(!isequal('a', 'x'));
+	assert(!isprime('a', 'b', 'a'));
 }
 
 bool isvowel(char c){
@@ -50,7 +58,7 @@ bool isvcv(char a, char b, char c){
 	return false;
 }
 /* first letter equal to third letter */
-bool fequaltot(char a, char c){
+bool isequal(char a, char c){
 	return a == c;
 }
 

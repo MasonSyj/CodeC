@@ -7,6 +7,7 @@
 #define SUIT 4
 #define PERSUIT 13
 #define DECK (SUIT * PERSUIT)
+#define FIRSTNCARDS 7
 
 typedef enum suit {diamond, spade, hearts, clubs} suit;
 
@@ -21,15 +22,15 @@ void test();
 void init_card(card c[]);
 void shuffle(card c[]);
 void print_card(card c[], int n);
-void print_All(card c[]);
+void print_all(card c[]);
 
 int main(void){
 	srand((unsigned)time(NULL));
 	card c[DECK];
 	init_card(c);
-//	print_All(c);
+//	print_all(c);
 	shuffle(c);
-	print_card(c, 10);
+	print_card(c, FIRSTNCARDS);
 	return 0;
 }
 
@@ -53,15 +54,15 @@ void print_card(card c[], int n){
 	for (int i = 0; i < n; i++){
 		printf("%d of ", c[i].value);
 		switch(c[i].color){
-			case 0:printf("diamond\n");break;
-			case 1:printf("spade\n");break;
-			case 2:printf("hearts\n");break;
-			case 3:printf("clubs\n");break;
+			case diamond:printf("diamond\n");break;
+			case spade:printf("spade\n");break;
+			case hearts:printf("hearts\n");break;
+			case clubs:printf("clubs\n");break;
 		}
 	}
 } 
 
-void print_All(card c[]){
+void print_all(card c[]){
 	for (int i = 0; i < DECK; i++){
 		printf("%d of %d\n", c[i].value, c[i].color);
 	}

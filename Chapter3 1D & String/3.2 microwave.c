@@ -1,22 +1,23 @@
 #include <stdio.h>
 #include <assert.h>
 
+typedef enum time{ten_min = 600, one_min = 60, ten_sec = 10} time;
+
 int main(void){
-		int a[3] = {10, 60, 600};
 		printf("Type the time required\n");
 		int time;
 		int num = 0;
 		scanf("%d", &time);
 		assert(time > 0);
 		do{
-			if (time >= 600){
-				time-=600;
-			}else if (time >= 60){
-				time-=60;
+			if (time >= ten_min){
+				time-=ten_min;
+			}else if (time >= one_min){
+				time-=one_min;
 			}else {
-				time-=10;
+				time-=ten_sec;
 			}
 				num++;
 		}while (time >= 0);
-		printf("%d", num);
+		printf("Number of button presses = %d", num);
 }

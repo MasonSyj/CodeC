@@ -11,7 +11,7 @@ int main(void){
 	double besta, bestb, a, b = 1;
 
 	while (b++ < DENO){
-		/* a within the range of [3.1 * DENO, 3.2 * DENO] */
+		/* a is within the range of [3.1 * DENO, 3.2 * DENO] */
 		double min = 3.1 * b;
 		double max = 3.2 * b;
 		for (int i = (int) min; i < max; i++){
@@ -20,10 +20,11 @@ int main(void){
 				besta = i;
 				bestb = b;
 				bestapprox = thisapprox;
+				printf("%.0f/%.0f = %.20f\n", besta, bestb, besta/bestb);
 			}
 		}
 		
 	}
 	
-	printf("%.0f/%.0f = %.20f", besta, bestb, besta/bestb);
+	
 }

@@ -4,7 +4,7 @@
 
 void create(int x);
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
 	create(N);
 }
 

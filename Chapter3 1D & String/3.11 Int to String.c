@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
+
+void test();
 void int2string(int i, char s[]);
 
 int main(int argc, char *argv[]) {
@@ -10,7 +13,8 @@ int main(int argc, char *argv[]) {
 //	a1[0] = a2[0];
 //	puts(a1);
 	int2string(x, s);
-	puts(s);
+	printf("%s\n", s);
+	test();
 }
 
 void int2string(int i, char s[]){
@@ -25,4 +29,16 @@ void int2string(int i, char s[]){
 		s[i] = s[cnt - i];
 		s[cnt - i] = temp;
 	}
+}
+
+void test(){
+	char s[256];
+	int2string(123456, s);
+	assert(strcmp(s, "123456") == 0);
+	strcpy(s, "");
+	int2string(2333, s);
+	assert(strcmp(s, "2333") == 0);
+	strcpy(s, "");
+	int2string(6, s);
+	assert(strcmp(s, "6") == 0);
 }

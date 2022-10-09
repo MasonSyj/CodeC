@@ -57,6 +57,7 @@ char fibword_subs(int n){
 			cnt++;
 		}
 	}
-	
+	char x = fib[n - 1];
+	free(fib);
 	return fib[n - 1];
 }

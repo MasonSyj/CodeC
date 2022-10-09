@@ -60,7 +60,7 @@ void skiplettercontrol(char word[]){
 
 
 int code(char c){
-	int code;
+	int code = 0;
 		
 	if (c == 'B' || c == 'F' || c == 'P' || c == 'V'){
 		code = 1;

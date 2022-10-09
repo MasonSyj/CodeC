@@ -1,14 +1,23 @@
 #include <stdio.h>
+#include <assert.h>
 
+void test();
 void swap(char word[]);
 int value(char c);
 int sum(char word[]);
 
+enum roman{A = 1, B = 5, C = 10, D = 50, E = 100, F = 500, G = 1000};
+typedef enum roman roman;
+
 int main(void){
-	char word[] = "MCDXCI";
-	swap(word);
+	char word[] = "MDCCXXXII";
 	int x = sum(word);
-	printf("%d", x);
+	printf("%d\n", x);
+	char word2[] = "MCMXCIX";
+	int y = sum(word2);
+	printf("%d\n", y);
+	printf("%d", sum("ABCDFG"));
+//	test();
 }
 
 
@@ -34,25 +43,26 @@ void swap(char word[]){
 }
 
 int value(char c){
-	int value;
+	int value = 0;
 	if (c == 'A')
-		value = 1;
+		value = A;
 	else if (c == 'B')
-		value = 5;	
+		value = B;	
 	else if (c == 'C')
-		value = 10;
+		value = C;
 	else if (c == 'D')
-		value = 50;
+		value = D;
 	else if (c == 'E')
-		value = 100;
+		value = E;
 	else if (c == 'F')
-		value = 500;
+		value = F;
 	else if (c == 'G')
-		value = 1000;
+		value = G;
 	return value;
 }
 
 int sum(char word[]){
+//	swap(word);
 	int i = 0;
 	int sum = 0;
 	while (word[i] != '\0'){
@@ -66,4 +76,10 @@ int sum(char word[]){
 	}
 	
 	return sum;
+}
+
+void test(){
+	assert(sum("MCMXCIX") == 1999);
+	assert(sum("MCMLXVII") == 1967);
+	assert(sum("MCDXCI") == 1491);
 }

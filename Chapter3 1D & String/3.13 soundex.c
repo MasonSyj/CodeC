@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <assert.h>
+#include <string.h>
 #define N 20
 //assume all chars in the word[] are letters
 
@@ -13,16 +14,58 @@ void soundex(char word[], char soundex[]);
 
 
 int main(void){
-	char word[] = "DeSmet";
-	char sound[5];
-	upper(word);
-	skiplettercontrol(word);
-	puts(word);
-	soundex(word, sound);	
-	puts(sound);
+	test();
 }
 
 void test(){
+	char temp1[N] = "ajdsfAJKDL_toupper";
+	upper(temp1);
+	assert(strcmp(temp1, "AJDSFAJKDL_TOUPPER") == 0);
+	char temp2[N]= "ABCDFGH";
+	skipletter(5, temp2);
+	assert(strcmp(temp2, "ABCDFH") == 0);
+	
+	char word[] = "Washington";
+	char Soundex[5];
+	soundex(word, Soundex);	
+//	puts(Soundex);
+	assert(strcmp(Soundex, "W252") == 0);
+	strcpy(word, "Wu");
+	strcpy(Soundex, "");
+	soundex(word, Soundex);	
+//	puts(Soundex);
+	assert(strcmp(Soundex, "W000") == 0);
+	strcpy(word, "DeSmet");
+	strcpy(Soundex, "");
+	soundex(word, Soundex);	
+//	puts(Soundex);
+	assert(strcmp(Soundex, "D253") == 0);	
+	strcpy(word, "Gutierrez");
+	strcpy(Soundex, "");	
+	soundex(word, Soundex);	
+//	puts(Soundex);
+	assert(strcmp(Soundex, "G362") == 0);
+	strcpy(word, "Pfister");
+	strcpy(Soundex, "");
+	soundex(word, Soundex);	
+//	puts(Soundex);
+	assert(strcmp(Soundex, "P236") == 0);
+	strcpy(word, "Jackson");
+	strcpy(Soundex, "");
+	soundex(word, Soundex);	
+//	puts(Soundex);
+	assert(strcmp(Soundex, "J250") == 0);
+	strcpy(word, "Tymczak");
+	strcpy(Soundex, "");
+	soundex(word, Soundex);	
+//	puts(Soundex);
+	assert(strcmp(Soundex, "T522") == 0);
+	strcpy(word, "Ashcraft");
+	strcpy(Soundex, "");
+	soundex(word, Soundex);	
+//	puts(Soundex);
+	assert(strcmp(Soundex, "A261") == 0);
+
 }
 
 void upper(char word[]){
@@ -41,9 +84,17 @@ void skipletter(int n, char word[]){
 }
 
 void skiplettercontrol(char word[]){
-	char temp[N];
+	if (code(word[0]) == code(word[1])){
+		skipletter(1, word);
+	}
+	
 	int i = 1;
 	while (word[i] != '\0'){
+		
+		if (code(word[i]) == code(word[i+1])){
+			skipletter(i+1, word);
+			i--;
+		}
 		
 		if (word[i] == 'H' || word[i] == 'W'){
 			if (code(word[i-1]) == code(word[i+1])){
@@ -53,6 +104,7 @@ void skiplettercontrol(char word[]){
 		
 		if (word[i] == 'A' || word[i] == 'E' || word[i] == 'I' || word[i] == 'O' || word[i] == 'U' || word[i] == 'H' || word[i] == 'W' || word[i] == 'Y'){
 			skipletter(i, word);
+			i--;
 		}	
 		i++;
 	}
@@ -80,6 +132,9 @@ int code(char c){
 }
 
 void soundex(char word[], char soundex[]){
+	upper(word);
+	skiplettercontrol(word);
+//	puts(word);
 	soundex[0] = word[0];
 	int i = 1;
 	int j = 1;
@@ -88,8 +143,9 @@ void soundex(char word[], char soundex[]){
 		soundex[i++] = code(word[j++]) + '0';
 	}
 	
-	while (i++ < 4){
+	while (i < 4){
 		soundex[i] = '0';
+		i++;
 	}
 	soundex[i] = '\0';
 	

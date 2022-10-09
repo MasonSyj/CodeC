@@ -4,31 +4,13 @@
 #include <assert.h>
 typedef enum bool {false, true} bool;
 
+void test();
 void strmerge(const char* s1, const char* s2, char*s3);
 
 #define LARGESTRING 1000
 
 int main(void) {
-	char s[LARGESTRING];
-//	strmerge("Hello World!", "World! & Everyone.", s); 
-//	assert(strcmp(s, "Hello World! & Everyone.")==0);
-	
-	strmerge("The cat sat", "sat on the mat.", s); 
-	assert(strcmp(s, "The cat sat on the mat.")==0);
-	
-	strmerge("The cat sat on the mat", "The cat sat on the mat.", s); 
-	assert(strcmp(s, "The cat sat on the mat.")==0);
-	
-	strmerge("One ", "Two", s); 
-	assert(strcmp(s, "One Two")==0);
-	
-	strmerge("", "The cat sat on the mat.", s);
-	assert(strcmp(s, "The cat sat on the mat.")==0);
-	
-	strmerge("The cat sat on the mat.", "", s); 
-	assert(strcmp(s, "The cat sat on the mat.")==0);
-	
-	assert(strcmp(s, "123412341234")==0);
+	test();
 }
 
 void strmerge(const char* s1, const char* s2, char*s3){
@@ -46,5 +28,27 @@ void strmerge(const char* s1, const char* s2, char*s3){
 	
 	strcpy(s3, s1);
 	strcat(s3, s2);
+}
 
+void test(){
+	char s[LARGESTRING];
+	strmerge("Hello World!", "World! & Everyone.", s); 
+	assert(strcmp(s, "Hello World! & Everyone.")==0);
+	
+	strmerge("The cat sat", "sat on the mat.", s); 
+	assert(strcmp(s, "The cat sat on the mat.")==0);
+	
+	strmerge("The cat sat on the mat", "The cat sat on the mat.", s); 
+	assert(strcmp(s, "The cat sat on the mat.")==0);
+	
+	strmerge("One ", "Two", s); 
+	assert(strcmp(s, "One Two")==0);
+	
+	strmerge("", "The cat sat on the mat.", s);
+	assert(strcmp(s, "The cat sat on the mat.")==0);
+	
+	strmerge("The cat sat on the mat.", "", s); 
+	assert(strcmp(s, "The cat sat on the mat.")==0);
+	
+	assert(strcmp(s, "123412341234")==0);
 }

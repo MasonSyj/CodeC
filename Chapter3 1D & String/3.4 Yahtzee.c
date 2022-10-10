@@ -11,16 +11,22 @@
 
 /* Fill the array d with random numbers 1..6 */
 void randomthrow(int d[NUMDICE]);
+
 /* Decide if the number n occurs anywhere in the histogram h */ 
 bool histo_has(const int h[MAXTHROW], const int n);
+
 /* Compute a histogram, given a dice hand */
 void makehist(const int d[NUMDICE], int h[MAXTHROW]);
+
 /* Check that the histograms h1 & h2 are the same */
 bool hists_same(const int h1[MAXTHROW], const int h2[MAXTHROW]);
+
 /* Does this hand have 2 lots of one number and 3 lots of another */
 bool isfullhouse(const int d[NUMDICE]);
+
 /* Does this hand have 4 lots of one number and 1 of another ? */
 bool is4ofakind(const int d[NUMDICE]);
+
 bool is5ofakind(const int d[NUMDICE]);
 void test();
 
@@ -61,13 +67,15 @@ int main(void){
 	int dice[NUMDICE]; 
 	int k4 = 0;
 	int fh = 0;
-	int i;	test();
+	int i;
+	test();
 	
-//	for(i=0; i<TESTS; i++){
-//		randomthrow(dice); if(isfullhouse(dice)){
-//			fh++; }//		if(is4ofakind(dice)){ k4++;
-//		} }
-//	printf("FH=%.2f%% 4oK=%.2f%%\n", (double)fh*100.0/(double)TESTS, (double)k4*100.0/(double)TESTS);
+	for(i=0; i<TESTS; i++){
+		randomthrow(dice); if(isfullhouse(dice)){
+			fh++; }
+		if(is4ofakind(dice)){ k4++;
+		} }
+	printf("FH=%.2f%% 4oK=%.2f%%\n", (double)fh*100.0/(double)TESTS, (double)k4*100.0/(double)TESTS);
 	return 0;
 }
 
@@ -87,13 +95,23 @@ bool histo_has(const int h[MAXTHROW], const int n){
 }
 
 void makehist(const int d[NUMDICE], int h[MAXTHROW]){
+	for (int temp = 0; temp < MAXTHROW; temp++){
+			h[temp] = 0;
+		}
+		
+	
 	for (int i = 0; i < NUMDICE; i++){
 		h[d[i] - 1]++;
 	}
 }
 
 bool hists_same(const int h1[MAXTHROW], const int h2[MAXTHROW]){
-	return is4ofakind(h1) == is4ofakind(h1) || isfullhouse(h1) == isfullhouse(h2);
+	for (int i = 0; i < MAXTHROW; i++){
+		if (h1[i] != h2[i]){
+			return false;
+		}
+	}
+	return true;
 }
 
 bool isfullhouse(const int d[NUMDICE]){
@@ -160,15 +178,9 @@ void test(){
 		
 		makehist(d5,h9);
 		
-		for (int temp = 0; temp < MAXTHROW; temp++){
-			h9[temp] = 0;
-		}
-		
 		for(j=0; j<MAXTHROW; j++){
 			assert((h9[j] >= 0) && (h9[j] < NUMDICE)); 
 		}
-		
-		
 	}
 	
 	assert(hists_same(h1,h1)==true); 

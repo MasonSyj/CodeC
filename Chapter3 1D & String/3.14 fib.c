@@ -3,22 +3,23 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-
+// 1 	2 	3 	5 	8 	13 21
+// 1 	3 	6 	11	19	32 53
+// 0 10 010 10010 01010010 
 void test();
 bool fibword_str(int n);
 
 int main(){
-	test();
-
-	bool x = fibword_str(20);
-	printf("%d", x);
+	for (int i = 1; i <= 10; i++){
+		printf("%3d", fibword_str(i));
+	}
 }
 
 bool fibword_str(int n){
-	char* a = (char*)malloc((2 * n) * sizeof(char));
-	char* b = (char*)malloc((2 * n) * sizeof(char));
-	char* c = (char*)malloc((2 * n) * sizeof(char));
-	int t = 2 * n - 1;
+	char* a = (char*)malloc((n + 1) * sizeof(char));
+	char* b = (char*)malloc((n + 1) * sizeof(char));
+	char* c = (char*)malloc((n + 1) * sizeof(char));
+	int t = n;
 	a[t] = b[t] = c[t] = '\0';
 	strcpy(a, "");
 	strcpy(b, "");
@@ -37,7 +38,7 @@ bool fibword_str(int n){
 		strcpy(a, b);
 		strcpy(b, c);
 	}
-	char x = c[cnt-n];
+	char x = c[cnt - n];
 	free(a);
 	free(b);
 	free(c);

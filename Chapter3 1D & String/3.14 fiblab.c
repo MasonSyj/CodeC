@@ -13,9 +13,13 @@ int main(){
 
 
 	test();
-	for (int i = 5; i <= 100000; i++){
-		printf("%-3d", fibword_str(i));
+	int x = 1;
+	while (x++ < 10000){
+		printf("%-3d", fibword_str(x));
 	}
+//	int i = 1200000000;
+//	printf("%-3d", fibword_str(i));
+
 }
 
 bool fibword_str(int n){
@@ -24,9 +28,10 @@ bool fibword_str(int n){
 	}else if (n == 2){
 		return true;
 	}
-	char* a = (char*)malloc((2 * n + 1) * sizeof(char));
-	char* b = (char*)malloc((2 * n + 1) * sizeof(char));
-	char* c = (char*)malloc((2 * n + 1) * sizeof(char));
+	int size = n;
+	char* a = (char*)malloc((size) * sizeof(char));
+	char* b = (char*)malloc((size) * sizeof(char));
+	char* c = (char*)malloc((size) * sizeof(char));
 	strcpy(a, "");
 	strcpy(b, "");
 	strcpy(c, "");
@@ -40,11 +45,9 @@ bool fibword_str(int n){
 	int sum = 1;
 	
 	
-	while (sum < n){
+	while (sum + cnta + cntb < n){
 		sum += cnta;
-		if (sum > n){
-			break;
-		}
+		
 		strcpy(c, a);
 		strncat(c, b, cntb);
 		
@@ -52,16 +55,18 @@ bool fibword_str(int n){
 		cnta = cntb; 
 		cntb = cnt;
 		
-		
-		
 		strcpy(a, b);
 		strcpy(b, c);
-		
-		
+	}
+	
+	char x;
+	if (n < sum + cnta){
+		x = a[cnta - sum + n];
+	}else{
+		x = b[n- sum -cnta];
 	}
 	
 	
-	char x = a[cnta - sum + n];
 	free(a);
 	free(b);
 	free(c);
@@ -75,4 +80,6 @@ void test(){
 	assert(fibword_str(10) == true);
 	assert(fibword_str(1) == false);
 	assert(fibword_str(20) == true);
+	assert(fibword_str(21) == false);
+	assert(fibword_str(19) == false);
 }

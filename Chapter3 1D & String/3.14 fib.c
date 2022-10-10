@@ -10,7 +10,8 @@ void test();
 bool fibword_str(int n);
 
 int main(){
-	for (int i = 1; i <= 10; i++){
+	test();
+	for (int i = 1; i <= 20; i++){
 		printf("%3d", fibword_str(i));
 	}
 }

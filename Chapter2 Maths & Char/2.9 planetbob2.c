@@ -14,17 +14,18 @@ bool isprime(char a, char b, char c);
 
 int main(void){
    test();
-   int step = 0;
+	int step = 0;
    int cnt = 1;
    for (char a = 'a'; a <= 'z'; a++){
       for (char b = 'a'; b <= 'z'; b++){
-         for (char c = 'a'; c <= 'z'; c++){
+//       for (char c = 'a'; c <= 'z'; c++){
+            char c = a;
             step++;
             if ((iscvc(a, b, c) || isvcv(a, b, c))
-				&& isequal(a, c) && isprime (a, b, c)){
+				&& isprime (a, b, c)){
                printf("%2d %c%c%c\n", cnt++, a, b, c);
             }
-         }
+//       }
       }
    }
    printf("%d", step);

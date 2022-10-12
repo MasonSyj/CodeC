@@ -13,13 +13,11 @@ int main(){
 
 
 	test();
-	fibword_str(4);
-//	int x = 1;
-//	while (x++ < 1600){
-//		printf("%-3d", fibword_str(x));
-//	}
-//	int i = 1200000000;
-//	printf("%-3d", fibword_str(i));
+	int x = 1;
+	while (x < 20000){
+		printf("%-3d", fibword_str(x));
+		x++;
+	}
 
 }
 
@@ -31,13 +29,12 @@ bool fibword_str(int n){
 		return 0;
 	}
 	
-	int size = n + 1;
-	char* a = (char*)malloc((size) * sizeof(char));
-	char* b = (char*)malloc((size) * sizeof(char));
-	char* c = (char*)malloc((size) * sizeof(char));
-//	strcpy(a, "");
-//	strcpy(b, "");
-//	strcpy(c, "");
+	char* a = (char*)malloc((2 * n) * sizeof(char));
+	char* b = (char*)malloc((2 * n) * sizeof(char));
+	char* c = (char*)malloc((2 * n) * sizeof(char));
+	strcpy(a, "");
+	strcpy(b, "");
+	strcpy(c, "");
 	a[0] = b[1] = c[0] = '0';
 	b[0] = '1';
 	int t = n;
@@ -64,7 +61,7 @@ bool fibword_str(int n){
 	
 	char x;
 
-	x = b[n- sum -cnta];
+	x = b[n - sum - cnta];
 	
 	
 	free(a);

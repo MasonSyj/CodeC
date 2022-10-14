@@ -6,7 +6,9 @@
 #define CLINE 6
 #define LINE 6
 
-void fillbyadjecentsamecell(char puzzle[][CLINE + 1]);
+void counting(char puzzle[][CLINE + 1]);
+void oxo(char puzzle[][CLINE + 1]);
+void paris(char puzzle[][CLINE + 1]);
 //void fillbyacrosscell(char puzzle[][CLINE + 1]);
 void fillbylinecell(char puzzle[][CLINE + 1]);
 void create(char puzzle[][CLINE + 1]);
@@ -16,11 +18,73 @@ int main(void){
 	char puzzle[RLINE][CLINE + 1];
 	create(puzzle);
 	show(puzzle);
-	fillbyadjecentsamecell(puzzle);
+	paris(puzzle);
 	show(puzzle);
-	fillbylinecell(puzzle);
+//	fillbylinecell(puzzle);
+	oxo(puzzle);
+	show(puzzle);
+	counting(puzzle);
 	show(puzzle);
 	
+}
+
+void counting(char puzzle[][CLINE + 1]){
+	bool newchange = 1;
+	int zerocnt, onecnt;
+	while (newchange == 1){
+		newchange = 0;
+		zerocnt = onecnt = 0;
+		for (int i = 5; i < RLINE; i++){
+			for (int j = 0; j < CLINE; j++){
+				if (puzzle[i][j] == '0'){
+					zerocnt++;
+				}else if (puzzle[i][j] == '1'){
+					onecnt++;
+				}
+			}
+
+			if ((zerocnt == LINE / 2 || onecnt == LINE / 2) && onecnt + zerocnt != LINE){
+				char fillnumber = '1';
+				newchange = 1;
+				if (onecnt == LINE / 2){
+					fillnumber = '0';
+				}
+				
+				for (int j = 0; j < CLINE; j++){
+					if(puzzle[i][j] == ' '){
+						puzzle[i][j] = fillnumber;
+					}
+				}
+			}
+		}
+		
+		zerocnt = onecnt = 0;
+		for (int j = 0; j < RLINE; j++){
+			for (int i = 0; i < CLINE; i++){
+				if (puzzle[i][j] == '0'){
+					zerocnt++;
+				}else if (puzzle[i][j] == '1'){
+					onecnt++;
+				}
+			}
+			
+			if ((zerocnt == LINE / 2 || onecnt == LINE / 2) && onecnt + zerocnt != LINE){
+				char fillnumber = '1';
+				newchange = 1;
+				if (onecnt == LINE / 2){
+					fillnumber = '0';
+				}
+				
+				for (int i = 0; i < CLINE; i++){
+					if(puzzle[i][j] == ' '){
+						puzzle[i][j] = fillnumber;
+					}
+				}
+			}
+		}
+		
+		
+	}
 }
 
 void fillbylinecell(char puzzle[][CLINE + 1]){
@@ -76,10 +140,40 @@ void fillbylinecell(char puzzle[][CLINE + 1]){
 	}
 }
 
-//void fillbyacrosscell(char puzzle[][CLINE + 1]){}
+void oxo(char puzzle[][CLINE + 1]){
+	bool newchange = 1;
+	while (newchange == 1){
+		newchange = 0;
+		for (int i = 0; i < RLINE; i++){
+			for (int j = 0; j < CLINE - 2; j++){
+				if (puzzle[i][j] == puzzle[i][j+2] && puzzle[i][j] != ' ' && puzzle[i][j+1] == ' '){
+					if (puzzle[i][j] == '0'){
+						puzzle[i][j+1] = '1';
+					}else {
+						puzzle[i][j+1] = '0';
+					}
+					newchange = 1;
+				}
+			}
+		}
+		
+		for (int j = 0; j < CLINE; j++){
+			for (int i = 0; i < RLINE - 2; i++){
+				if (puzzle[i][j] == puzzle[i+2][j] && puzzle[i][j] != ' ' && puzzle[i+1][j] == ' '){
+					if (puzzle[i][j] == '0'){
+						puzzle[i+1][j] = '1';
+					}else {
+						puzzle[i+1][j] = '0';
+					}
+					newchange = 1;
+				}
+			}
+		}
+	}
+}
 
 
-void fillbyadjecentsamecell(char puzzle[][CLINE + 1]){
+void paris(char puzzle[][CLINE + 1]){
 	bool newchange = 1;
 	while (newchange == 1){
 		newchange = 0;
@@ -155,3 +249,17 @@ void create(char puzzle[][CLINE + 1]){
 	puzzle[5][4] = '0';	
 }
 
+
+	//			if (zerocnt == LINE / 2){
+	//				for (int j = 0; j < CLINE; j++){
+	//					if(puzzle[i][j] == ' '){
+	//						puzzle[i][j] = '1';
+	//					}
+	//				}
+	//			}else if (onecnt == LINE / 2){
+	//				for (int j = 0; j < CLINE; j++){
+	//					if(puzzle[i][j] == ' '){
+	//						puzzle[i][j] = '0';
+	//					}
+	//				}
+	//			}

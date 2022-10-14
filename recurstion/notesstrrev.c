@@ -4,12 +4,13 @@
 #define SWAP(A,B) {char temp; temp = A; A = B; B = temp;}
 
 void swap(char a, char b);
+
 void strrev(char* s, int n);
 
 int main(void) {
 	char str[] = "Hello World!";
-	swap(str[0], str[1]);
-	puts(str);
+//	swap(str[0], str[1]);
+//	puts(str);
 	SWAP(str[0], str[1]);
 	puts(str);
 //	strrev(str, strlen(str));

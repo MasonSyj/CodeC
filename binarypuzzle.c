@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-
 #define RLINE 6
 #define CLINE 6
 #define LINE 6
@@ -249,17 +248,3 @@ void create(char puzzle[][CLINE + 1]){
 	puzzle[5][4] = '0';	
 }
 
-
-	//			if (zerocnt == LINE / 2){
-	//				for (int j = 0; j < CLINE; j++){
-	//					if(puzzle[i][j] == ' '){
-	//						puzzle[i][j] = '1';
-	//					}
-	//				}
-	//			}else if (onecnt == LINE / 2){
-	//				for (int j = 0; j < CLINE; j++){
-	//					if(puzzle[i][j] == ' '){
-	//						puzzle[i][j] = '0';
-	//					}
-	//				}
-	//			}

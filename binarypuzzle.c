@@ -208,8 +208,6 @@ void paris(char puzzle[][CLINE + 1]){
 			}
 		}
 	}
-	
-	
 }
 
 void show(char puzzle[][CLINE + 1]){

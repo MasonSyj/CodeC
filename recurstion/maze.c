@@ -7,7 +7,7 @@
 bool explore(int y, int x, int maze[][COL]);
 
 int main(void) {
-	int maze[ROW][COL] = { {0, 1, 0, 0, 0}, {0, 1, 1, 1, 0}, {0, 0, 0, 1, 0}, {0, 1, 1, 1, 0}, {0, 0, 0, 0, 0}};
+	int maze[ROW][COL] = { {0, 1, 0, 0, 0}, {0, 1, 1, 1, 0}, {0, 0, 0, 1, 0}, {0, 1, 1, 1, 0}, {0, 1, 0, 0, 0}};
 	int x = explore(0, 1, maze);
 	printf("%d", x);
 }
@@ -23,23 +23,31 @@ bool explore(int y, int x, int maze[][COL]){
 	
 	if (y + 1 < ROW && maze[y+1][x]){
 		maze[y][x] = 0;
-		explore(y+1, x, maze);
+		if (explore(y+1, x, maze)){
+			return true;
+		}
 	}
 	
 	if (x + 1 < COL && maze[y][x+1]){
 		maze[y][x] = 0;
-		explore(y, x+1, maze);
+		if (explore(y, x+1, maze)){
+			return true;
+		}
 	}
 	
 	
 	if (x - 1 > 0 && maze[y][x-1]){
 		maze[y][x] = 0;
-		explore(y, x-1, maze);
+		if (explore(y, x-1, maze)){
+			return true;
+		}
 	}
 	
 	if (y - 1 > 0 && maze[y-1][x]){
 		maze[y][x] = 0;
-		explore(y-1, x, maze);
+		if (explore(y-1, x, maze)){
+			return true;
+		}
 	}
 	
 	return false;

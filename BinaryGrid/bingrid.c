@@ -157,7 +157,6 @@ int paris(board* brd){
 bool str2board(board* brd, char* str){
 	
 	double x = sqrt(strlen(str));
-	printf("strlen = %f\n", x);
 	if (fabs(x - (int)x) > DIFF || strlen(str) == 0){
 		return false;
 	}

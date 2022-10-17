@@ -6,7 +6,8 @@
 
 #define LOOPTIMES 250
 #define LINE 50
-#define P 0.2
+#define P 0.25
+#define CNT (int)(1 / P)
 
 bool isadjacent(char table[][LINE+1], int y, int x);
 
@@ -21,9 +22,10 @@ int main(void){
    table[LINE/2][LINE/2] = '1';
    
    int i = 0;
-   
+// int cnt = 1 / P;
    while(i < LOOPTIMES){
-      double p = P;
+      int cnt = 0;
+//    double p = P;
       int randy;
       int randx;
       int y = rand() % 100;
@@ -40,7 +42,7 @@ int main(void){
       }else{
          randx = 0;
       }
-      while(!isadjacent(table, randy, randx) && fabs((p * 4) - p) > 0.00001 ){
+      while(!isadjacent(table, randy, randx) && cnt < CNT ){
          int direction = rand() % 100;
          if (direction < 25){
             randy++;
@@ -65,7 +67,7 @@ int main(void){
          }
          
          if (isadjacent(table, randy, randx)){
-            p += P;
+            cnt++;
          }
       }
       

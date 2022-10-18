@@ -46,12 +46,12 @@ int main(void)
    assert(str2crossword(7, "..X....X.XX.X.X.XX.X......X..XX.XX.........XX.XX.", &c));
    getcluestring(&c, str);
    assert(strcmp("A-1-3-6-8|D-2-4-5-6-7", str)==0);
-   assert(getchecked(c)==32);
+   assert(getchecked(c)==32); 
 
    assert(str2crossword(7, "X.X........X.XX.X.X.X.......X.X.X.X....X.XX.X....", &c));
    getcluestring(&c, str);
    assert(strcmp("A-2-4-5-6-7|D-1-2-3", str)==0);
-   assert(getchecked(c)==33);
+   assert(getchecked(c)==33); 
 
    assert(str2crossword(7, "...X....X...X....X...X.XXX.X...X....X...X....X...", &c));
    getcluestring(&c, str);
@@ -66,6 +66,6 @@ int main(void)
    assert(str2crossword(8, ".....X.XX.X.X..........XX.X.X......X.X.XX..........X.X.XX.X.....", &c));
    getcluestring(&c, str);
    assert(strcmp("A-1-5-6-7-8-11-12-13|D-2-3-4-5-9-10", str)==0);
-   assert(getchecked(c)==43);
+   assert(getchecked(c)==43);  
 
 }

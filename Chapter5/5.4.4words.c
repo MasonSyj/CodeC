@@ -2,16 +2,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define TEMPSIZE
+#define TEMPSIZE 20
+#define WORDSIZE 20
 
 typedef struct node{
-  char* word;
-  node* next;
+  char word[WORDSIZE];
+  struct node* next;
 } node;
 
-void makeway(char arr[][COL], int kth, int last);
-void insert(char arr[][COL], char temp[], int last);
-void show(char arr[][COL], int cnt);
+void insert(node* head, char temp[]);
+void show(node* head);
 
 int main(){
    FILE* fp = fopen("34words.txt", "r");
@@ -19,69 +19,71 @@ int main(){
       fprintf(stderr, "Cannot read %s", "word.txt");
       exit(EXIT_FAILURE);
    }
+   node* head = (node*)malloc(sizeof(struct node));
+   strcpy(head->word, "head");
+   head->next = NULL;
 
    int i = 0;
    char c;
-   char temp[TEMPSIZE];
-   int cnt = 0;
+   char temp[TEMPSIZE + 1];
    while ((c = fgetc(fp)) != EOF){
       if (c == '\n'){
-         node* n = (node*)malloc(sizeof(struct node));
-         strcpy(arr[cnt], "");
+         if (i > TEMPSIZE){
+           continue;
+         }
          temp[i] = '\0';
          i = 0;
-         cnt++;
-         puts(temp);
-         insert(arr, temp, cnt);
+         insert(head, temp);
          strcpy(temp, "");
       }else{
          temp[i++] = c;
       }
    }
    printf("------------\n");
-   show(arr, cnt);
+   show(head);
 
    fclose(fp);
    return EXIT_SUCCESS;
 }
 
-void insert(char arr[][COL], char temp[], int last){
-   int j = 0;
-   while (j < ROW - 1){
-      if (strcmp(arr[0], "") == 0){
-        strcpy(arr[0], temp);
-      }
-      else if (strcmp(temp, arr[0]) < 0){
-         makeway(arr, 0, last);
-         strcpy(arr[0], temp);
+void insert(node* head, char temp[]){
+   node* n = (node*)malloc(sizeof(struct node));
+   strcpy(n->word, temp);
+   n->next = NULL;
+   // node** p = (node*)malloc(sizeof(struct node));
+   // *p = head;
+
+   if ((head->next) == NULL){
+     head->next = n;
+     return;
+   }
+
+   if (strcmp(temp, head->next->word) < 0){
+      n->next = head->next;
+      head->next = n;
+      return;
+   }
+
+   head = head->next;
+   while (head->next){
+      if (strcmp(temp, head->word) > 0 && strcmp(temp, head->next->word) < 0){
+         n->next = head->next;
+         head->next = n;
          return;
       }
-      else if (strcmp(temp, arr[j]) > 0 && strcmp(temp, arr[j+1]) < 0){
-         makeway(arr, j+1, last);
-         strcpy(arr[j+1], temp);
-         return;
-      }else if (strcmp(temp, arr[j]) > 0 && arr[j+1][0] == '\0'){
-         strcpy(arr[j+1], temp);
-         return;
+
+      if ((head->next) == NULL){
+        head->next = n;
+        return;
       }
-      j++;
+      head = head->next;
    }
 }
 
-void makeway(char arr[][COL], int kth, int last){
-   int j = last;
-   while (j >= kth){
-     strcpy(arr[j+1], arr[j]);
-     j--;
-   }
-}
-
-void show(char arr[][COL], int cnt){
-   for (int j = 0; j < cnt; j++){
-      // if (arr[j][0] == '\0'){
-      //    return;
-      // }
-      printf("%s\n", arr[j]);
+void show(node* head){
+   while (head){
+      printf("%s\n", head->word);
+      head = head->next;
 
    }
 }

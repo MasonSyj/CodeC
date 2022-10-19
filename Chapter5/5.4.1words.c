@@ -5,6 +5,9 @@
 #define ROW 3000
 #define COL 10
 
+
+int binarysearch_it(char arr[][COL], char* str, int l, int r);
+int binarysearch_recur(char arr[][COL], char* str, int l, int r);
 void makeway(char arr[][COL], int kth, int last);
 void insert(char arr[][COL], char temp[], int last);
 void show(char arr[][COL], int cnt);
@@ -37,8 +40,46 @@ int main(){
    printf("------------\n");
    show(arr, cnt);
 
+   int x0 = binarysearch_it(arr, "tofu", 0, cnt);
+   int x1 = binarysearch_it(arr, "like", 0, cnt);
+   int x2 = binarysearch_it(arr, "labs", 0, cnt);
+   printf("x0 = %d, x1 = %d, x2 = %d\n", x0, x1, x2);
+
+   int y0 = binarysearch_recur(arr, "tofu", 0, cnt);
+   int y1 = binarysearch_recur(arr, "like", 0, cnt);
+   int y2 = binarysearch_recur(arr, "labs", 0, cnt);
+   printf("y0 = %d, y1 = %d, y2 = %d", y0, y1, y2);
+
    fclose(fp);
    return EXIT_SUCCESS;
+}
+
+int binarysearch_recur(char arr[][COL], char* str, int l, int r){
+  int middle = (l + r) / 2;
+  if (strcmp(str, arr[middle]) == 0){
+    return middle;
+  }else if (strcmp(str, arr[middle]) < 0){
+    return binarysearch_recur(arr, str, l, middle - 1);
+  }else if (strcmp(str, arr[middle]) > 0){
+    return binarysearch_recur(arr, str, middle + 1, r);
+  }
+  return -1;
+}
+
+int binarysearch_it(char arr[][COL], char* str, int l, int r){
+  int middle;
+  while (l <= r){
+    middle = (l + r) / 2;
+    if (strcmp(str, arr[middle]) == 0){
+      return middle;
+    }
+    else if (strcmp(str, arr[middle]) < 0){
+      r = middle - 1;
+    }else if (strcmp(str, arr[middle]) > 0){
+      l = middle + 1;
+    }
+  }
+  return -1;
 }
 
 void insert(char arr[][COL], char temp[], int last){

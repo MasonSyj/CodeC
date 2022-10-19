@@ -17,8 +17,7 @@ int main(){
    }
 
    char arr[ROW][COL];
-   int i;
-   i = 0;
+   int i = 0;
    char c;
    char temp[COL];
    int cnt = 0;

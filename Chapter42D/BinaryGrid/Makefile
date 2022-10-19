@@ -10,9 +10,9 @@ PRODFLAGS=$(BASEFLAGS) -O1
 # PRODFLAGS=$(BASEFLAGS) -O1 -Werror
 
 # Not optimisation, add in Sanitizer code -> huge executable file but will tell you if an array goes out-of-bounds etc.
-DEVFLAGS=$(BASEFLAGS) -fsanitize=address -fsanitize=undefined -g3 
+DEVFLAGS=$(BASEFLAGS) -fsanitize=address -fsanitize=undefined -g3
 LDLIBS= -lm
-x
+
 # Production Code - no warnings allowed, no sanitizer
 bingrid : bingrid.c bingrid_driver.c bingrid.h
 	$(CC) bingrid.c bingrid_driver.c -o bingrid $(PRODFLAGS) $(LDLIBS)

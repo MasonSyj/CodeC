@@ -25,11 +25,8 @@ void test(void);
 
 // Given an input string, complete information for board
 bool str2board(board* b, char* str);
-
 // Given a board structure, create string version
 void board2str(char* str, board* brd);
-
 // Given a board, apply all rules repatedly - return true if solved, false otherwise
 bool solve_board(board* brd);
 
-void printboard(board* brd);

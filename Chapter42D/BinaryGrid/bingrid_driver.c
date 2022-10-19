@@ -12,7 +12,8 @@ int main(void)
 
    // String Invalid
    assert(str2board(&b, "")==false);
-   // Not a square board
+
+   // Not an even size x even size board
    assert(str2board(&b, "...1.0...")==false);
 
    // An empty board still gives a 'sensible' string
@@ -53,29 +54,11 @@ int main(void)
    assert(solve_board(&b)==false);
 
    // Solvable 8x8 Board
-   assert(str2board(&b, "..0...........0....11.1....1...0....0.1...1................1...."));
-   assert(solve_board(&b)==false);
+   assert(str2board(&b, "0.............0.00...1.....00.......0.....0..1.......00........."));
+   assert(solve_board(&b)==true);
    board2str(str, &b);
-   assert(strcmp(str, "1100101010100101010110111101010010100110001010110101100110110100") != 0);
-
+   assert(strcmp(str, "0101011010011001001011010110011010010011110011000110100110110010")==0);
 
    return 0;
 }
 
-//1100  1010
-//1010  0101
-//0101  1011
-//1101  0100
-//1010  0110
-//0010  1011
-//0101  1001
-//1011  0100
-
-//..0.....
-//......0.
-//...11.1.
-//...1...0
-//....0.1.
-//..1.....
-//........
-//...1....

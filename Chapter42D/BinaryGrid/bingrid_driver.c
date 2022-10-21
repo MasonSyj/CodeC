@@ -58,7 +58,7 @@ int main(void)
    assert(solve_board(&b)==true);
    board2str(str, &b);
    assert(strcmp(str, "0101011010011001001011010110011010010011110011000110100110110010")==0);
+   printf("Done.\n");
 
    return 0;
 }
-

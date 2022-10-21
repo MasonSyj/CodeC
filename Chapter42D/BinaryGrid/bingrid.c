@@ -5,7 +5,7 @@
 #define ONE '1'
 #define DOT '.'
 
-// check if the board is solved by scan, true if there 
+// check if the board is solved by scan, true if there
 // are only ZERO and ONE, false otherwise.
 bool board_check(board* brd);
 // print board in 2D format
@@ -26,7 +26,7 @@ int counting(board* brd){
    int zerocnt, onecnt;
    //jump out of the loop when no new change is made.
    do{
-      newchange = 0;
+      newchange = false;
       // scan row by row and count
       for (int j = 0; j < LINE; j++){
          zerocnt = onecnt = 0;
@@ -37,11 +37,11 @@ int counting(board* brd){
                onecnt++;
             }
          }
-         // apply rule by cnt
+         // apply rule by cnt and avoid when line is already solved
          if ((zerocnt == LINE / 2 || onecnt == LINE / 2)
          && onecnt + zerocnt != LINE){
             char fillnumber = ONE;
-            newchange = 1;
+            newchange = true;
             if (onecnt == LINE / 2){
                fillnumber = ZERO;
             }
@@ -65,11 +65,11 @@ int counting(board* brd){
                onecnt++;
             }
          }
-         // apply rule by cnt
+         // apply rule by cnt and avoid when line is already solved
          if ((zerocnt == LINE / 2 || onecnt == LINE / 2)
-			&& onecnt + zerocnt != LINE){
+         && onecnt + zerocnt != LINE){
             char fillnumber = ONE;
-            newchange = 1;
+            newchange = true;
             if (onecnt == LINE / 2){
                fillnumber = ZERO;
             }
@@ -82,28 +82,28 @@ int counting(board* brd){
             }
          }
       }
-   }while (newchange == 1);
-	
+   }while (newchange == true);
+
    return changemade;
 }
 
 int oxo(board* brd){
    int changemade = 0;
-   bool newchange = 1;
+   bool newchange;
    //jump out of the loop when no new change is made.
    do{
-      newchange = 0;
+      newchange = false;
       //scan row by row and fill in number if oxo appears
       for (int j = 0; j < LINE; j++){
          for (int i = 0; i < LINE - 2; i++){
-            if (brd->b2d[j][i] == brd->b2d[j][i+2] 
-				&& brd->b2d[j][i] != DOT && brd->b2d[j][i+1] == DOT){
+            if (brd->b2d[j][i] == brd->b2d[j][i+2]
+            && brd->b2d[j][i] != DOT && brd->b2d[j][i+1] == DOT){
                if (brd->b2d[j][i] == ZERO){
                   brd->b2d[j][i+1] = ONE;
                }else {
                   brd->b2d[j][i+1] = ZERO;
 					}
-               newchange = 1;
+               newchange = true;
                changemade++;
             }
          }
@@ -111,42 +111,43 @@ int oxo(board* brd){
       //scan col by col and fill in number if rule is satisifed
       for (int i = 0; i < LINE; i++){
          for (int j = 0; j < LINE - 2; j++){
-            if (brd->b2d[j][i]== brd->b2d[j+2][i] 
-				&& brd->b2d[j][i] != DOT && brd->b2d[j+1][i] == DOT){
+            if (brd->b2d[j][i]== brd->b2d[j+2][i]
+            && brd->b2d[j][i] != DOT && brd->b2d[j+1][i] == DOT){
 					if (brd->b2d[j][i] == ZERO){
 					   brd->b2d[j+1][i] = ONE;
 					}else {
 					   brd->b2d[j+1][i]  = ZERO;
 					}
-					newchange = 1;
+					newchange = true;
 					changemade++;
             }
          }
       }
-   }while (newchange == 1);
+   }while (newchange == true);
    return changemade;
 }
 
 int paris(board* brd){
    int changemade = 0;
-   bool newchange = 1;
+   bool newchange;
    //jump out of the loop when no new change is made.
    do{
-      newchange = 0;
+      newchange = false;
       //scan row by row and fill in numbers if two same appear
       for (int j = 0; j < LINE; j++){
          for (int i = 0; i < LINE - 1; i++){
             if (brd->b2d[j][i] == brd->b2d[j][i+1]
-					&& brd->b2d[j][i] != DOT){
+            && brd->b2d[j][i] != DOT){
+               //avoid index out of range and repetitive assignment
                if (i - 1 >= 0 && brd->b2d[j][i-1] == DOT){
                   brd->b2d[j][i-1] = ONE - brd->b2d[j][i] + ZERO;
-                  newchange = 1;
+                  newchange = true;
                   changemade++;
                }
 
                if (i + 2 < LINE && brd->b2d[j][i+2] == DOT){
                   brd->b2d[j][i+2] = ONE - brd->b2d[j][i] + ZERO;
-                  newchange = 1;
+                  newchange = true;
                   changemade++;
                }
             }
@@ -156,28 +157,29 @@ int paris(board* brd){
       for (int i = 0; i < LINE; i++){
          for (int j = 0; j < LINE - 1; j++){
             if (brd->b2d[j][i] == brd->b2d[j+1][i]
-					&& brd->b2d[j][i] != DOT){
+            && brd->b2d[j][i] != DOT){
+               //avoid index out of range and repetitive assignment
                if (j - 1 >= 0 && brd->b2d[j-1][i] == DOT){
                   brd->b2d[j-1][i] = ONE - brd->b2d[j][i] + ZERO;
-                  newchange = 1;
+                  newchange = true;
                   changemade++;
                }
 
                if (j + 2 < LINE&& brd->b2d[j+2][i] == DOT){
                   brd->b2d[j+2][i] = ONE - brd->b2d[j][i] + ZERO;
-                  newchange = 1;
+                  newchange = true;
                   changemade++;
                }
             }
          }
       }
-   }while (newchange == 1);
+   }while (newchange == true);
    return changemade;
 }
 
 bool str2board(board* brd, char* str){
    double x = sqrt(strlen(str));
-   if (fabs(x - (int)x) > DIFF || 
+   if (fabs(x - (int)x) > DIFF ||
    strlen(str) == 0 || (int)x % 2 != 0){
       return false;
    }

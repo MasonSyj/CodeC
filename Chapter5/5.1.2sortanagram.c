@@ -13,6 +13,11 @@ typedef struct node{
    int invoice;
 }node;
 
+typedef struct anode{
+  char word[WORDSIZE];
+  struct anode* next;
+}anode;
+
 void analist(node* head);
 bool isana(char* a, char* b);
 int count(char* str, int n);
@@ -39,32 +44,50 @@ int main(void){
       temp[length - 1] = '\0';
       insert(head, temp);
    }
-   
    analist(head);
-// show(head);
+
 }
 
 void analist(node* head){
    head = head->next;
-// int cnt = head->invoice;
+   int cnt = 0;
    while(head){
       bool exist = 0;
       struct node* iter = head->next;
       while(iter && iter->invoice == head->invoice){
-         if (isana(head->word, iter->word) && strlen(head->word) == strlen(iter->word)){
-            if (exist == false){
-               printf("%s ", head->word);
-               printf("%s ", iter->word);
-               exist = 1;
-            }else{
-               printf("%s ", iter->word);
-            }
+         if (strlen(head->word) == strlen(iter->word) && isana(head->word, iter->word)){
+           if (exist == 0){
+             anode head;
+             head->next = a;
+             anode* a = (anode*)malloc(sizeof(struct(anode)));
+             strcpy(a->word, head->word);
+             a->next = (anode*)malloc(sizeof(struct(anode)));
+             a = a->next;
+             strcpy(a->word, iter->word);
+             a->next = NULL;
+             exist = 1;
+             cnt += 2;
+           }else{
+             a->next = (anode*)malloc(sizeof(struct(anode)));
+             a = a->next;
+             strcpy(a->word, iter->word);
+             a->next = NULL;
+             cnt++;
+           }
+            // if (exist == false){
+            //    printf("%s ", head->word);
+            //    printf("%s ", iter->word);
+            //    exist = 1;
+            // }else{
+            //    printf("%s ", iter->word);
+            // }
          }
-         
          iter = iter->next;
       }
       if (exist == true){
-         printf("\n");
+         a = head->next;
+         printf("%d ", cnt);
+         printf("%s ", a->word);
       }
       head = head->next;
    }
@@ -85,16 +108,16 @@ void insert(node* head, char temp[]){
      head->next = n;
      return;
   }
-  
+
   head = head->next;
   while(head->next){
-     
+
      if (n->invoice > head->invoice && n->invoice <= head->next->invoice){
         n->next = head->next;
         head->next = n;
         return;
      }
-      
+
     head = head->next;
   }
    head->next = n;
@@ -105,7 +128,7 @@ int count(char* str, int n){
    int count = 0;
    int i = 0;
    while(i <= n){
-     
+
      count += *str - 'a' + 1;
      i++;
    }
@@ -128,7 +151,7 @@ bool isana(char* a, char* b){
       indexa[a[i] - 'a']++;
       indexb[b[i] - 'a']++;
    }
-   
+
    for (int i = 0; i < 26; i++){
       if (indexa[i] == indexb[i]){
          continue;

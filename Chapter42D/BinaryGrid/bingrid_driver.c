@@ -17,7 +17,6 @@ int main(void)
    assert(str2board(&b, "...1.0...")==false);
 
    // An empty board still gives a 'sensible' string
-   b.sz = 0;
    board2str(str, &b);
    assert(strcmp(str, "")==0);
    

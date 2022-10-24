@@ -1,22 +1,17 @@
 #include <stdio.h>
 #include <assert.h>
-#define N (int) sizeof(a) / (int)sizeof(a[0])
+// #define N (int)(sizeof(a)/sizeof(a[0])
 
 void swap(int a[], int i, int j);
 void swaponearound(int a[], int n);
-void printarray(int n, int a[]);
+void printarray(int a[], int n);
 
 
 int main(void){
-	int a[] = {1, 2, 3, 4};
-//	printf("%d", (int)sizeof(a));
-//	printf("%d", (int)sizeof(a[0]));
-	printf("%d\n", N);
-//	swap(a, 0, 1);
-//	assert(a[0] == 2);
-//	assert(a[1] == 1);
-//	swap(a, 0, 1);
-	swaponearound(a, N - 1);
+	int a[] = {1, 2, 3, 4, 5, 6};
+	int n = (int)(sizeof(a)/sizeof(a[0]));
+	printf("%d\n", n);
+	swaponearound(a, n - 1);
 }
 
 void swap(int a[], int i, int j){
@@ -27,7 +22,7 @@ void swap(int a[], int i, int j){
 
 void swaponearound(int a[], int n){
 	if (n == 0){
-		printarray(4, a);
+		printarray(a, n);
 		return;
 	}
 	
@@ -39,8 +34,10 @@ void swaponearound(int a[], int n){
 	
 }
 
-void printarray(int n, int a[]){
-	for (int i = 0; i < n; i++){
+void printarray(int a[], int n){
+   static int cnt = 0;
+   printf("%-2d:  ", cnt++);
+	for (int i = 0; i < 6; i++){
         printf("%-3d", a[i]);
     }
     printf("\n");

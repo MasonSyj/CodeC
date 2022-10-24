@@ -8,7 +8,7 @@ void swap(char* a, char* b);
 void permuatecnt(char a[], int n, FILE* fp);
 
 int main(void){
-   FILE* fp = fopen("words.txt", "r");
+   FILE* fp = fopen("34words.txt", "r");
 
    if (!fp){
       fprintf(stderr, "txt failed to access");
@@ -29,18 +29,17 @@ int main(void){
 void permuatecnt(char a[], int n, FILE* fp){
    if (n == 0){
 		 char str[SIZE];
-     FILE* fp2 = fopen("words.txt", "r");
+       FILE* fp2 = fopen("34words.txt", "r");
 		 while (fgets(str, SIZE, fp2) != NULL){
-        int len = strlen(str);
-        str[len - 1] = '\0';
-        if (strcmp(a, str) == 0){
-           printf("%s ", a);
-           fprintf(fp2, " ");
-        }
-
+          int len = strlen(str);
+          str[len - 1] = '\0';
+          if (strcmp(a, str) == 0){
+             printf("%s ", a);
+//             fprintf(fp2, " ");
+          }
 		 }
-     fclose(fp2);
-		return;
+       fclose(fp2);
+		 return;
 	}
 
 	for (int i = n; i >= 0; i--){

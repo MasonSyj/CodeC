@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include "neillsimplescreen.h"
 #define WIDTH 10
 #define HEIGHT 10
 
@@ -43,7 +44,6 @@ int main(void){
 	for (int i = 0; i < 10; i++){
 		wire(a, b);
 		print(a);
-		printf("---------------\n");
 	}
 }
 
@@ -87,12 +87,26 @@ void wire(char a[][HEIGHT + 1], char b[][HEIGHT + 1]){
 }
 
 void print(char a[][HEIGHT + 1]){
+	neillclrscrn();
+	neillbgcol(white);
+	neillcursorhome();
 	for (int i = 0; i < WIDTH; i++){
 		for (int j = 0; j < HEIGHT; j++){
+			if (a[i][j] == '-'){
+				neillfgcol(black);	
+			}else if (a[i][j] == '0'){
+				neillfgcol(blue);	
+			}else if (a[i][j] == '1'){
+				neillfgcol(green);
+			}else if (a[i][j] == '2'){
+				neillfgcol(red);
+			}
 			printf("%-3c", a[i][j]);
 		}
 		printf("\n");
 	}
-	printf("\n");
+	neillcursorhome();
+	neillbusywait(5.0);
+	neillreset();
 }
 

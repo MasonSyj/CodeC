@@ -45,7 +45,7 @@ int main(void){
       insert(head, temp);
    }
    show(head);
-   analist(head);
+// analist(head);
 
 }
 

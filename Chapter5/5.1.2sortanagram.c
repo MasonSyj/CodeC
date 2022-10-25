@@ -23,7 +23,6 @@ bool isana(char* a, char* b);
 int count(char* str, int n);
 void insert(node* head, char* temp);
 void show(node* head);
-void anaprint(anode* a);
 
 int main(void){
    FILE* fp = fopen("34words.txt", "r");
@@ -54,30 +53,32 @@ void analist(node* head){
    head = head->next;
    anode* ahead;
    while(head){
+      if (head->invoice == 0){
+         head = head->next;
+         continue;
+      }
       int cnt = 0;
       bool exist = 0;
       struct node* iter = head->next;
+      anode* a = (anode*)malloc(sizeof(struct anode));
+      ahead = a;
+      a->next = NULL;
       while(iter && iter->invoice == head->invoice){
-         anode* a = (anode*)malloc(sizeof(struct anode));
-         ahead = a;
-         a->next = NULL;
-//       ahead.next = a;
          if (strlen(head->word) == strlen(iter->word) && isana(head->word, iter->word)){
             if (exist == 0){
                strcpy(a->word, head->word);
-//             puts(a->word);
                a->next = (anode*)malloc(sizeof(struct anode));
                a = a->next;
                strcpy(a->word, iter->word);
+               strcpy(iter->word, "");
+               iter->invoice = 0;
                a->next = NULL;
                exist = 1;
                cnt += 2;
-//             puts(a->word);
            }else{
              a->next = (anode*)malloc(sizeof(struct anode));
              a = a->next;
              strcpy(a->word, iter->word);
-//           puts(a->word);
              a->next = NULL;
              cnt++;
            }
@@ -85,22 +86,18 @@ void analist(node* head){
          }
          iter = iter->next;
          if (iter && iter->invoice != head->invoice && exist){
+              a = ahead;
               printf("%d ", cnt);
-              anaprint(ahead);
+              while (a){
+                 printf("%s ", a->word);
+                 a = a->next;
+              }
+              printf("\n--------------------\n");
          }
       }
 
       head = head->next;
    }
-}
-
-void anaprint(anode* a){
-
-   while (a){
-      printf("%s ", a->word);
-      a = a->next;
-   }
-   printf("\n--------------------\n");
 }
 
 void insert(node* head, char temp[]){
@@ -121,7 +118,6 @@ void insert(node* head, char temp[]){
 
   head = head->next;
   while(head->next){
-
      if (n->invoice > head->invoice && n->invoice <= head->next->invoice){
         n->next = head->next;
         head->next = n;
@@ -140,7 +136,6 @@ int count(char* str, int n){
    while(i < n){
      count += str[i++] - 'a' + 1;
    }
-// printf("%d\n", count);
    return count;
 }
 

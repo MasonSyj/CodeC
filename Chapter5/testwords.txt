@@ -1,7 +1,5 @@
-baa
-aba
 bab
-abg
-gab
 bga
+gab
+abg
 hello

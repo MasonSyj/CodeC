@@ -14,6 +14,8 @@ int interpo(char arr[][COL], char* str, int l, int r);
 void makeway(char arr[][COL], int kth, int last);
 void insert(char arr[][COL], char temp[], int last);
 void show(char arr[][COL], int cnt);
+int newleft(char arr[][COL], int m, int i);
+int newright(char arr[][COL], int m, int i);
 void test();
 
 int main(){
@@ -42,7 +44,10 @@ int main(){
          temp[i++] = c;
       }
    }
-   show(arr, cnt);
+// show(arr, cnt);
+   
+   assert(newleft(arr, 2535, 0) == 2424);
+   assert(newright(arr, 2535, 0) == 2622);
 
    int x0 = binarysearch_it(arr, "tofu", 0, cnt);
    int x1 = binarysearch_it(arr, "like", 0, cnt);
@@ -55,9 +60,9 @@ int main(){
    printf("y0 = %d, y1 = %d, y2 = %d\n", y0, y1, y2);
    
    int z0 = interpo(arr, "tofu", 0, cnt - 1);
-// int z1 = interpo(arr, "like", 0, cnt);
-// int z2 = interpo(arr, "labs", 0, cnt);
-// printf("z0 = %d, z1 = %d, z2 = %d\n", z0, z1, z2);
+   int z1 = interpo(arr, "like", 0, cnt - 1);
+   int z2 = interpo(arr, "labs", 0, cnt - 1);
+   printf("z0 = %d, z1 = %d, z2 = %d\n", z0, z1, z2);
 
    fclose(fp);
    return EXIT_SUCCESS;
@@ -71,42 +76,42 @@ int interpo(char arr[][COL], char* str, int l, int r){
    while (l <= r && i < (int)strlen(str)){
       md = (double)l + (double)(l - r) * (double)(str[i] - arr[l][i]) / (double)(arr[l][i] - arr[r][i]);
       m = 0.5 + md;
-      printf("char: %c m: %d, l:%d, r: %d\n", arr[m][i], m, l, r);
       if (m > r || m < 0){
          return -1;
-         
-      if (strcmp(arr[m], str) == 0){
+      }
+      else if (strcmp(arr[m], str) == 0){
          return m;
       }
       
-//    }else if (strncmp(arr[m], str, i + 1) == 0){
-      }else if (arr[m][i] == str[i]){
-         int cnt;
-         for (cnt = i - 1; cnt >= 0; cnt--){
-            if (arr[m][cnt] == str[cnt]){
-               continue;
-            }else{
-               if (arr[m][cnt] > str[cnt]){
-                  r = m - 1;
-               }else{
-                  l = m + 1;
-               }
-               break;
-            }
-         } 
-         if (cnt == -1){
-            printf("-----%c----\n", arr[m][i]);
-            i++;
-         }
-         
+      else if (arr[m][i] == str[i]){
+         l = newleft(arr, m, i);
+         r = newright(arr, m, i);
+         i++;
       }else if (arr[m][i] < str[i]){
          l = m + 1;
-      }else{
+      }else if (arr[m][i] > str[i]){
          r = m - 1;
       }
    }
    return m;
 }
+
+int newleft(char arr[][COL], int m, int i){
+   char num = arr[m][i];
+   while (arr[m][i] == num){
+      m--;
+   }
+   return m + 1;
+}
+
+int newright(char arr[][COL], int m, int i){
+   char num = arr[m][i];
+   while (arr[m][i] == num){
+      m++;
+   }
+   return m - 1;
+}
+
 
 int binarysearch_recur(char arr[][COL], char* str, int l, int r){
   int middle = (l + r) / 2;
@@ -188,10 +193,13 @@ int count(char* a){
    }
    return sum;
 }
+   
+
 
 void test(){
    int i = 1;
    assert(strncmp("toff", "togg", i + 1) == 0);
    assert(count("abc") == 123);
    assert(count("cba") == 321);
+   
 }

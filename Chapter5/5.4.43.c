@@ -26,7 +26,6 @@ int main(){
    strcpy(head->word, "Head of the Linked List");
    head->next = NULL;
 
-   int i = 0;
    char temp[TEMPSIZE];
 
    while (fgets(temp, TEMPSIZE, fp) != NULL){
@@ -37,7 +36,7 @@ int main(){
    assert(linersearch(head, "tofu") == 2535);
    assert(linersearch(head, "like") == 1429);
    assert(linersearch(head, "labs") == 1348);
-   // show(head);
+   show(head);
    fclose(fp);
    return EXIT_SUCCESS;
 }
@@ -56,30 +55,29 @@ void insert(node* head, char temp[]){
    strcpy(n->word, temp);
    n->next = NULL;
 
-   if ((head->next) == NULL){
+   if (head == NULL){
      head->next = n;
      return;
    }
 
-   if (strcmp(temp, head->next->word) < 0){
+   if (strcmp(temp, head->word) < 0){
       n->next = head->next;
-      head->next = n;
+      head = n;
       return;
    }
 
-   head = head->next;
    while (head->next){
       if (strcmp(temp, head->word) > 0 && strcmp(temp, head->next->word) < 0){
          n->next = head->next;
          head->next = n;
          return;
       }
-
-      if ((head->next) == NULL){
-        head->next = n;
-        return;
-      }
       head = head->next;
+   }
+
+   if ((head->next) == NULL){
+     head->next = n;
+     return;
    }
 }
 

@@ -105,6 +105,7 @@ void print(char a[][HEIGHT + 1]){
 		}
 		printf("\n");
 	}
+	neillclrscrn();
 	neillcursorhome();
 	neillbusywait(5.0);
 	neillreset();

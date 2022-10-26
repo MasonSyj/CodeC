@@ -9,10 +9,15 @@
 
 bool isana(char* a, char* b, char* c);
 int counting(char* str);
+// insert a word into a list
 void insert(char arr[][COL], char temp[], int last);
+// print all words from an array
 void show(char arr[][COL], int cnt);
+// insert element into an array and have to shift each elment one position back
 void makeway(char arr[][COL], int kth, int last);
+// control function for a word to split up two words.
 void pairsctrl(char* word, char arr[][COL]);
+// split the word into two words
 void pair(int left, int right, char* word, char arr[][COL]);
 
 int main(void){

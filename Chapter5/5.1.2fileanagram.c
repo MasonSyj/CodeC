@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <assert.h>
 
 #define WORDSIZE 20
 #define TEMPSIZE 20
@@ -18,13 +19,21 @@ typedef struct anode{
   struct anode* next;
 }anode;
 
+// print out all anagrams from a file of words
 void analist(node* head);
+// check if two words are anagrams
 bool isana(char* a, char* b);
-int count(char* str, int n);
+// give a str, sum up each digits by a = 1, b = ...
+int count(char* str);
+// insert a word in a struct node;
 void insert(node* head, char* temp);
+// print the linked list of word
 void show(node* head);
+void test();
 
 int main(void){
+   test();
+
    FILE* fp = fopen("34words.txt", "r");
    if(fp == NULL){
      fprintf(stderr, "Cannnot read %s", "34words.txt");
@@ -44,9 +53,16 @@ int main(void){
       temp[length - 1] = '\0';
       insert(head, temp);
    }
-   show(head);
-// analist(head);
+   // show(head);
+   analist(head);
+}
 
+void test(){
+   assert(isana("abc", "abc"));
+   assert(isana("abc", "cba"));
+   assert(!isana("abc", "dba"));
+   assert(count("abc") == 6);
+   assert(count("abcd") == 10);
 }
 
 void analist(node* head){
@@ -103,7 +119,7 @@ void analist(node* head){
 void insert(node* head, char temp[]){
   node* n = (node*)malloc(sizeof(struct node));
   strcpy(n->word, temp);
-  n->invoice = count(temp, strlen(temp));
+  n->invoice = count(temp);
   n->next = NULL;
   if ((head->next) == NULL){
     head->next = n;
@@ -130,10 +146,10 @@ void insert(node* head, char temp[]){
    return;
 }
 
-int count(char* str, int n){
+int count(char* str){
    int count = 0;
    int i = 0;
-   while(i < n){
+   while(i < strlen(str)){
      count += str[i++] - 'a' + 1;
    }
    return count;
@@ -156,14 +172,10 @@ bool isana(char* a, char* b){
    }
 
    for (int i = 0; i < 26; i++){
-      if (indexa[i] == indexb[i]){
-         continue;
-      }
-      else{
+      if (indexa[i] != indexb[i]){
          return false;
       }
    }
+
    return true;
 }
-
-

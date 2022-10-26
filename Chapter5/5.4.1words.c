@@ -8,17 +8,15 @@
 
 int binarysearch_it(char arr[][COL], char* str, int l, int r);
 int binarysearch_recur(char arr[][COL], char* str, int l, int r);
-int count(char* a);
 int interpo(char arr[][COL], char* str, int l, int r);
 void makeway(char arr[][COL], int kth, int last);
 void insert(char arr[][COL], char temp[], int last);
 void show(char arr[][COL], int cnt);
 int newleft(char arr[][COL], int m, int i);
 int newright(char arr[][COL], int m, int i);
-void test();
 
 int main(){
-   test();
+
    FILE* fp = fopen("34words.txt", "r");
    if(fp == NULL){
       fprintf(stderr, "Cannot read %s", "word.txt");
@@ -42,24 +40,24 @@ int main(){
          temp[i++] = c;
       }
    }
-   
+
    assert(newleft(arr, 2535, 0) == 2424);
    assert(newright(arr, 2535, 0) == 2622);
 
    int x0 = binarysearch_it(arr, "tofu", 0, cnt);
    int x1 = binarysearch_it(arr, "like", 0, cnt);
    int x2 = binarysearch_it(arr, "labs", 0, cnt);
-   printf("x0 = %d, x1 = %d, x2 = %d\n", x0, x1, x2);
 
    int y0 = binarysearch_recur(arr, "tofu", 0, cnt);
    int y1 = binarysearch_recur(arr, "like", 0, cnt);
    int y2 = binarysearch_recur(arr, "labs", 0, cnt);
-   printf("y0 = %d, y1 = %d, y2 = %d\n", y0, y1, y2);
-   
+
    int z0 = interpo(arr, "tofu", 0, cnt - 1);
    int z1 = interpo(arr, "like", 0, cnt - 1);
    int z2 = interpo(arr, "labs", 0, cnt - 1);
-   printf("z0 = %d, z1 = %d, z2 = %d\n", z0, z1, z2);
+   assert(x0 == y0 && y0 == z0);
+   assert(x1 == y1 && y1 == z1);
+   assert(x2 == y2 && y2 == z2);
 
    fclose(fp);
    return EXIT_SUCCESS;
@@ -79,7 +77,7 @@ int interpo(char arr[][COL], char* str, int l, int r){
       else if (strcmp(arr[m], str) == 0){
          return m;
       }
-      
+
       else if (arr[m][i] == str[i]){
          l = newleft(arr, m, i);
          r = newright(arr, m, i);
@@ -177,26 +175,4 @@ void show(char arr[][COL], int cnt){
       printf("%s %d\n", arr[j], j);
 
    }
-}
-
-int count(char* a){
-// int len = strlen(a);
-   int i = 0;
-   int sum = 0;
-   while(i < 3){
-      sum = sum * 10 + (*(a+i) - 'a' + 1);
-//    printf("%d\n", sum);
-      i++;
-   }
-   return sum;
-}
-   
-
-
-void test(){
-   int i = 1;
-   assert(strncmp("toff", "togg", i + 1) == 0);
-   assert(count("abc") == 123);
-   assert(count("cba") == 321);
-   
 }

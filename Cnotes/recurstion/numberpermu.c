@@ -25,13 +25,13 @@ void swaponearound(int a[], int n){
 		printarray(a, n);
 		return;
 	}
-	
+
 	for (int i = n;i >= 0; i--){
 		swap(a, i, n);
 		swaponearound(a, n - 1);
 		swap(a, i, n);
    }
-	
+
 }
 
 void printarray(int a[], int n){

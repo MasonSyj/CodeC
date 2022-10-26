@@ -22,7 +22,9 @@ int main(){
       fprintf(stderr, "Cannot read %s", "word.txt");
       exit(EXIT_FAILURE);
    }
+   
    node* head = (node*)malloc(sizeof(struct node));
+   head->word = (char*)calloc(WORDSIZE, sizeof(char));
    head->next = NULL;
 
    char temp[TEMPSIZE];
@@ -35,14 +37,16 @@ int main(){
    assert(linersearch(head, "tofu") == 2535);
    assert(linersearch(head, "like") == 1429);
    assert(linersearch(head, "labs") == 1348);
+   
    show(head);
    fclose(fp);
    return EXIT_SUCCESS;
 }
 
 int linersearch(node* head, char temp[]){
+   head = head->next;
    int cnt = 0;
-   while (strcmp(head->next->word, temp) != 0){
+   while (head && strcmp(head->word, temp) != 0){
       head = head->next;
       cnt++;
    }
@@ -50,23 +54,24 @@ int linersearch(node* head, char temp[]){
 }
 
 void insert(node* head, char temp[]){
-   puts(temp);
    node* n = (node*)malloc(sizeof(struct node));
    n->word = (char*)malloc((strlen(temp) + 1) * sizeof(char));
    strcpy(n->word, temp);
    n->next = NULL;
 
-   if (head->word == NULL){
-     head = n;
+   if (head->next == NULL){
+     head->next = n;
      return;
    }
 
-   if (strcmp(temp, head->word) < 0){
+   if (strcmp(temp, head->next->word) < 0){
       n->next = head->next;
-      head = n;
+      head->next = n;
       return;
    }
-
+   
+   head = head->next;
+   
    while (head->next){
       if (strcmp(temp, head->word) > 0 && strcmp(temp, head->next->word) < 0){
          n->next = head->next;

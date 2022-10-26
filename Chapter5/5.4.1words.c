@@ -6,7 +6,6 @@
 #define ROW 3000
 #define COL 10
 
-
 int binarysearch_it(char arr[][COL], char* str, int l, int r);
 int binarysearch_recur(char arr[][COL], char* str, int l, int r);
 int count(char* a);
@@ -37,14 +36,12 @@ int main(){
          temp[i] = '\0';
          i = 0;
          cnt++;
-//       puts(temp);
          insert(arr, temp, cnt);
          strcpy(temp, "");
       }else{
          temp[i++] = c;
       }
    }
-// show(arr, cnt);
    
    assert(newleft(arr, 2535, 0) == 2424);
    assert(newright(arr, 2535, 0) == 2622);

@@ -84,6 +84,5 @@ void show(node* head){
    while (head){
       printf("%s\n", head->word);
       head = head->next;
-
    }
 }

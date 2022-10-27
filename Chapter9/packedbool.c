@@ -1,6 +1,9 @@
 #define N 8
 #define SCALEFACTOR 2
 
+#define ZERO 0b0
+#define ONE 0b1
+
 
 typedef struct boolarr{
    char* pack;
@@ -19,16 +22,39 @@ boolarr* boolarr_init(void){
 }
 
 /* Create boolarr based on string e.g. "1100001" */
-boolarr* boolarr_initstr(const char* str)
+boolarr* boolarr_initstr(const char* str){
+   boolarr* x = (boolarr*)malloc(sizeof(boolarr));
+   x->pack = (char*)calloc(8, sizeof(char));
+   while(str){
+      
+      *(x->pack) |= *;
+      x->pack++;
+      str++;
+   }
+   return x;
+}
 
 /* Return a deep copy */
-boolarr* boolarr_clone(const boolarr* ba);
+boolarr* boolarr_clone(const boolarr* ba){
+   boolarr* x = (boolarr*)malloc(sizeof(boolarr));
+   int size = sizeof(ba->pack);
+   x->pack = (char*)malloc(size);
+   strcpy(x->pack, ba->pack);
+}   
 
 /* Get number of bits in array */
-unsigned int boolarr_size(const boolarr* ba);
+unsigned int boolarr_size(const boolarr* ba){
+   unsigned int bytesize = sizeof(ba->pack);
+   return bytesize * 8;
+}
 
 /* Return number of bits that are set true */
-unsigned int boolarr_count1s(const boolarr* ba);
+unsigned int boolarr_count1s(const boolarr* ba){
+   unsigned int cnt = 0;
+   while(ba->pack){
+      if (*(ba->pack) & 
+   }
+}
 
 /* Set nth bit on/off */
 bool boolarr_set(boolarr* ba, const unsigned int n, const bool b);

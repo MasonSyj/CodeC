@@ -2,7 +2,7 @@
 /* Boolean(Bit) Array/Vector
    Little-endian: LSB  */
 
-#pragma once 
+#pragma once
 
 #include "../../ADTs/General/general.h"
 

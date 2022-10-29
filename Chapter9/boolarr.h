@@ -11,6 +11,11 @@
 #include <assert.h>
 #include <stdbool.h>
 
+typedef struct boolarr{
+   char* pack;
+   int length;
+}boolarr;
+
 typedef enum logicalop {or, and, xor} logicalop;
 
 /* All elements initialised to "0" */
@@ -51,3 +56,5 @@ boolarr* boolarr_bitwise(const boolarr* ba1, const boolarr* ba2, const logicalop
 
 /* Clears all space */
 bool boolarr_free(boolarr* p);
+
+void test();

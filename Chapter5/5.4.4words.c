@@ -11,8 +11,11 @@ typedef struct node{
   struct node* next;
 } node;
 
+//conduct a liner search onto a linked list
 int linersearch(node* head, char temp[]);
+// insert a word each time into the linked list
 void insert(node* head, char temp[]);
+// print out the linked list of word
 void show(node* head);
 
 int main(){
@@ -22,11 +25,16 @@ int main(){
       fprintf(stderr, "Cannot read %s", "word.txt");
       exit(EXIT_FAILURE);
    }
+   
+   //create the "head" of the linked list which doesn't contain word
+   //words begin sorting from head->next;
    node* head = (node*)malloc(sizeof(struct node));
    strcpy(head->word, "Head of the Linked List");
    head->next = NULL;
 
    int i = 0;
+   //create a char array to receive words from the file
+   //the size of the word is less than TEMPSIZE 20
    char temp[TEMPSIZE];
 
    while (fgets(temp, TEMPSIZE, fp) != NULL){
@@ -37,7 +45,7 @@ int main(){
    assert(linersearch(head, "tofu") == 2535);
    assert(linersearch(head, "like") == 1429);
    assert(linersearch(head, "labs") == 1348);
-   // show(head);
+   
    fclose(fp);
    return EXIT_SUCCESS;
 }

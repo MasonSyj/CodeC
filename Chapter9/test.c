@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <string.h>
+<<<<<<< HEAD
 #include "boolarr.h"
+=======
+>>>>>>> 725957d87045b692120f6b3e9f9a1c35ed01bead
 
 #define NONE 0b00000000
 #define LEASTBIT 0b00000001
@@ -74,4 +77,8 @@ unsigned int charsize(const unsigned char c){
       }
       leastbit = leastbit << 1;
    }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 725957d87045b692120f6b3e9f9a1c35ed01bead

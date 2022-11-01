@@ -25,9 +25,11 @@ int main(void){
    head->next = NULL;
    head->previous = NULL;
    node* lastnode;
+   node* nodefour;
+   node* nodethree;
 
-   lastnode = add(head, 3);
-   lastnode = add(head, 4);
+   nodethree = add(head, 3);
+   nodefour = add(head, 4);
    lastnode = add(head, 5);
    printf("%d\n", searchfstart(head, 3));
    printf("%d\n", searchfstart(head, 4));
@@ -46,12 +48,17 @@ int main(void){
    printf("%d\n", isin(head, 3));
    printf("%d\n", isin(head, 4));
    printf("%d\n", isin(head, 6));
-   printf("--------------------------\nmove to front test:\n");
-   mft(head, lastnode);
+   // printf("--------------------------\nmove to front test:\n");
+   // mft(head, nodefour);
+   // printf("%d %d\n", 0, searchkth(head, 0));
+   // printf("%d %d\n", 1, searchkth(head, 1));
+   // printf("%d %d\n", 2, searchkth(head, 2));
+   printf("--------------------------\ntranspose:\n");
+   transpose(head, nodefour);
    printf("%d %d\n", 0, searchkth(head, 0));
    printf("%d %d\n", 1, searchkth(head, 1));
    printf("%d %d\n", 2, searchkth(head, 2));
-   printf("--------------------------\nremove test:\n");
+   printf("--------------------------\nremove test: remove the data 4\n");
    removen(head, 4);
    printf("%d %d\n", 0, searchkth(head, 0));
    printf("%d %d\n", 1, searchkth(head, 1));
@@ -71,7 +78,7 @@ node* add(node* head, int data){
 
    if (head->next == NULL){
       head->next = n;
-      n->previous = NULL;
+      n->previous = head;
       return n;
    }
 
@@ -136,6 +143,12 @@ void removen(node* head, int data){
      return;
   }
   node* probe = head->next;
+  if (probe->data == data){
+     head->next = probe->next;
+     probe->next->previous = probe->previous;
+     free(probe);
+     return;
+  }
   while (probe->next){
      if (probe->next->data == data){
         if (probe->next->next == NULL){
@@ -192,4 +205,24 @@ void mft(node* head, node* n){
    n->previous->next = n->next;
    n->next = head->next;
    head->next = n;
+}
+
+void transpose(node* head, node* n){
+
+   if (head->next == n){
+      return;
+   }else{
+      node* first = n->previous->previous;
+      node* second = n->previous;
+      node* third = n;
+      node* fourth = n->next;
+      n->previous->previous->next = third;
+      n->previous->previous = third;
+      n->previous->next = fourth;
+      n->previous = first;
+      n->next = second;
+      if (n->next){
+         n->next->previous = second;
+      }
+   }
 }

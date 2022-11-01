@@ -1,8 +1,11 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <math.h>
 
-typedef int datatype;
+#define DIFF 0.0000001
+
+typedef double datatype;
 
 typedef struct node{
    datatype data;
@@ -13,7 +16,7 @@ typedef struct node{
 node* add(node* head, datatype data);
 int searchfstart(node* head, datatype data);
 int searchflast(node* head, datatype data);
-datatype searchkth(node* head, datatype k);
+datatype searchkth(node* head, int k);
 void removen(node* head, datatype data);
 bool isin(node* head, datatype data);
 int size(node* head);
@@ -30,41 +33,41 @@ int main(void){
    node* nodefour;
    node* nodethree;
 
-   nodethree = add(head, 3);
-   nodefour = add(head, 4);
-   lastnode = add(head, 5);
-   printf("%d\n", searchfstart(head, 3));
-   printf("%d\n", searchfstart(head, 4));
-   printf("%d\n", searchfstart(head, 5));
+   nodethree = add(head, 3.5);
+   nodefour = add(head, 4.5);
+   lastnode = add(head, 5.5);
+   printf("%d\n", searchfstart(head, 3.5));
+   printf("%d\n", searchfstart(head, 4.5));
+   printf("%d\n", searchfstart(head, 5.5));
 
-   printf("%d\n", searchflast(lastnode, 3));
-   printf("%d\n", searchflast(lastnode, 4));
-   printf("%d\n", searchflast(lastnode, 5));
+   printf("%d\n", searchflast(lastnode, 3.5));
+   printf("%d\n", searchflast(lastnode, 4.5));
+   printf("%d\n", searchflast(lastnode, 5.5));
    printf("size: %d\n", size(head));
    printf("--------------------------\n");
-   printf("%d %d\n", 0, searchkth(head, 0));
-   printf("%d %d\n", 1, searchkth(head, 1));
-   printf("%d %d\n", 2, searchkth(head, 2));
+   printf("%d %f\n", 0, searchkth(head, 0));
+   printf("%d %f\n", 1, searchkth(head, 1));
+   printf("%d %f\n", 2, searchkth(head, 2));
    printf("--------------------------\n");
    printf("isin test:\n");
-   printf("%d\n", isin(head, 3));
-   printf("%d\n", isin(head, 4));
-   printf("%d\n", isin(head, 6));
+   printf("%d\n", isin(head, 3.5));
+   printf("%d\n", isin(head, 4.5));
+   printf("%d\n", isin(head, 6.5));
    // printf("--------------------------\nmove to front test:\n");
    // mft(head, nodefour);
-   // printf("%d %d\n", 0, searchkth(head, 0));
-   // printf("%d %d\n", 1, searchkth(head, 1));
-   // printf("%d %d\n", 2, searchkth(head, 2));
+   // printf("%f %f\n", 0, searchkth(head, 0));
+   // printf("%f %f\n", 1, searchkth(head, 1));
+   // printf("%f %f\n", 2, searchkth(head, 2));
    printf("--------------------------\ntranspose:\n");
    transpose(head, nodefour);
-   printf("%d %d\n", 0, searchkth(head, 0));
-   printf("%d %d\n", 1, searchkth(head, 1));
-   printf("%d %d\n", 2, searchkth(head, 2));
+   printf("%d %f\n", 0, searchkth(head, 0));
+   printf("%d %f\n", 1, searchkth(head, 1));
+   printf("%d %f\n", 2, searchkth(head, 2));
    printf("--------------------------\nremove test: remove the data 4\n");
-   removen(head, 4);
-   printf("%d %d\n", 0, searchkth(head, 0));
-   printf("%d %d\n", 1, searchkth(head, 1));
-   printf("%d %d\n", 2, searchkth(head, 2));
+   removen(head, 4.5);
+   printf("%d %f\n", 0, searchkth(head, 0));
+   printf("%d %f\n", 1, searchkth(head, 1));
+   printf("%d %f\n", 2, searchkth(head, 2));
 
 }
 
@@ -101,11 +104,11 @@ int searchfstart(node* head, datatype data){
 
    node* probe = head->next;
    int cnt = 0;
-   while (probe->next && probe->data != data){
+   while (probe->next && fabs(probe->data - data) > DIFF){
       probe = probe->next;
       cnt++;
    }
-   if (probe->data == data){
+   if (fabs(probe->data - data) < DIFF){
       return cnt;
    }else{
       printf("list doesn't contain the wanted node.\n");
@@ -116,11 +119,11 @@ int searchfstart(node* head, datatype data){
 int searchflast(node* tail, datatype data){
    node* probe = tail;
    int cnt = 0;
-   while (probe->previous && probe->data != data){
+   while (probe->previous && fabs(probe->data - data) > DIFF){
       probe = probe->previous;
       cnt++;
    }
-   if (probe->data == data){
+   if (fabs(probe->data - data) < DIFF){
       return cnt;
    }else{
       printf("list doesn't contain the wanted node.\n");
@@ -145,14 +148,14 @@ void removen(node* head, datatype data){
      return;
   }
   node* probe = head->next;
-  if (probe->data == data){
+  if (fabs(probe->data - data) < DIFF){
      head->next = probe->next;
      probe->next->previous = probe->previous;
      free(probe);
      return;
   }
   while (probe->next){
-     if (probe->next->data == data){
+     if (fabs(probe->next->data - data) < DIFF){
         if (probe->next->next == NULL){
            free(probe->next);
            probe->next = NULL;
@@ -173,7 +176,7 @@ bool isin(node* head, datatype data){
    }
    node* probe = head->next;
    while (probe->next){
-      if (probe->data == data){
+      if (fabs(probe->data - data) < DIFF){
          return true;
       }
       probe = probe->next;

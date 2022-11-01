@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-typedef int datatype;
+typedef char datatype;
 
 typedef struct node{
    datatype data;
@@ -13,7 +13,7 @@ typedef struct node{
 node* add(node* head, datatype data);
 int searchfstart(node* head, datatype data);
 int searchflast(node* head, datatype data);
-datatype searchkth(node* head, datatype k);
+datatype searchkth(node* head, int k);
 void removen(node* head, datatype data);
 bool isin(node* head, datatype data);
 int size(node* head);
@@ -30,26 +30,26 @@ int main(void){
    node* nodefour;
    node* nodethree;
 
-   nodethree = add(head, 3);
-   nodefour = add(head, 4);
-   lastnode = add(head, 5);
-   printf("%d\n", searchfstart(head, 3));
-   printf("%d\n", searchfstart(head, 4));
-   printf("%d\n", searchfstart(head, 5));
+   nodethree = add(head, 'a');
+   nodefour = add(head, 'b');
+   lastnode = add(head, 'c');
+   printf("%d\n", searchfstart(head, 'a'));
+   printf("%d\n", searchfstart(head, 'b'));
+   printf("%d\n", searchfstart(head, 'c'));
 
-   printf("%d\n", searchflast(lastnode, 3));
-   printf("%d\n", searchflast(lastnode, 4));
-   printf("%d\n", searchflast(lastnode, 5));
+   printf("%d\n", searchflast(lastnode, 'a'));
+   printf("%d\n", searchflast(lastnode, 'b'));
+   printf("%d\n", searchflast(lastnode, 'c'));
    printf("size: %d\n", size(head));
    printf("--------------------------\n");
-   printf("%d %d\n", 0, searchkth(head, 0));
-   printf("%d %d\n", 1, searchkth(head, 1));
-   printf("%d %d\n", 2, searchkth(head, 2));
+   printf("%d %c\n", 0, searchkth(head, 0));
+   printf("%d %c\n", 1, searchkth(head, 1));
+   printf("%d %c\n", 2, searchkth(head, 2));
    printf("--------------------------\n");
    printf("isin test:\n");
-   printf("%d\n", isin(head, 3));
-   printf("%d\n", isin(head, 4));
-   printf("%d\n", isin(head, 6));
+   printf("%d\n", isin(head, 'a'));
+   printf("%d\n", isin(head, 'b'));
+   printf("%d\n", isin(head, 'd'));
    // printf("--------------------------\nmove to front test:\n");
    // mft(head, nodefour);
    // printf("%d %d\n", 0, searchkth(head, 0));
@@ -57,14 +57,14 @@ int main(void){
    // printf("%d %d\n", 2, searchkth(head, 2));
    printf("--------------------------\ntranspose:\n");
    transpose(head, nodefour);
-   printf("%d %d\n", 0, searchkth(head, 0));
-   printf("%d %d\n", 1, searchkth(head, 1));
-   printf("%d %d\n", 2, searchkth(head, 2));
+   printf("%d %c\n", 0, searchkth(head, 0));
+   printf("%d %c\n", 1, searchkth(head, 1));
+   printf("%d %c\n", 2, searchkth(head, 2));
    printf("--------------------------\nremove test: remove the data 4\n");
-   removen(head, 4);
-   printf("%d %d\n", 0, searchkth(head, 0));
-   printf("%d %d\n", 1, searchkth(head, 1));
-   printf("%d %d\n", 2, searchkth(head, 2));
+   removen(head, 'a');
+   printf("%d %c\n", 0, searchkth(head, 0));
+   printf("%d %c\n", 1, searchkth(head, 1));
+   printf("%d %c\n", 2, searchkth(head, 2));
 
 }
 
@@ -130,8 +130,8 @@ int searchflast(node* tail, datatype data){
 
 datatype searchkth(node* head, int k){
    if (k < 0 || (k + 1) > size(head)){
-      printf("index %dth doesn't exist.\n", k);
-      return -1;
+      printf("index %dth doesn't exist. return '0'\n", k);
+      return '0';
    }
    node* probe = head->next;
    for (int i = 0; i < k; i++){
@@ -158,9 +158,11 @@ void removen(node* head, datatype data){
            probe->next = NULL;
            return;
         }
+        node* freep = probe->next;
         probe->next = probe->next->next;
-        free(probe->next->previous);
+ //       free(probe->next->previous);
         probe->next->previous = probe;
+        free(freep);
         return;
      }
      probe = probe->next;

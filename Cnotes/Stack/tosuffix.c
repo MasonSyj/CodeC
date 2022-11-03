@@ -29,8 +29,9 @@ void makeempty(Stack s);
 
 int main(void){
    test();
-
-   char exp[] = "2x(9+6/3-5)+4";
+// char exp[] = "(/3-5)+4";
+// char exp[] = "2x(9+6/3-5)+4";
+   char exp[] = "(3+4)x5-6";
    char* suffix = tosuffix(exp);
    puts(suffix);
 
@@ -53,9 +54,9 @@ char* tosuffix(char* exp){
             *suffix++ = temp;
          }
          assert(temp == '(');
- //        pop(s);
          exp++;
       }else if (*exp == 'x' || *exp == '/' || *exp == '+' || *exp == '-'){
+         
          if (isempty(s)){
             push(s, *exp);
             exp++;
@@ -64,37 +65,31 @@ char* tosuffix(char* exp){
          
          char temp = pop(s);
          push(s,temp);
+         
          if (opcmp(*exp, temp) > 0){
             printf("push: %c\n", *exp);
             push(s, *exp);
          }else{
             while(opcmp(*exp, temp) <= 0 && !isempty(s)){
                printf("*exp: %c temp: %c\n", *exp, temp);
-               *suffix++ = temp;
                temp = pop(s);
-               printf("pop out:%c\n", temp);
+               *suffix++ = temp;
+               printf("pop out new:%c\n", temp);
             }
-            
-            if (isempty(s)){
-               printf("bring back %c \n", temp);
-               push(s, temp);
-            }
-            
-            
             if (temp == '('){
                push(s, temp);
             }
-            
             push(s, *exp);
          }
-         exp++;           
+         exp++;
       }
       
    }
+   
    while (!isempty(s)){
       *suffix++ = pop(s);
    }
-   puts(start);
+   
    return start;
 }
 
@@ -115,7 +110,6 @@ int opcmp(char a, char b){
          return 0;
       }
    }
-   
 }
 
 int suffixcal(char* exp){

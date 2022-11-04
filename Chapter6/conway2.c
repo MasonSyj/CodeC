@@ -116,7 +116,7 @@ node* board_addlist(node* oldlast, node* newlast){
    oldlast->next = newlast;
    newlast->next = NULL;
    board_show(newlast);
-   if (newlast->board[0][3] == 1){
+   if (newlast->board[1][1] == 1){
       board_show(newlast);
       printf("----Found-----\n");
       exit(EXIT_SUCCESS);

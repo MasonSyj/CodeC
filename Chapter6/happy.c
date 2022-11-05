@@ -10,6 +10,8 @@ typedef struct node{
    char board[SIZE][SIZE];
    int row;
    int col;
+   int newrow;
+   int oldrow;
    struct node* next;
 }node;
 
@@ -28,6 +30,8 @@ int main(void) {
    node* head = (node*)malloc(sizeof(struct node));
    head->row = 4;
    head->col = 3;
+   head->oldrow = -1;
+   head->newrow = -1;
    head->next = NULL;
    head->board[0][1] = head->board[1][0] = 'g';
    head->board[0][0] = head->board[1][1] = 'r';
@@ -35,7 +39,7 @@ int main(void) {
    head->board[2][1] = head->board[3][0] = 'y';
    head->board[0][2] = head->board[1][2] = head->board[2][2] = head->board[3][2] = '.';
    head->board[0][3] = head->board[1][3] = head->board[2][3] = head->board[3][3] = '\0';
-   show(head);
+// show(head);
 // move(head);
    movectrl(head);
 }
@@ -54,14 +58,17 @@ void movectrl(node* n){
 
 bool move(node* n){
    for (int j = 0; j < n->row; j++){
-      if (dot(n->board[j]) >= 1 || dot(n->board[j]) == -1){ //ensure there's a letter to move to
+      if (dot(n->board[j]) >= 1 || dot(n->board[j]) == -1){ 
+         //ensure there's a letter to move to
          int lastletter = dot(n->board[j]) >= 1 ? (dot(n->board[j]) - 1):(n->col - 1);
-         for (int newrow = n->row - 1; newrow >=0 ; newrow--){
-            if (newrow != j && dot(n->board[newrow]) >= 0){
+         for (int newrow = 0; newrow < n->row; newrow++){
+            if ((n->oldrow != newrow && n->newrow != j) && j != newrow && dot(n->board[newrow]) >= 0){
                node* new = (node*)malloc(sizeof(struct node));
                memcpy(new, n, sizeof(node));
                new->board[newrow][dot(n->board[newrow])] = n->board[j][lastletter];
                new->board[j][lastletter] = '.';
+               new->oldrow = j;
+               new->newrow = newrow;
                if (ishappy(new)){
                   return true;
                }
@@ -150,6 +157,5 @@ void addtoend(node* n, node* new){
    }
    temp->next = new;
    new->next = NULL;
-// show(new);
 }
          

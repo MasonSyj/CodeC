@@ -45,6 +45,7 @@ int main(){
    assert(linersearch(head, "tofu") == 2535);
    assert(linersearch(head, "like") == 1429);
    assert(linersearch(head, "labs") == 1348);
+// assert(linersearch(head, "hhhhhhhhhhh") == 0);
    
    fclose(fp);
    return EXIT_SUCCESS;
@@ -52,7 +53,7 @@ int main(){
 
 int linersearch(node* head, char temp[]){
    int cnt = 0;
-   while (strcmp(head->next->word, temp) != 0){
+   while (head->next && strcmp(head->next->word, temp) != 0){
       head = head->next;
       cnt++;
    }

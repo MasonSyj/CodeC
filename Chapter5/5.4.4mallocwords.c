@@ -9,7 +9,7 @@
 typedef struct node{
   char* word;
   struct node* next;
-} node;
+}node;
 
 //conduct a liner search onto a linked list
 int linersearch(node* head, char temp[]);
@@ -22,7 +22,11 @@ int main(int argc, char* argv[]){
 
    FILE* fp = fopen(argv[1], "r");
    if(!fp){
-      fprintf(stderr, "Cannot read %s", argv[1]);
+      fprintf(stderr, "Cannot read %s", argv[1]);//conduct a liner search onto a linked list
+int linersearch(node* head, char temp[]);
+// insert a word each time into the linked list
+void insert(node* head, char temp[]);
+// print out the linked list of word
       exit(EXIT_FAILURE);
    }else if (argc != 2){
       fprintf(stderr, "argument count exception, received %d, expected 2", argc);
@@ -45,12 +49,12 @@ int main(int argc, char* argv[]){
       insert(head, temp);
    }
    
-   // test the linear search in a sample file
-   // assert(linersearch(head, "tofu") == 2535);
-   // assert(linersearch(head, "like") == 1429);
-   // assert(linersearch(head, "labs") == 1348);
-   
-   show(head);
+   //test the linear search in a sample file
+   assert(linersearch(head, "tofu") == 2535);
+   assert(linersearch(head, "like") == 1429);
+   assert(linersearch(head, "labs") == 1348);
+   assert(linersearch(head, "dhfkasjdfk") == -1);
+ //  show(head);
    fclose(fp);
    return EXIT_SUCCESS;
 }
@@ -62,7 +66,12 @@ int linersearch(node* head, char temp[]){
       head = head->next;
       cnt++;
    }
-   return cnt;
+   
+   if (head){
+      return cnt;
+   }else{
+      return -1;
+   }
 }
 
 void insert(node* head, char temp[]){

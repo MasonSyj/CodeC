@@ -6,6 +6,16 @@
 
 #define LINE 3
 
+typedef struct board{
+   char board[][LINE+1];
+}board;
+
+typedef struct node{
+   board* bd;
+   struct node* next;
+}node;
+
+
 void init(char board[][LINE+1]);
 void board_show(char board[LINE][LINE+1]);
 void board_recur(char board[LINE][LINE+1], int mark);
@@ -17,7 +27,6 @@ int main(void){
    assert(strcmp("12345678 ", board_tostring(board)) == 0);
    board_recur(board, 0);
 }
-
 
 void init(char board[][LINE+1]){
    int cnt = 1;

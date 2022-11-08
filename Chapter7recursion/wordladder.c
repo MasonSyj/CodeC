@@ -17,31 +17,29 @@ typedef struct node{
 void test();
 void swap(int* x, int* y);
 void permu(int* a, int i, int list[][NUM]);
-void transform(node* head, char* origin, char* after, int* sequnce);
+void newpermu(int* a, int i, int** list, int len);
+void transform(node* head, char* origin, char* after, int* sequnce, char coll[][NUM+1], int len);
 //conduct a liner search onto a linked list
 int linersearch(node* head, char temp[]);
 // insert a word each time into the linked list
 void insert(node* head, char temp[]);
 // print out the linked list of word
 bool isword(node* head, char word[]);
+void show(char coll[][NUM+1], int len);
+void clear(char coll[][NUM+1]);
+int fact(int n);
 
 
 int main(void){
    test();
+   
    int a[NUM] = {0, 1, 2, 3};
    int list[PUERMU][NUM];
-   permu(a, 0, list); 
-  
-/*   
-   for (int j = 0; j < PUERMU; j++){
-      for (int i = 0; i < NUM; i++){
-         printf("%-3d", list[j][i]);
-      }
-     printf("\n");
-   }
-*/   
+   permu(a, 0, list);
+   char coll[NUM+1][NUM+1];
    
-   FILE* fp = fopen("sevearlword.txt", "r");
+   
+   FILE* fp = fopen("english_65197.txt", "r");
    if(!fp){
       fprintf(stderr, "Cannot read file");
       exit(EXIT_FAILURE);
@@ -59,20 +57,60 @@ int main(void){
       insert(head, temp);
    }
    
-   assert(isword(head, "TALE"));
-   assert(isword(head, "WILD"));
-   assert(!isword(head, "bristol"));
+   assert(isword(head, "wasp"));
+   assert(isword(head, "wild"));
+   assert(isword(head, "bristol"));
    assert(!isword(head, "COME"));
+   
+   assert(isword(head, "cold"));
+   assert(isword(head, "warm"));
+   assert(isword(head, "cord"));
+   assert(isword(head, "card"));
+   assert(isword(head, "warm"));
  
-    char origin[NUM+1] = "WILD";
-    char after[NUM+1] = "TAME";
-    for (int i = 0; i < PUERMU; i++){
-       transform(head, origin, after, list[i]);
-       strcpy(origin, "WILD");
-       printf("---------------------------\n");
-    }
-    
+    char origin[NUM+1] = "cold";
+    char after[NUM+1] = "warm";
+   
+   assert(strlen(origin) == strlen(after));
+   int len = 0;
+   
+   for (int i = 0; i < (signed)strlen(origin); i++){
+      if (origin[i] != after[i]){
+         len++;
+      }
+   }
+   
+// assert(len == 3);
+   
+   int* anew = (int*)malloc(len * sizeof(int));
+   
+   
+   
+   int anewcnt = 0;
+   for (int i = 0; i < (signed)strlen(origin); i++){
+      if (origin[i] != after[i]){
+         anew[anewcnt++] = i;
+      }
+   }
+   
+   assert(anew[0] == 0);
+   assert(anew[1] == 1);
+   
+   int** listnew = (int**)malloc(sizeof(int*) * fact(len));
+   
+   newpermu(anew, 0, listnew, len);
 
+   
+   for (int i = 0; i < fact(len); i++){
+      transform(head, origin, after, listnew[i], coll, len);
+      if(strcmp(coll[len], after) == 0){
+         show(coll, len);
+         printf("-------------------\n");
+      }
+      clear(coll);
+      strcpy(origin, "cold");
+      
+   }
     
 }
 
@@ -84,18 +122,35 @@ bool isword(node* head, char word[]){
    }
 }
 
-void transform(node* head, char* origin, char* after, int* sequnce){
-    static int cnt = 0;
-    puts(origin);
-    for (int i = 0; i < NUM; i++){
+void newpermu(int* a, int i, int** list, int len){
+   static int cnt = 0;
+   if (i == len - 1){
+      list[cnt] = (int*)malloc(len * sizeof(int));
+      for (int x = 0; x < len; x++){
+         list[cnt][x] = a[x];
+      }
+      cnt++;
+      return;
+   }
+   
+   for (int x = i; x < len; x++){
+      swap(&a[x], &a[i]);
+      newpermu(a, i+1, list, len);
+      swap(&a[x], &a[i]);
+   }
+   return;
+}
+
+void transform(node* head, char* origin, char* after, int* sequnce, char coll[][NUM+1], int len){
+    int cntcoll = 0;
+    strcpy(coll[cntcoll++], origin);
+    for (int i = 0; i < len; i++){
        origin[sequnce[i]] = after[sequnce[i]];
        if (!isword(head, origin)){
           return;
        }
-       puts(origin);
-    }
-    cnt++;
-    printf("cnt: %d\n", cnt);
+       strcpy(coll[cntcoll++], origin);
+    }    
 }
 
 void swap(int* x, int* y){
@@ -111,7 +166,6 @@ void permu(int* a, int i, int list[][NUM]){
          list[cnt][x] = *(a++);
       }
       cnt++;
-  
     return;
    }
 
@@ -139,39 +193,39 @@ int linersearch(node* head, char temp[]){
 }
 
 void insert(node* head, char temp[]){
-   //generate a node containing the word
+   if (!head->word){
+      head->word = (char*)realloc(head->word, strlen(temp) + 1);
+      strcpy(head->word, temp);
+      return;
+   }
+   
    node* n = (node*)malloc(sizeof(struct node));
    n->word = (char*)malloc((strlen(temp) + 1) * sizeof(char));
    strcpy(n->word, temp);
    n->next = NULL;
-
-   //linked list doesn't have word yet
-   if (head->next == NULL){
-     head->next = n;
-     return;
-   }
-
-   //inserting word is smaller than the first one
-   if (strcmp(temp, head->next->word) < 0){
-      n->next = head->next;
-      head->next = n;
-      return;
-   }
    
-   //word is bigger than the first, smaller than the last.
-   head = head->next;
-   while (head->next){
-      if (strcmp(temp, head->word) > 0 && strcmp(temp, head->next->word) < 0){
-         n->next = head->next;
-         head->next = n;
-         return;
-      }
+   while(head->next){
       head = head->next;
    }
-   //word is bigger than the last
-   if (head->next == NULL){
-     head->next = n;
-     return;
+   head->next = n;
+}
+
+void show(char coll[][NUM+1], int len){
+   for (int i = 0; i < len + 1; i++){
+      puts(coll[i]);
+   }
+}
+void clear(char coll[][NUM+1]){
+   for (int i = 0; i < NUM + 1; i++){
+      strcpy(coll[i], "");
+   }
+}
+
+int fact(int n){
+   if (n == 1){
+      return 1;
+   }else{
+      return n * fact (n - 1);
    }
 }
 
@@ -180,6 +234,7 @@ void test(){
    swap(&x, &y);
    assert(x == 6);
    assert(y == 3);
-   
+   assert(fact(3) == 6);
+   assert(fact(4) == 24);
 }
 

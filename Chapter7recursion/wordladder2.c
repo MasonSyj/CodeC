@@ -210,6 +210,9 @@ void test(){
    swap(&x, &y);
    assert(x == 6);
    assert(y == 3);
+}   
+   
+ 
    assert(fact(3) == 6);
    assert(fact(4) == 24);
 }

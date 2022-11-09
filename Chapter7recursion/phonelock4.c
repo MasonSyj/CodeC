@@ -1,14 +1,14 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#define ROW 3
-#define COL 3
+#define ROW 5
+#define COL 5
 
 void explore(int y, int x, int phone[][COL], int cnt);
 void show(int phone[][COL]);
 
 int main(void) {
-	int phone[ROW][COL] = {0};
+	int phone[ROW][COL] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
 	int cnt = 1;
 	explore(0, 0, phone, cnt);
 }

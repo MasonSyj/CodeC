@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#define LINE 40
+#define LINE 64
 
 void draw(char sier[][LINE+1], int y, int x, int length);
 void sierpinski(char sier[][LINE+1], int y, int x, int len);
@@ -14,21 +14,24 @@ int main(void){
       }
       sier[j][LINE] = '\0';
    }
-
+   
+   //draw(sier, 0, 0, LINE);
    sierpinski(sier, 0, 0, LINE);
  
-   print(sier);
+   //print(sier);
 }
 
 void sierpinski(char sier[][LINE+1], int y, int x, int len){
-   draw(sier, y, x, len / 4);
-   draw(sier, y, x + len * 3 / 4, len / 4);
-   
-   print(sier);
    
    if (len == 1){
+ //     sier[y][x+1] = '.';
+      sier[y+1][x+1] = '.';
       return;
    }
+   
+   draw(sier, y, x, len);
+   
+   print(sier);
    
    int y1 = y;
    int y2 = len / 2 + y;
@@ -50,8 +53,20 @@ void sierpinski(char sier[][LINE+1], int y, int x, int len){
 }
 
 void draw(char sier[][LINE+1], int y, int x, int length){
-   for (int j = y; j < y + length * 2; j++){
-      for (int i = x; i < x + length; i++){
+   for (int j = y; j <= y + length / 2 + 1; j++){
+      for (int i = x; i < x + length / 4; i++){
+         sier[j][i] = '.';
+      }
+   }
+   
+   for (int j = y; j <= y + length / 2 + 1; j++){
+      for (int i = x + length / 4; i <= x + length * 3 / 4; i++){
+         sier[j][i] = '0';
+      }
+   }
+   
+   for (int j = y; j <= y + length / 2 + 1; j++){
+      for (int i = x + length * 3 / 4; i < x + length; i++){
          sier[j][i] = '.';
       }
    }

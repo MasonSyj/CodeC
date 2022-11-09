@@ -17,12 +17,39 @@ bst* bst_init(void)
    return b;
 }
 
+/*****************************************************************/
+/*                            size                               */
+/*****************************************************************/
+
 int bst_size(bst* b)
 {
    if(b==NULL){
       return 0;
    }
    return _size(b->top);
+}
+
+int _size(dataframe* t)
+{
+   if(t==NULL){
+      return 0;
+   }
+   return 1 + _size(t->left) + _size(t->right);
+}
+
+/*****************************************************************/
+/*                           insert                              */
+/*****************************************************************/
+
+bool bst_insertarray(bst* b, treetype* a, int n)
+{
+   if((b==NULL) || (a==NULL) || (n<=0)){
+      return false;
+   }
+   for(int i=0; i<n; i++){
+      bst_insert(b, a[i]);
+   }
+   return true;
 }
 
 bool bst_insert(bst* b, treetype d)
@@ -37,6 +64,31 @@ bool bst_insert(bst* b, treetype d)
    _insert(b->top, d);
    return true;
 }
+
+/* Based on geekforgeeks.org */
+dataframe* _insert(dataframe* t, treetype d)
+{
+    dataframe* f;
+    /* If the tree is empty, return a new frame */
+    if (t == NULL){
+       f = ncalloc(sizeof(dataframe), 1);
+       f->d = d;
+       return f;
+    }
+    /* Otherwise, recurs down the tree */
+    if (d < t->d){
+        t->left = _insert(t->left, d);
+    }
+    else if(d > t->d){
+       t->right = _insert(t->right, d);
+    }
+    /* return the (unchanged) dataframe pointer */
+    return t;
+}
+
+/*****************************************************************/
+/*                             preorder                          */
+/*****************************************************************/
 
 char* bst_preorder(bst* b)
 {
@@ -78,6 +130,10 @@ char* _preorder(dataframe *t)
    return p;
 }
 
+/*****************************************************************/
+/*                             is-in                             */
+/*****************************************************************/
+
 bool bst_isin(bst* b, treetype d)
 {
    if(b==NULL){
@@ -86,16 +142,27 @@ bool bst_isin(bst* b, treetype d)
    return _isin(b->top, d);
 }
 
-bool bst_insertarray(bst* b, treetype* a, int n)
+bool _isin(dataframe* t, treetype d)
 {
-   if((b==NULL) || (a==NULL) || (n<=0)){
+   if(t==NULL){
       return false;
    }
-   for(int i=0; i<n; i++){
-      bst_insert(b, a[i]);
+   if(t->d == d){
+      return true;
    }
-   return true;
+   if(d < t->d){
+      return _isin(t->left,  d);
+   }
+   else{
+      return _isin(t->right, d);
+   }
+   return false;
 }
+
+/*****************************************************************/
+/*                            printlisp                          */
+/*****************************************************************/
+
 
 char* bst_printlisp(bst* b)
 {
@@ -108,6 +175,31 @@ char* bst_printlisp(bst* b)
    return _printlisp(b->top);
 }
 
+char* _printlisp(dataframe* t)
+{
+   char tmp[ELEMSIZE];
+   char *s1, *s2, *p;
+   
+   if(t==NULL){
+      /*  \0 string */
+      p = ncalloc(1,1);
+      return p;
+   }
+   sprintf(tmp, FORMATSTR, t->d);
+   s1 = _printlisp(t->left);
+   s2 = _printlisp(t->right);
+   p = ncalloc(strlen(s1)+strlen(s2)+strlen(tmp)+
+       strlen("()() "), 1);
+   sprintf(p, "%s(%s)(%s)", tmp, s1, s2);
+   free(s1);
+   free(s2);
+   return p;
+}
+
+/*****************************************************************/
+/*                              free                             */
+/*****************************************************************/
+
 bool bst_free(bst* b)
 {
    if(b==NULL){ 
@@ -117,6 +209,20 @@ bool bst_free(bst* b)
    free(b);
    return true;
 }
+
+void _freeframes(dataframe* t)
+{
+   if(t== NULL){
+      return;
+   }
+   _freeframes(t->left);
+   _freeframes(t->right);
+   free(t);
+}
+
+/*****************************************************************/
+/*                              todot                            */
+/*****************************************************************/
 
 void bst_todot(bst* b, char* fname)
 {
@@ -141,88 +247,6 @@ void bst_todot(bst* b, char* fname)
 
 }
 
-
-/*****************************************************************/
-/*                      Auxiliary Functions                       */
-/*****************************************************************/
-
-/* Based on geekforgeeks.org */
-dataframe* _insert(dataframe* t, treetype d)
-{
-    dataframe* f;
-    /* If the tree is empty, return a new frame */
-    if (t == NULL){
-       f = ncalloc(sizeof(dataframe), 1);
-       f->d = d;
-       return f;
-    }
-    /* Otherwise, recurs down the tree */
-    if (d < t->d){
-        t->left = _insert(t->left, d);
-    }
-    else if(d > t->d){
-       t->right = _insert(t->right, d);
-    }
-    /* return the (unchanged) dataframe pointer */
-    return t;
-}
-
-bool _isin(dataframe* t, treetype d)
-{
-   if(t==NULL){
-      return false;
-   }
-   if(t->d == d){
-      return true;
-   }
-   if(d < t->d){
-      return _isin(t->left,  d);
-   }
-   else{
-      return _isin(t->right, d);
-   }
-   return false;
-}
-
-void _freeframes(dataframe* t)
-{
-   if(t== NULL){
-      return;
-   }
-   _freeframes(t->left);
-   _freeframes(t->right);
-   free(t);
-}
-
-int _size(dataframe* t)
-{
-   if(t==NULL){
-      return 0;
-   }
-   return 1 + _size(t->left) + _size(t->right);
-}
-
-char* _printlisp(dataframe* t)
-{
-   char tmp[ELEMSIZE];
-   char *s1, *s2, *p;
-   
-   if(t==NULL){
-      /*  \0 string */
-      p = ncalloc(1,1);
-      return p;
-   }
-   sprintf(tmp, FORMATSTR, t->d);
-   s1 = _printlisp(t->left);
-   s2 = _printlisp(t->right);
-   p = ncalloc(strlen(s1)+strlen(s2)+strlen(tmp)+
-       strlen("()() "), 1);
-   sprintf(p, "%s(%s)(%s)", tmp, s1, s2);
-   free(s1);
-   free(s2);
-   return p;
-}
-
 void _todot(dataframe* t, char* nodes, dataframe* parent, char plr)
 {
    char tmp[1000];
@@ -241,3 +265,19 @@ void _todot(dataframe* t, char* nodes, dataframe* parent, char plr)
    _todot(t->right, nodes, t, 'r');
 
 }
+
+
+
+/*****************************************************************/
+/*                      Auxiliary Functions                       */
+/*****************************************************************/
+
+
+
+
+
+
+
+
+
+

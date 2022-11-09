@@ -1,12 +1,14 @@
 #include <stdio.h>
 #include <stdbool.h>
-
+#include <assert.h>
+#include <math.h>
 #define ROW 5
 #define COL 5
 
 bool explore(int y, int x, int maze[][COL]);
 
 int main(void) {
+	
 	int maze[ROW][COL] = { {0, 1, 0, 0, 0}, {0, 1, 1, 1, 0}, {0, 0, 0, 1, 0}, {0, 1, 1, 1, 0}, {0, 1, 0, 0, 0}};
 	int x = explore(0, 1, maze);
 	printf("%d", x);

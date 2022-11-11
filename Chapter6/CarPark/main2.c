@@ -36,13 +36,14 @@ int colsize(park* p);
 void panel(park* p);
 void show(park* p);
 void test();
+void formatunify(char* str);
 
 
 
 int main(void){
 //	test();
 	
-	FILE* fp = fopen("7x7_4c_11t.prk", "r");
+	FILE* fp = fopen("11x9_10c_26t.prk", "r");
 	int row, col;
 	char x;
 	
@@ -63,21 +64,27 @@ int main(void){
 	}
 	
 	assert(fscanf(fp, "%d%c%d", &row, &x,&col) == 3);
-
+   printf("%d %d\n", row, col);
 	char temp[CAPACITY];
 	
 	fgets(temp, col + 2, fp);
 	
 	for (int j = 0; j < row; j++){
-		fgets(temp, col+2, fp);
+		fgets(temp, col + 2, fp);
+		temp[col] = '\0';
+		formatunify(temp);
 		strncpy(l->p->a[j], temp, col);
-//		puts(l->p->a[j]);
+		strcpy(temp, "\0");
 	}
-
+	
+//	assert(rowsize(l->p) == 11);
+//	assert(colsize(l->p) == 9);
+	
+   show(l->p);
 	
 	park* this = l->p;
 	while(this){
-//		show(this);
+		show(this);
 		if (solve(this) > 0){
 			printf("%d moves", solve(this));
 			exit(EXIT_SUCCESS);
@@ -214,6 +221,7 @@ void add2list(park* p, park* new){
 //	show(new);
 	park* parent = p;
 	while (parent->previous != parent){
+//		printf("move back\n");
 		parent = parent->previous;
 	}
 	
@@ -227,6 +235,7 @@ void add2list(park* p, park* new){
          return;
       }
 		parent = parent->next;
+//		printf("move forward\n");
    }
    parent->next = new;
 }
@@ -371,4 +380,17 @@ void test(){
 	//			return 0;
 	//		}
 	//	}
+}
+
+void formatunify(char* str){
+	int len = strlen(str);
+	int cnt = 0;
+	while(cnt < len){
+		if (str[cnt] == '@'){
+		   str[cnt] = '#';
+		}else if (str[cnt] == ' '){
+			str[cnt]  = '.';
+		}
+		cnt++;
+	}
 }

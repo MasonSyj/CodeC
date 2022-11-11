@@ -1,0 +1,32 @@
+digraph G {
+   node [shape=record, height=0.1];
+   node0x2057030 [label = "<l> | <m> 50 | <r>"];
+   node0x2057090 [label = "<l> | <m> 25 | <r>"];
+   node0x2057030:l -> node0x2057090:m;
+   node0x2057050 [label = "<l> | <m> 20 | <r>"];
+   node0x2057090:l -> node0x2057050:m;
+   node0x2057110 [label = "<l> | <m> 19 | <r>"];
+   node0x2057050:l -> node0x2057110:m;
+   node0x2057130 [label = "<l> | <m> 21 | <r>"];
+   node0x2057050:r -> node0x2057130:m;
+   node0x20570b0 [label = "<l> | <m> 30 | <r>"];
+   node0x2057090:r -> node0x20570b0:m;
+   node0x2057150 [label = "<l> | <m> 29 | <r>"];
+   node0x20570b0:l -> node0x2057150:m;
+   node0x2057170 [label = "<l> | <m> 31 | <r>"];
+   node0x20570b0:r -> node0x2057170:m;
+   node0x2057070 [label = "<l> | <m> 75 | <r>"];
+   node0x2057030:r -> node0x2057070:m;
+   node0x20570d0 [label = "<l> | <m> 70 | <r>"];
+   node0x2057070:l -> node0x20570d0:m;
+   node0x2057190 [label = "<l> | <m> 69 | <r>"];
+   node0x20570d0:l -> node0x2057190:m;
+   node0x20571b0 [label = "<l> | <m> 71 | <r>"];
+   node0x20570d0:r -> node0x20571b0:m;
+   node0x20570f0 [label = "<l> | <m> 80 | <r>"];
+   node0x2057070:r -> node0x20570f0:m;
+   node0x20571d0 [label = "<l> | <m> 79 | <r>"];
+   node0x20570f0:l -> node0x20571d0:m;
+   node0x20571f0 [label = "<l> | <m> 81 | <r>"];
+   node0x20570f0:r -> node0x20571f0:m;
+}

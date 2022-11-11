@@ -11,6 +11,10 @@ char* _printlisp(dataframe* t);
 void _todot(dataframe* t, char* nodes, dataframe* parent, char plr);
 char* _preorder(dataframe *t);
 
+/*****************************************************************/
+/*                            init                               */
+/*****************************************************************/
+
 bst* bst_init(void)
 {
    bst* b = (bst*) ncalloc(1, sizeof(bst));

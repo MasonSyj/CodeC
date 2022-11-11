@@ -18,6 +18,9 @@ typedef struct list{
    int parksize;
 }list;
 
+
+int solve(park* p);
+int carnum(park* p);
 char* carlist(park* p);
 void movectrl(park* p);
 void movecar(park* p, char car);
@@ -35,54 +38,58 @@ void test();
 
 
 int main(void){
-   //assert exist
-   list* l = (list*)calloc(1, sizeof(struct list));
-   assert(l);
-   assert(parksize(l->p) == 0);
-   //assert exist
-   l->p = (park*)calloc(1, sizeof(park));
+//	test();
+	
+	FILE* fp = fopen("7x7_4c_11t.prk", "r");
+	int row, col;
+	char x;
+	
+	list* l = (list*)calloc(1, sizeof(struct list));
+	assert(l);
+	assert(parksize(l->p) == 0);
+	
+	//assert exist
+	l->p = (park*)calloc(1, sizeof(park));
 	l->p->next = NULL;
-	l->p->previous = NULL;
-   assert(l->p);
-   char cmp[CAPACITY][CAPACITY+1];
-   for (int i = 0; i < CAPACITY; i++){
-      strcpy(cmp[i], "");
-   }
-// assert(memcmp(l->p->a, cmp, CAPACITY * (CAPACITY + 1)) == 0);
-   
-   l->parksize = 7;
-   strcpy(l->p->a[0], "#.#####");
-   strcpy(l->p->a[1], ".BBB..#");
-   strcpy(l->p->a[2], "#A....#");
-   strcpy(l->p->a[3], "#A....#");
-   strcpy(l->p->a[4], "#A....#");
-   strcpy(l->p->a[5], "#.....#");
-	strcpy(l->p->a[6], "#.....#");
-// printf("%d", carnum(l->p, parksize(l)));
-// park* p2 = newpark(l->p);
+	l->p->previous = l->p;
+	assert(l->p);
 	
-	assert(parksize(l->p) == 7);
 	
-//	park* this = l->p;
-//	moveHorizont(1, 3, 1, this);
-//	while(this){
-//		show(this);
-//		this = this->next;
-//	}
+	char cmp[CAPACITY][CAPACITY+1];
+	for (int i = 0; i < CAPACITY; i++){
+		strcpy(cmp[i], "");
+	}
 	
+	assert(fscanf(fp, "%d%c%d", &row, &x,&col) == 3);
 
-//	panel(l->p);
-//	
-	int cnt = 10;
+	char temp[CAPACITY];
+	
+	fgets(temp, col + 2, fp);
+	//	printf("%s", temp);
+	
+	for (int j = 0; j < row; j++){
+		fgets(temp, col+2, fp);
+		strncpy(l->p->a[j], temp, col);
+		puts(l->p->a[j]);
+	}
+	
+	
+	int cnt = 0;
 	park* this = l->p;
-	for (int i = 0; i < cnt; i++){
+	while(this){
 		show(this);
+		if (solve(this) > 0){
+			printf("%d", solve(this));
+			exit(EXIT_SUCCESS);
+		}
 		movectrl(this);
 		this = this->next;
-		if (!this){
-			return 0;
-		}
+		cnt++;
 	}
+	printf("%d", cnt);
+	
+	fclose(fp);
+	
 }
 
 
@@ -209,10 +216,8 @@ void moveHorizont(int x1, int x2, int y, park* p){
 void add2list(park* p, park* new){
 //	show(new);
 	park* parent = p;
-	while (parent->previous){
-		printf("211 parent = p->previous:%p\n", parent->previous);
-		parent = p->previous;
-		printf("211 newparent = p->previous:%p\n", parent->previous);
+	while (parent->previous != parent){
+		parent = parent->previous;
 	}
 	
 	if (!parent){
@@ -220,7 +225,7 @@ void add2list(park* p, park* new){
 	}
 	
    while(parent->next){
-      if (samepark(p, new) == 0){
+      if (samepark(parent, new) == false){
 			free(new);
          return;
       }
@@ -239,8 +244,16 @@ park* newpark(park* p){
 }
 
 bool samepark(park* p1, park* p2){
-   int len = strlen(p1->a[0]);
-   return memcmp(p1->a, p2->a, len * (len + 1));
+	int len = parksize(p1);
+	for (int j = 0; j < len; j++){
+		for (int i = 0; i < len; i++){
+			if (p1->a[j][i] != p2->a[j][i]){
+				return true;
+			}
+		}
+	}
+	return false;
+//	return memcmp(p1->a, p2->a, (len + 1) * len);
 }
 
 int parksize(park* p){
@@ -276,6 +289,76 @@ void show(park* p){
 	printf("---------------\n");
 }
 
+int carnum(park* p){
+	return strlen(carlist(p));
+}
+
+int solve(park* p){
+	int cnt = 0;
+	if (carnum(p) == 0){
+		while(p->previous != p){
+			cnt++;
+			p = p->previous;
+		}
+	}
+	return cnt;
+}
+
 void test(){
+	//assert exist
+	list* l = (list*)calloc(1, sizeof(struct list));
+	assert(l);
+	assert(parksize(l->p) == 0);
+	//assert exist
+	l->p = (park*)calloc(1, sizeof(park));
+	l->p->next = NULL;
+	l->p->previous = l->p;
+	assert(l->p);
+	char cmp[CAPACITY][CAPACITY+1];
+	for (int i = 0; i < CAPACITY; i++){
+		strcpy(cmp[i], "");
+	}
+	// assert(memcmp(l->p->a, cmp, CAPACITY * (CAPACITY + 1)) == 0);
 	
+	l->parksize = 7;
+	strcpy(l->p->a[0], "#.#####");
+	strcpy(l->p->a[1], ".BBB..#");
+	strcpy(l->p->a[2], "#A....#");
+	strcpy(l->p->a[3], "#A....#");
+	strcpy(l->p->a[4], "#A....#");
+	strcpy(l->p->a[5], "#.....#");
+	strcpy(l->p->a[6], "#######");
+	// printf("%d", carnum(l->p, parksize(l)));
+	// park* p2 = newpark(l->p);
+	assert(carnum(l->p) == 2);
+	assert(parksize(l->p) == 7);
+	
+	int cnt = 0;
+	
+	park* this = l->p;
+	while(this){
+		show(this);
+		if (solve(this) > 0){
+			printf("%d", solve(this));
+			exit(EXIT_SUCCESS);
+		}
+		movectrl(this);
+		this = this->next;
+		cnt++;
+	}
+	printf("%d", cnt);
+	
+	
+	//	panel(l->p);
+	//	
+	//	int cnt = 10;
+	//	park* this = l->p;
+	//	for (int i = 0; i < cnt; i++){
+	//		show(this);
+	//		movectrl(this);
+	//		this = this->next;
+	//		if (!this){
+	//			return 0;
+	//		}
+	//	}
 }

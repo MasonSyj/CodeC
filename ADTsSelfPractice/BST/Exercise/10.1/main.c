@@ -13,7 +13,7 @@ typedef struct node{
    struct node* right;
 }Node;
 
-
+int degree(Node* t);
 int depth(Node* t);
 Node* makenode(char c);
 void insertrandom(Node* t, Node* n);
@@ -42,6 +42,8 @@ int main(void){
 
 
    printf("same: %d\n", same(head, head2));
+
+   assert(degree(head) == 7);
    return 0;
 
 }
@@ -82,7 +84,7 @@ char* printtree(Node* t){
       return str;
    }
    
-   sprintf(str, "%c(%s)(%s)", t->c, printtree(t->left), printtree(t->right));
+   snprintf(str, STRSIZE, "%c(%s)(%s)", t->c, printtree(t->left), printtree(t->right));
    return str;
 }
 
@@ -91,7 +93,7 @@ int depth(Node* t){
       return 0;
    }
    
-   int left, right;
+   int left = 0, right = 0;
    if (t->left){
       left += depth(t->left);
    }else{
@@ -113,8 +115,8 @@ bool same(Node* n1, Node* n2){
       return false;
    }
    
-   bool left;
-   bool right;
+   bool left = 0;
+   bool right = 0;
 
    if (n1->c == n2->c){
       if (n1->left && n2->left){
@@ -135,6 +137,23 @@ bool same(Node* n1, Node* n2){
    }
 
    return left && right;
+}
+
+int degree(Node* t){
+   if (!t->left && !t->right){
+      return 1;
+   }
+   
+   int left = 0;
+   if (t->left){
+      left = degree(t->left);
+   }
+
+   int right = 0;
+   if (t->right){
+      right = degree(t->right);
+   }
+   return 1 + left + right;
 
 }
 

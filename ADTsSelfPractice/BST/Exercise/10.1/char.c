@@ -8,7 +8,7 @@
 #define STRSIZE 5000
 
 typedef struct node{
-   int x;
+   char x;
    struct node* left;
    struct node* right;
 }Node;
@@ -17,7 +17,7 @@ int degree(Node* t);
 int depth(Node* t);
 Node* makenode(int x);
 void insertrandom(Node* t, Node* n);
-void insert(Node* t, int newvalue);
+void insert(Node* t, char newvalue);
 char* printtree(Node* t);
 char* _printlisp(Node* t);
 int depth(Node* t);
@@ -25,9 +25,11 @@ bool same(Node* n1, Node* n2);
 void int2str(int value, char* str);
 void bst_todot(Node* b, char* fname);
 void _todot(Node* t, char* nodes, Node* parent, char plr);
+Node* search(Node* t, char c);
 void preorder(Node* t);
 void inorder(Node* t);
 void afterorder(Node* t);
+void levelorder(Node* t, char* q);
 void test();
 
 int main(void){
@@ -38,8 +40,10 @@ int main(void){
    return 0;
 }
 
+
+
 void preorder(Node* t){
-   printf("%d ", t->x);
+   printf("%c ", t->x);
    if (t->left){
       preorder(t->left);
    }
@@ -51,26 +55,63 @@ void preorder(Node* t){
 
 void inorder(Node* t){
    if (t->left){
-      preorder(t->left);
+      inorder(t->left);
    }
    
-   printf("%d ", t->x);
+   printf("%c ", t->x);
    
    if (t->right){
-      preorder(t->right);
+      inorder(t->right);
    }
 }
 void afterorder(Node* t){
    if (t->left){
-      preorder(t->left);
+      afterorder(t->left);
    }
    
    
    if (t->right){
-      preorder(t->right);
+      afterorder(t->right);
    }
    
-   printf("%d ", t->x);
+   printf("%c ", t->x);
+}
+
+void levelorder(Node* t, char* q){
+   q[0] = t->x;
+   int i = 0;
+   int cnt = 0;
+   while (cnt < degree(t) && i < degree(t)){
+      if (search(t, q[i])->left)
+      {q[cnt++] = search(t, q[i])->left->x;}
+      if (search(t, q[i])->right)
+      {q[cnt++] = search(t, q[i])->right->x;}
+      i++;
+   }
+}
+
+Node* search(Node* t, char c){
+
+   if (!t){
+      return NULL;
+   }
+
+   if (t->x == c){
+      return t;
+   }
+
+
+   if (t->x != c){
+      if (t->left){
+         return search(t->left, c);
+      }
+
+      if (t->right){
+         return search(t->right, c);
+      }
+   }
+
+   return NULL;
 }
 
 Node* makenode(int x){
@@ -109,7 +150,7 @@ char* printtree(Node* t){
       return str;
    }
    
-   snprintf(str, STRSIZE, "%d(%s)(%s)", t->x, printtree(t->left), printtree(t->right));
+   snprintf(str, STRSIZE, "%c(%s)(%s)", t->x, printtree(t->left), printtree(t->right));
    return str;
 }
 
@@ -182,7 +223,7 @@ int degree(Node* t){
 
 }
 
-void insert(Node* t, int newvalue){
+void insert(Node* t, char newvalue){
    if (newvalue == t->x){
       return;
    }
@@ -196,7 +237,7 @@ void insert(Node* t, int newvalue){
       }else{
          insert(t->left, newvalue);
       }
-   }else{
+   }else if (newvalue > t->x){
       if (!t->right){
          Node* newnode = makenode(newvalue);
          assert(newnode);
@@ -243,7 +284,7 @@ void bst_todot(Node* b, char* fname){
    _todot(b->left, str, NULL, 'X');
    strcat(str, "}\n");
    opname = calloc(1, strlen(fname)+1000+1);
-   snprintf(opname, 1000, "%s%s", "int", fname);
+   snprintf(opname, 1000, "%s%s", "char", fname);
    fp = fopen(opname, "wt"); 
    fprintf(fp, "%s", str);
    fclose(fp);
@@ -259,8 +300,10 @@ void _todot(Node* t, char* nodes, Node* parent, char plr){
       return;
    }
    
-   int2str(t->x, fstr);
-// snprintf(fstr, 1000, t->d);
+// int2str(t->x, fstr);
+// snprintf(fstr, 1000, t->x);
+   fstr[0] = t->x;
+   fstr[1] = '\0';
    snprintf(tmp, 1000, "   node%p [label = \"<l> | <m> %s | <r>\"];\n", (void*)t, fstr);
    strcat(nodes, tmp);
    if(parent != NULL){
@@ -291,53 +334,34 @@ void int2str(int value, char* str){
 
 
 void test(){
-   Node* head = makenode(1911);
-   Node* head2 = makenode(1949);
-   Node* head3 = makenode(2047);
+   Node* head = makenode('A');
 
-   printf("same: %d\n", same(head, head2));
-   
-   for (int x = 1999; x <= 2022; x++){
-      Node* n = makenode(x);
-      insertrandom(head, n);
-   }
-
-   for (int x = 1931; x <= 1967; x++){
-      insert(head2, x);
-   }
-
-   int value = head3->x;
-   for (int x = 2; x <= 20; x+=2){
-      insert(head3, value - x);
-      insert(head3, value + x);
-   }
-
-      for (int x = 1; x <= 20; x++){
-      insert(head3, value - x);
-      insert(head3, value + x);
-   }
-
+   head->left = makenode('B');
+	head->right = makenode('C');
+	head->left->left = makenode('D');
+	head->left->right = makenode('F');
+   head->left->right->left = makenode('E');
+	head->right->left = makenode('G');
+	head->right->right = makenode('I');
+	head->right->left->right = makenode('H');
+	
    printf("%s\n", printtree(head));
    printf("depth: %d\n", depth(head));
-   printf("same: %d\n", same(head, head2));
-   assert(degree(head) == 25);
-   assert(degree(head2) == 37);
-   printf("%s\n", printtree(head2));
-   printf("%s\n", _printlisp(head2));
+
+   assert(degree(head) == 9);
    Node* x = makenode(0);
-   Node* x2 = makenode(1);
-   Node* x3 = makenode(1);
    x->left = head;
-   x2->left = head2;
-   x3->left = head3;
    bst_todot(x, "head.dot");
-   bst_todot(x2, "head2.dot");
-   bst_todot(x3, "head3.dot");
+
 
    printf("\npreorder:");
-   preorder(head3);
+   preorder(head);
    printf("\ninorder:");
-   inorder(head3);
+   inorder(head);
    printf("\nafterorder:");
-   afterorder(head3);
+   afterorder(head);
+	
+   char* q = (char*)calloc(degree(head) + 1, sizeof(int));
+   levelorder(head, q);
+   puts(q);
 }

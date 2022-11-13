@@ -1,0 +1,16 @@
+digraph G {
+   node [shape=record, height=0.1];
+   node0x102f01f60 [label = "<l> | <m>  | <r>"];
+   node0x102f01f30 [label = "<l> | <m> B | <r>"];
+   node0x102f01f60:l -> node0x102f01f30:m;
+   node0x102f01f00 [label = "<l> | <m>  | <r>"];
+   node0x102f01f60:r -> node0x102f01f00:m;
+   node0x102f01ed0 [label = "<l> | <m> A | <r>"];
+   node0x102f01f00:l -> node0x102f01ed0:m;
+   node0x102f01ea0 [label = "<l> | <m>  | <r>"];
+   node0x102f01f00:r -> node0x102f01ea0:m;
+   node0x102f01e70 [label = "<l> | <m> E | <r>"];
+   node0x102f01ea0:l -> node0x102f01e70:m;
+   node0x102f01e40 [label = "<l> | <m> G | <r>"];
+   node0x102f01ea0:r -> node0x102f01e40:m;
+}

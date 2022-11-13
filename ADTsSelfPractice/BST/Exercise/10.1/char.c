@@ -281,7 +281,7 @@ void bst_todot(Node* b, char* fname){
    }
    str = (char*)calloc(1, 10000 * sizeof(char));
    snprintf(str, 1000, "digraph G {\n   node [shape=record, height=0.1];\n");
-   _todot(b->left, str, NULL, 'X');
+   _todot(b, str, NULL, 'X');
    strcat(str, "}\n");
    opname = calloc(1, strlen(fname)+1000+1);
    snprintf(opname, 1000, "%s%s", "char", fname);

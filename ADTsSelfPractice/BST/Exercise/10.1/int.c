@@ -240,7 +240,7 @@ void bst_todot(Node* b, char* fname){
    }
    str = (char*)calloc(1, 10000 * sizeof(char));
    snprintf(str, 1000, "digraph G {\n   node [shape=record, height=0.1];\n");
-   _todot(b->left, str, NULL, 'X');
+   _todot(b, str, NULL, 'X');
    strcat(str, "}\n");
    opname = calloc(1, strlen(fname)+1000+1);
    snprintf(opname, 1000, "%s%s", "int", fname);
@@ -324,15 +324,9 @@ void test(){
    assert(degree(head2) == 37);
    printf("%s\n", printtree(head2));
    printf("%s\n", _printlisp(head2));
-   Node* x = makenode(0);
-   Node* x2 = makenode(1);
-   Node* x3 = makenode(1);
-   x->left = head;
-   x2->left = head2;
-   x3->left = head3;
-   bst_todot(x, "head.dot");
-   bst_todot(x2, "head2.dot");
-   bst_todot(x3, "head3.dot");
+   bst_todot(head, "head.dot");
+   bst_todot(head2, "head2.dot");
+   bst_todot(head3, "head3.dot");
 
    printf("\npreorder:");
    preorder(head3);

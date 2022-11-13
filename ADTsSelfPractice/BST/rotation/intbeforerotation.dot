@@ -1,0 +1,8 @@
+digraph G {
+   node [shape=record, height=0.1];
+   node0x102a01ed0 [label = "<l> | <m> 2018 | <r>"];
+   node0x102a01ea0 [label = "<l> | <m> 2019 | <r>"];
+   node0x102a01ed0:r -> node0x102a01ea0:m;
+   node0x102a01e70 [label = "<l> | <m> 2020 | <r>"];
+   node0x102a01ea0:r -> node0x102a01e70:m;
+}

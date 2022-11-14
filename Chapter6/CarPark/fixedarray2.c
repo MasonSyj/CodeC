@@ -54,6 +54,8 @@ bool iscar(park* p, int j, int i);
 bool existcararound(park* p, int j, int i);
 bool empty(park* p);
 bool consec(park* p, int row, int col);
+int* printlist(list* l, int index);
+void showlist(list* l, int index);
 void test();
 
 char* tostring(park* p, int row, int col){
@@ -68,44 +70,6 @@ char* tostring(park* p, int row, int col){
    return head;
 }
 
-void test(){
-   park* p = (park*)calloc(1, sizeof(park));
-   strcpy(p->a[0], "#.#####");
-   strcpy(p->a[1], ".BBB..#");
-   strcpy(p->a[2], "#A....#");
-   strcpy(p->a[3], "#A...C#");
-   strcpy(p->a[4], "#A...C#");
-   strcpy(p->a[5], "#..DDC#");
-   strcpy(p->a[6], "#######");
-   
-   char* pstr = tostring(p, 7, 7);
-   assert(strcmp(pstr, "#.#####.BBB..##A....##A...C##A...C##..DDC########") == 0);
-   show(p);
-/*
-   moveup(3, 5, 5, p); // show(p);
-   assert(strcmp(tostring(p, 7, 7), "#.#####.BBB..##A...C##A...C##A....##..DDC########") == 0);
-   moveup(2, 4, 5, p); // show(p);
-   assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB.C##A...C##A....##A....##..DDC########") == 0);
-   movedown(1, 3, 5, p); // show(p);
-   assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##A...C##A...C##A....##..DDC########") == 0);
-   moveleft(5, 6, 5, p);//show(p);
-   assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##A...C##A...C##A....##..DC#.#######") == 0);
-   moveleft(4, 5, 5, p);//show(p);
-   assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##A...C##A...C##A....##..C#..#######") == 0);
-   moveright(4, 5, 5, p);//show(p);
-   assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##A...C##A...C##A....##..C.#.#######") == 0);
-   movedown(2, 4, 1, p);//show(p);
-   assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##....C##A...C##A....##A.C.#.#######") == 0);
-   moveleft(1, 3, 1, p);//show(p);
-   assert(strcmp(tostring(p, 7, 7), "#.###.#BBB...##....C##A...C##A....##A.C.#.#######") == 0);
-   moveright(0, 2, 1, p);//show(p);
-   assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##....C##A...C##A....##A.C.#.#######") == 0);
-   show(p);
-*/
-   assert(!empty(p));
-   assert(consec(p, 7, 7));
-}
-
 /* other than normal situations:
 no cars full closed non consec
 */
@@ -114,7 +78,7 @@ int main(void){
    test();
    
    list* l = parkinit();
-   
+   bool show = 1;
    int i = 0;
    while(i < N){
  //     show(l->p[i]);
@@ -122,10 +86,16 @@ int main(void){
          fprintf(stderr, "No more new carparks, failed to solve.");
          exit(EXIT_FAILURE);
       }
+   
       if (solve(l, i) > 0){
+         if (show == 1){
+           showlist(l, i);
+         }
          printf("%d moves", solve(l, i));
          exit(EXIT_SUCCESS);
       }
+      
+      
       movectrl(l, i);
       i++;
    }
@@ -459,3 +429,58 @@ bool empty(park* p){
    return !result;
 }
 
+int* printlist(list* l, int index){
+   int len = solve(l, index);
+   int* printl = (int*)calloc(++len, sizeof(int));
+   while (index != 0){
+      printl[--len] = index;
+      //printf("%d %d\n", index, printl[len]);
+      index = l->p[index]->parentindex;
+   }
+   return printl;
+}
+
+void showlist(list* l, int index){
+   int* printl = printlist(l, index);
+   for (int i = 0; i < solve(l, index) + 1; i++){
+      show(l->p[printl[i]]);
+   }
+}
+
+void test(){
+   park* p = (park*)calloc(1, sizeof(park));
+   strcpy(p->a[0], "#.#####");
+   strcpy(p->a[1], ".BBB..#");
+   strcpy(p->a[2], "#A....#");
+   strcpy(p->a[3], "#A...C#");
+   strcpy(p->a[4], "#A...C#");
+   strcpy(p->a[5], "#..DDC#");
+   strcpy(p->a[6], "#######");
+   
+   char* pstr = tostring(p, 7, 7);
+   assert(strcmp(pstr, "#.#####.BBB..##A....##A...C##A...C##..DDC########") == 0);
+   show(p);
+/*
+   moveup(3, 5, 5, p); // show(p);
+   assert(strcmp(tostring(p, 7, 7), "#.#####.BBB..##A...C##A...C##A....##..DDC########") == 0);
+   moveup(2, 4, 5, p); // show(p);
+   assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB.C##A...C##A....##A....##..DDC########") == 0);
+   movedown(1, 3, 5, p); // show(p);
+   assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##A...C##A...C##A....##..DDC########") == 0);
+   moveleft(5, 6, 5, p);//show(p);
+   assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##A...C##A...C##A....##..DC#.#######") == 0);
+   moveleft(4, 5, 5, p);//show(p);
+   assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##A...C##A...C##A....##..C#..#######") == 0);
+   moveright(4, 5, 5, p);//show(p);
+   assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##A...C##A...C##A....##..C.#.#######") == 0);
+   movedown(2, 4, 1, p);//show(p);
+   assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##....C##A...C##A....##A.C.#.#######") == 0);
+   moveleft(1, 3, 1, p);//show(p);
+   assert(strcmp(tostring(p, 7, 7), "#.###.#BBB...##....C##A...C##A....##A.C.#.#######") == 0);
+   moveright(0, 2, 1, p);//show(p);
+   assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##....C##A...C##A....##A.C.#.#######") == 0);
+   show(p);
+*/
+   assert(!empty(p));
+   assert(consec(p, 7, 7));
+}

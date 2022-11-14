@@ -49,6 +49,11 @@ void movedown(int y1, int y2, int x, park* p);
 void moveleft(int x1, int x2, int y, park* p);
 void moveright(int x1, int x2, int y, park* p);
 char* tostring(park* p, int row, int col);
+bool closedcase(park* p, int row, int col);
+bool iscar(park* p, int j, int i);
+bool existcararound(park* p, int j, int i);
+bool empty(park* p);
+bool consec(park* p, int row, int col);
 void test();
 
 char* tostring(park* p, int row, int col){
@@ -75,27 +80,35 @@ void test(){
    
    char* pstr = tostring(p, 7, 7);
    assert(strcmp(pstr, "#.#####.BBB..##A....##A...C##A...C##..DDC########") == 0);
-
-   moveup(2, 4, 5, p);
+   show(p);
+/*
+   moveup(3, 5, 5, p); // show(p);
    assert(strcmp(tostring(p, 7, 7), "#.#####.BBB..##A...C##A...C##A....##..DDC########") == 0);
-   moveup(1, 3, 5, p);
+   moveup(2, 4, 5, p); // show(p);
    assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB.C##A...C##A....##A....##..DDC########") == 0);
-   movedown(1, 3, 5, p);
+   movedown(1, 3, 5, p); // show(p);
    assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##A...C##A...C##A....##..DDC########") == 0);
-   moveleft(5, 6, 5, p);
+   moveleft(5, 6, 5, p);//show(p);
    assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##A...C##A...C##A....##..DC#.#######") == 0);
-   moveleft(4, 5, 5, p);
+   moveleft(4, 5, 5, p);//show(p);
    assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##A...C##A...C##A....##..C#..#######") == 0);
-   moveright(4, 5, 5, p);
+   moveright(4, 5, 5, p);//show(p);
    assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##A...C##A...C##A....##..C.#.#######") == 0);
-   movedown(2, 4, 1, p);
+   movedown(2, 4, 1, p);//show(p);
    assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##....C##A...C##A....##A.C.#.#######") == 0);
-   moveleft(1, 3, 1, p);
+   moveleft(1, 3, 1, p);//show(p);
    assert(strcmp(tostring(p, 7, 7), "#.###.#BBB...##....C##A...C##A....##A.C.#.#######") == 0);
-   moveright(0, 2, 1, p);
+   moveright(0, 2, 1, p);//show(p);
    assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##....C##A...C##A....##A.C.#.#######") == 0);
-
+   show(p);
+*/
+   assert(!empty(p));
+   assert(consec(p, 7, 7));
 }
+
+/* other than normal situations:
+no cars full closed non consec
+*/
    
 int main(void){
    test();
@@ -105,6 +118,10 @@ int main(void){
    int i = 0;
    while(i < N){
  //     show(l->p[i]);
+      if (empty(l->p[i]) == true){
+         fprintf(stderr, "No more new carparks, failed to solve.");
+         exit(EXIT_FAILURE);
+      }
       if (solve(l, i) > 0){
          printf("%d moves", solve(l, i));
          exit(EXIT_SUCCESS);
@@ -131,6 +148,10 @@ list* parkinit(void){
       fgets(temp, CAPACITY, fp);
       temp[col] = '\0';
       strncpy(l->p[0]->a[j], temp, col);
+   }
+
+   if (closedcase(l->p[0], row, col)){
+      fprintf(stderr, "This park is fully closed.\n");
    }
    l->p[0]->parentindex = 0;
 
@@ -380,5 +401,61 @@ void moveright(int x1, int x2, int y, park* p){
    }
    p->a[y][x1] = EMPTY;
 }
+
+bool closedcase(park* p, int row, int col){
+   for (int j = 0; j < row; j++){
+      if (p->a[j][0] != FULL){
+         return false;
+      }
    
+      if (p->a[j][col-1] != FULL){
+         return false;
+      }
+   }
+
+   for (int i = 0; i < col; i++){
+      if (p->a[0][i] != FULL){
+         return false;
+      }
+      
+      if (p->a[row-1][i] != FULL){
+         return false;
+      }
+   }
+   
+   return true;
+}
+
+bool iscar(park* p, int j, int i){
+   if (isalpha(p->a[j][i])){
+      return true;
+   }else{
+      return false;
+   }
+}
+
+bool existcararound(park* p, int j, int i){
+   return iscar(p, j-1, i) || iscar(p, j, i-1) || iscar(p, j+1, i) || iscar(p, j, i+1);  
+}
+
+bool consec(park* p, int row, int col){
+   for (int j = 1; j < row - 1; j++){
+      for (int i = 1; i < col - 1; i++){
+         if (iscar(p, j, i) && existcararound(p, j, i)){
+            if (!(existcararound(p, j, i))){
+               return false;
+            }
+         }
+      }
+   }
+   return true;
+}
+
+
+bool empty(park* p){
+   park* cmp = (park*)calloc(1, sizeof(park));
+   bool result = memcmp(p, cmp, sizeof(park));
+   free(cmp);
+   return !result;
+}
 

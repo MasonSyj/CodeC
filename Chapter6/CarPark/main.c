@@ -57,7 +57,7 @@ int main(void){
    strcpy(l->p->a[3], "#A....#");
    strcpy(l->p->a[4], "#A....#");
    strcpy(l->p->a[5], "#.....#");
-	strcpy(l->p->a[6], "#.....#");
+strcpy(l->p->a[6], "#.....#");
 // printf("%d", carnum(l->p, parksize(l)));
 // park* p2 = newpark(l->p);
 	

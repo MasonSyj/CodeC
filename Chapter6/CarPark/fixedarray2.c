@@ -6,10 +6,11 @@
 #include <ctype.h>
    
 #define N 100000
-#define ROW row
-#define COL col
-   
+#define EMPTY '.'
+#define FULL '#'
 #define CAPACITY 20
+#define CARSIZE 26
+#define A 'A'
 
 typedef struct park{
    char a[CAPACITY][CAPACITY+1];
@@ -23,9 +24,9 @@ typedef struct list{
    int current;
 }list;
    
-void parkinit(list* l);
+list* parkinit(void);
 void movectrl(list* l, int index);
-void cardirctrl(list* l, int index, char car);
+void carposition(list* l, int index, char car);
 void moveVertical(int y1, int y2, int x, list* l, int index);
 void moveHorizont(int y1, int y2, int x, list* l, int index);
 park* parkcopy(park* p, int index);
@@ -35,29 +36,87 @@ char* carlist(list* l, int index);
 bool samepark(park* p1, park* p2, list* l);
 int solve(list* l, int index);
 void show(park* p);
+char upsquare(int y, int x, list* l, int index);
+char downsquare(int y, int x, list* l, int index);
+char leftsquare(int y, int x, list* l, int index);
+char rightsquare(int y, int x, list* l, int index);
+bool reachVerticalboundary(int y, list* l);
+bool reachHorizontboundary(int x, list* l);
+void carVerticalexit(int y1, int y2, int x, park* p);
+void carHorizontexit(int x1, int x2, int y, park* p);
+void moveup(int y1, int y2, int x, park* p);
+void movedown(int y1, int y2, int x, park* p);
+void moveleft(int x1, int x2, int y, park* p);
+void moveright(int x1, int x2, int y, park* p);
+char* tostring(park* p, int row, int col);
 void test();
+
+char* tostring(park* p, int row, int col){
+   char* str = (char*)calloc(CAPACITY * CAPACITY, sizeof(char));
+   char* head = str;
+   for (int j = 0; j < row; j++){
+      for (int i = 0; i < col; i++){
+         *str++ = p->a[j][i];
+      }
+   }
+   *str = '\0';
+   return head;
+}
+
+void test(){
+   park* p = (park*)calloc(1, sizeof(park));
+   strcpy(p->a[0], "#.#####");
+   strcpy(p->a[1], ".BBB..#");
+   strcpy(p->a[2], "#A....#");
+   strcpy(p->a[3], "#A...C#");
+   strcpy(p->a[4], "#A...C#");
+   strcpy(p->a[5], "#..DDC#");
+   strcpy(p->a[6], "#######");
+   
+   char* pstr = tostring(p, 7, 7);
+   assert(strcmp(pstr, "#.#####.BBB..##A....##A...C##A...C##..DDC########") == 0);
+
+   moveup(2, 4, 5, p);
+   assert(strcmp(tostring(p, 7, 7), "#.#####.BBB..##A...C##A...C##A....##..DDC########") == 0);
+   moveup(1, 3, 5, p);
+   assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB.C##A...C##A....##A....##..DDC########") == 0);
+   movedown(1, 3, 5, p);
+   assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##A...C##A...C##A....##..DDC########") == 0);
+   moveleft(5, 6, 5, p);
+   assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##A...C##A...C##A....##..DC#.#######") == 0);
+   moveleft(4, 5, 5, p);
+   assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##A...C##A...C##A....##..C#..#######") == 0);
+   moveright(4, 5, 5, p);
+   assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##A...C##A...C##A....##..C.#.#######") == 0);
+   movedown(2, 4, 1, p);
+   assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##....C##A...C##A....##A.C.#.#######") == 0);
+   moveleft(1, 3, 1, p);
+   assert(strcmp(tostring(p, 7, 7), "#.###.#BBB...##....C##A...C##A....##A.C.#.#######") == 0);
+   moveright(0, 2, 1, p);
+   assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##....C##A...C##A....##A.C.#.#######") == 0);
+
+}
    
 int main(void){
    test();
-   list* l = (list*)calloc(1, sizeof(list));
-   parkinit(l);
+   
+   list* l = parkinit();
    
    int i = 0;
    while(i < N){
-      show(l->p[i]);
+ //     show(l->p[i]);
       if (solve(l, i) > 0){
          printf("%d moves", solve(l, i));
          exit(EXIT_SUCCESS);
       }
       movectrl(l, i);
       i++;
- }
- 
- 
- return 0;
+   }
+   
+   return 0;
 }
    
-void parkinit(list* l){
+list* parkinit(void){
    FILE* fp = fopen("10x8_5c_13t.prk", "r");
    int row, col;
    char x;
@@ -65,6 +124,7 @@ void parkinit(list* l){
    
    char temp[CAPACITY];
    fgets(temp, CAPACITY, fp);
+   list* l = (list*)calloc(1, sizeof(list));
    l->p[0] = (park*)calloc(1, sizeof(park));
 
    for (int j = 0; j < row; j++){
@@ -72,28 +132,27 @@ void parkinit(list* l){
       temp[col] = '\0';
       strncpy(l->p[0]->a[j], temp, col);
    }
+   l->p[0]->parentindex = 0;
+
    l->rowsize = row;
    l->colsize = col;
    l->current = 0;
-
-// assert(10 == row);
-// assert(9 == col);
    
    fclose(fp);
-   return;
+   return l;
 }
    
 void movectrl(list* l, int index){
    char* list = carlist(l, index);
    unsigned int i = 0;
    while (i < strlen(list)){
-      cardirctrl(l, index, list[i]);
+      carposition(l, index, list[i]);
       i++;
    }
    free(list);
 }
    
-void cardirctrl(list* l, int index, char car){
+void carposition(list* l, int index, char car){
    int y1 = 0, x1 = 0;
    int y2 = 0, x2 = 0;
    for (int j = 1; j < l->rowsize; j++){
@@ -115,39 +174,29 @@ void cardirctrl(list* l, int index, char car){
    }else{
       moveVertical(y1, y2, x1, l, index);
    }
-   
 }
+
 
 void moveVertical(int y1, int y2, int x, list* l, int index){
    //move up 
-   if (y1 - 1 >= 0 && l->p[index]->a[y1 - 1][x] == '.'){
+   if (upsquare(y1, x, l, index) == EMPTY){
       park* new = parkcopy(l->p[index], index);
-      if (y1 - 1 == 0){
-         for (int j = y1; j <= y2; j++){
-            new->a[j][x] = '.';
-         }
+      if (reachVerticalboundary(y1, l)){
+         carVerticalexit(y1, y2, x, new);
          add2list(l, new);
       }else{
-         for (int j = y1 - 1; j < y2; j++){
-            new->a[j][x] = new->a[j+1][x];
-         }
-         new->a[y2][x] = '.';
+         moveup(y1, y2, x, new);
          add2list(l, new);
       }
    }
    //move down
-   if (y2 + 1 < l->rowsize && l->p[index]->a[y2 + 1][x] == '.'){
+   if (downsquare(y2, x, l, index) == EMPTY){
       park* new = parkcopy(l->p[index], index);
-      if (y2 + 1 == l->rowsize - 1){
-         for (int j = y1; j <= y2; j++){
-            new->a[j][x] = '.';
-         }
+      if (reachVerticalboundary(y2, l)){
+         carVerticalexit(y1, y2, x, new);
          add2list(l, new);
       }else{
-         for (int j = y2 + 1; j > y1; j--){
-            new->a[j][x] = new->a[j-1][x];
-         }
-         new->a[y1][x] = '.';
+         movedown(y1, y2, x, new);
          add2list(l, new);
       }
    }
@@ -155,34 +204,24 @@ void moveVertical(int y1, int y2, int x, list* l, int index){
 
 void moveHorizont(int x1, int x2, int y, list* l, int index){
    //move left
-   if (x1 - 1 >= 0 && l->p[index]->a[y][x1 - 1] == '.'){
+   if (leftsquare(y, x1, l, index) == EMPTY){
       park* new = parkcopy(l->p[index], index);
-      if (x1 - 1 == 0){
-         for (int i = x1; i <= x2; i++){
-            new->a[y][i] = '.';
-         }
+      if (reachHorizontboundary(x1, l)){
+         carHorizontexit(x1, x2, y, new);
          add2list(l, new);
       }else{
-         for (int i = x1 - 1; i < x2; i++){
-            new->a[y][i] = new->a[y][i+1];
-         }
-         new->a[y][x2] = '.';
+         moveleft(x1, x2, y, new);
          add2list(l, new);	
       }
    }
    //move right
-   if (x2 + 1 < l->colsize && l->p[index]->a[y][x2 + 1] == '.'){
+   if (rightsquare(y, x2, l, index) == EMPTY){
       park* new = parkcopy(l->p[index], index);	
-      if (x2 + 1 == l->colsize - 1){
-         for (int i = x2; i >= x1; i--){
-            new->a[y][i] = '.';
-         }
+      if (reachHorizontboundary(x2, l)){
+         carHorizontexit(x1, x2, y, new);
          add2list(l, new);
          }else{
-            for (int i = x2 + 1; i > x1; i--){
-               new->a[y][i] = new->a[y][i-1];
-            }
-            new->a[y][x1] = '.';
+            moveright(x1, x2, y, new);
             add2list(l, new);
         }
    }
@@ -221,12 +260,12 @@ bool samepark(park* p1, park* p2, list* l){
    
 char* carlist(list* l, int index){
    int cnt = 0;
-   bool temp[26] = {0};
+   bool temp[CARSIZE] = {0};
    char car[100];
-   for (int j = 1; j < l->rowsize; j++){
-      for (int i = 1; i < l->colsize; i++){
-         if (isalpha(l->p[index]->a[j][i]) && temp[l->p[index]->a[j][i] - 'A'] == 0){
-            temp[l->p[index]->a[j][i] - 'A'] = 1;
+   for (int j = 0; j < l->rowsize; j++){
+      for (int i = 0; i < l->colsize; i++){
+         if (isalpha(l->p[index]->a[j][i]) && temp[l->p[index]->a[j][i] - A] == 0){
+            temp[l->p[index]->a[j][i] - A] = 1;
             car[cnt++] = l->p[index]->a[j][i];
          }
        }
@@ -249,16 +288,97 @@ int carnum(list* l, int index){
 }
    
 int solve(list* l, int index){
+   if (carnum(l, index) > 0){
+      return 0;
+   }
+   
    int cnt = 0;
-   if (carnum(l, index) == 0){
-      while(l->p[index]->parentindex != 0){
-         cnt++;
-         index = l->p[index]->parentindex;
-      }
+   while(index != 0){
+      cnt++;
+      index = l->p[index]->parentindex;
    }
    return cnt;
 }
-   
-void test(){
-   
+
+
+char upsquare(int y, int x, list* l, int index){
+   if (y - 1 >= 0){
+      return l->p[index]->a[y - 1][x];
+   }else{
+      return FULL;
+   }
 }
+
+char downsquare(int y, int x, list* l, int index){
+   if (y + 1 < l->rowsize){
+      return l->p[index]->a[y + 1][x];
+   }else{
+      return FULL;
+   }
+}
+
+char leftsquare(int y, int x, list* l, int index){
+   if (x - 1 >= 0){
+      return l->p[index]->a[y][x - 1];
+   }else{
+      return FULL;
+   }
+}
+
+char rightsquare(int y, int x, list* l, int index){
+   if (x + 1 < l->rowsize){
+      return l->p[index]->a[y][x + 1];
+   }else{
+      return FULL;
+   }
+}
+
+bool reachVerticalboundary(int y, list* l){
+   return y == 1 || y == l->rowsize - 2;
+}
+
+bool reachHorizontboundary(int x, list* l){
+   return x == 1 || x == l->colsize - 2;
+}
+
+void carVerticalexit(int y1, int y2, int x, park* p){
+   for (int j = y1; j <= y2; j++){
+      p->a[j][x] = EMPTY;
+   }
+}
+
+void carHorizontexit(int x1, int x2, int y, park* p){
+   for (int i = x1; i <= x2; i++){
+      p->a[y][i] = EMPTY;
+   }
+}
+
+void moveup(int y1, int y2, int x, park* p){
+   for (int j = y1 - 1; j < y2; j++){
+      p->a[j][x] = p->a[j+1][x];
+   }
+   p->a[y2][x] = EMPTY;
+}
+
+void movedown(int y1, int y2, int x, park* p){
+   for (int j = y2 + 1; j > y1; j--){
+      p->a[j][x] = p->a[j-1][x];
+   }
+   p->a[y1][x] = EMPTY;
+}
+
+void moveleft(int x1, int x2, int y, park* p){
+   for (int i = x1 - 1; i < x2; i++){
+      p->a[y][i] = p->a[y][i+1];
+   }
+   p->a[y][x2] = EMPTY;
+}
+
+void moveright(int x1, int x2, int y, park* p){
+   for (int i = x2 + 1; i > x1; i--){
+      p->a[y][i] = p->a[y][i-1];
+   }
+   p->a[y][x1] = EMPTY;
+}
+   
+

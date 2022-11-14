@@ -4,14 +4,11 @@
 #include <string.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <time.h>
 
 #define N 100000
 
 #define CAPACITY 20
-
-typedef struct coll{
-   park[N];
-}coll;
 
 typedef struct park{
    char a[CAPACITY][CAPACITY+1];
@@ -19,6 +16,7 @@ typedef struct park{
    struct park* previous;
 }park;
 
+park* parkinit(void);
 int solve(park* p);
 int carnum(park* p);
 char* carlist(park* p);
@@ -35,65 +33,53 @@ int colsize(park* p);
 void panel(park* p);
 void show(park* p);
 void test();
-void formatunify(char* str);
-
-
 
 int main(void){
    //test();
-   	
-   FILE* fp = fopen("11x9_10c_26t.prk", "r");
-   int row, col;
-   char x;
-   	
-   list* l = (list*)calloc(1, sizeof(struct list));
-   assert(l);
-//assert(parksize(l->p) == 0);
-   
-   //assert exist
-   l->p = (park*)calloc(1, sizeof(park));
-   l->p->next = NULL;
-   l->p->previous = l->p;
-   assert(l->p);
-   	
-   	
-   char cmp[CAPACITY][CAPACITY+1];
-   for (int i = 0; i < CAPACITY; i++){
-      strcpy(cmp[i], "");
-   }
-   
-   assert(fscanf(fp, "%d%c%d", &row, &x,&col) == 3);
-   printf("%d %d\n", row, col);
-   char temp[CAPACITY];
-   
-   fgets(temp, col + 2, fp);
-   
-   for (int j = 0; j < row; j++){
-      fgets(temp, col + 2, fp);
-      temp[col] = '\0';
-      formatunify(temp);
-      strncpy(l->p->a[j], temp, col);
-      strcpy(temp, "\0");
-   }
-   	
-//   assert(rowsize(l->p) == 11);
-//   assert(colsize(l->p) == 9);
-   	
-   show(l->p);
-   
-   park* this = l->p;
+   clock_t begin = clock();
+   park* p = parkinit();
+
+   park* this = p;
    while(this){
       show(this);
       if (solve(this) > 0){
          printf("%d moves", solve(this));
+         clock_t end = clock();
+         double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+         printf("%f", time_spent);
          exit(EXIT_SUCCESS);
       }
       movectrl(this);
       this = this->next;
    }
    
+   
+   return 0;
+}
+
+park* parkinit(void){
+   park* p = (park*)calloc(1, sizeof(park));
+   assert(p);
+
+   FILE* fp = fopen("11x9_10c_26t.prk", "r");
+   int row, col;
+   char x;
+   assert(fscanf(fp, "%d%c%d", &row, &x, &col) == 3);
+   
+   char temp[CAPACITY];
+   fgets(temp, CAPACITY, fp);
+
+   for (int j = 0; j < row; j++){
+      fgets(temp, CAPACITY, fp);
+      temp[col] = '\0';
+      strncpy(p->a[j], temp, col);
+   }
+
+   assert(rowsize(p) == row);
+   assert(colsize(p) == col);
+   
    fclose(fp);
-   	
+   return p;
 }
 
 
@@ -113,7 +99,7 @@ void movectrl(park* p){
    }
    free(list);
 }
-
+   
 void cardirctrl(park* p, char car){
    int y1 = 0, x1 = 0;
    int y2 = 0, x2 = 0;
@@ -147,15 +133,14 @@ void moveVertical(int y1, int y2, int x, park* p){
          for (int j = y1; j <= y2; j++){
             new->a[j][x] = '.';
          }
-            add2list(p, new);
+         add2list(p, new);
       }else{
          park* new = newpark(p);
          for (int j = y1 - 1; j < y2; j++){
             new->a[j][x] = new->a[j+1][x];
          }
          new->a[y2][x] = '.';
-			add2list(p, new);
-         
+         add2list(p, new);
       }
    }
    //move down
@@ -165,14 +150,14 @@ void moveVertical(int y1, int y2, int x, park* p){
          for (int j = y1; j <= y2; j++){
             new->a[j][x] = '.';
          }
-			add2list(p, new);
+         add2list(p, new);
       }else{
          park* new = newpark(p);
          for (int j = y2 + 1; j > y1; j--){
             new->a[j][x] = new->a[j-1][x];
          }
          new->a[y1][x] = '.';
-			add2list(p, new);
+         add2list(p, new);
       }
    }
 }
@@ -217,10 +202,10 @@ void moveHorizont(int x1, int x2, int y, park* p){
 
 
 void add2list(park* p, park* new){
-//   show(new);
+
+
    park* parent = p;
-   while (parent->previous != parent){
-//      printf("move back\n");
+   while (parent->previous && parent->previous != parent){
       parent = parent->previous;
    }	
    if (!parent){
@@ -235,7 +220,7 @@ void add2list(park* p, park* new){
       parent = parent->next;
 //   printf("move forward\n");
    }
-  parent->next = new;
+   parent->next = new;
 }
 
 park* newpark(park* p){
@@ -243,154 +228,82 @@ park* newpark(park* p){
    assert(new);
    memcpy(new, p, sizeof(park));
    new->previous = p;
-	new->next = NULL;
+   new->next = NULL;
    return new;
 }
 
 bool samepark(park* p1, park* p2){
-	for (int j = 0; j < rowsize(p1); j++){
-		for (int i = 0; i < colsize(p1); i++){
-			if (p1->a[j][i] != p2->a[j][i]){
-				return true;
-			}
-		}
-	}
-	return false;
+   for (int j = 0; j < rowsize(p1); j++){
+      for (int i = 0; i < colsize(p1); i++){
+         if (p1->a[j][i] != p2->a[j][i]){
+            return true;
+         }
+      }
+   }
+   return false;
 //	return memcmp(p1->a, p2->a, (len + 1) * len);
 }
-
+   
 int colsize(park* p){
-	if (!p){
-		return 0;
-	}
-	return strlen(p->a[0]);
+   if (!p){
+      return 0;
+   }
+   return strlen(p->a[0]);
 }
 
 int rowsize(park* p){
-	if (!p){
-		return 0;
-	}
-	
-	int i = 0;
-	while (p->a[i][0] == '#' || p->a[i][0] == '.'){
-		i++;
-	}
-	return i;
+   if (!p){
+      return 0;
+   }
+   
+   int i = 0;
+   while (p->a[i][0] == '#' || p->a[i][0] == '.'){
+      i++;
+   }
+   return i;
 }
 
 char* carlist(park* p){
-	int cnt = 0;
-	bool temp[26] = {0};
-	char car[100];
-	for (int j = 1; j < rowsize(p) - 1; j++){
-		for (int i = 1; i < colsize(p) - 1; i++){
-			if (isalpha(p->a[j][i]) && temp[p->a[j][i] - 'A'] == 0){
-		      temp[p->a[j][i] - 'A'] = 1;
-				car[cnt++] = p->a[j][i];
-			}
-		}
-	}
-	char* list = (char*)calloc(cnt + 1, sizeof(char));
-	
-	strncpy(list, car, cnt);
-	
-	return list;
+   int cnt = 0;
+   bool temp[26] = {0};
+   char car[100];
+   for (int j = 1; j < rowsize(p) - 1; j++){
+      for (int i = 1; i < colsize(p) - 1; i++){
+         if (isalpha(p->a[j][i]) && temp[p->a[j][i] - 'A'] == 0){
+            temp[p->a[j][i] - 'A'] = 1;
+            car[cnt++] = p->a[j][i];
+         }
+       }
+   }
+   char* list = (char*)calloc(cnt + 1, sizeof(char));	
+   strncpy(list, car, cnt);
+   	
+   return list;
 }
 
 void show(park* p){
-	for (int j = 0; j < rowsize(p); j++){
-		puts(p->a[j]);
-	}
-	printf("---------------\n");
+   for (int j = 0; j < rowsize(p); j++){
+      puts(p->a[j]);
+   }
+   printf("---------------\n");
 }
 
 int carnum(park* p){
-	return strlen(carlist(p));
+   return strlen(carlist(p));
 }
 
 int solve(park* p){
-	int cnt = 0;
-	if (carnum(p) == 0){
-		show(p);
-		while(p->previous != p){
-			cnt++;
-			p = p->previous;
-			show(p);
-		}
-	}
-	return cnt;
+   int cnt = 0;
+   if (carnum(p) == 0){
+      while(p->previous && p->previous != p){
+         cnt++;
+         p = p->previous;
+      }
+   }
+   return cnt;
 }
 
 void test(){
-   //assert exist
-   list* l = (list*)calloc(1, sizeof(struct list));
-   assert(l);
-   assert(rowsize(l->p) == 0);
-   //assert exist
-   l->p = (park*)calloc(1, sizeof(park));
-   l->p->next = NULL;
-   l->p->previous = l->p;
-   assert(l->p);
-   char cmp[CAPACITY][CAPACITY+1];
-   for (int i = 0; i < CAPACITY; i++){
-   strcpy(cmp[i], "");
-   }
-   // assert(memcmp(l->p->a, cmp, CAPACITY * (CAPACITY + 1)) == 0);
-   
-	l->parksize = 7;
-	strcpy(l->p->a[0], "#.#####");
-	strcpy(l->p->a[1], ".BBB..#");
-	strcpy(l->p->a[2], "#A....#");
-	strcpy(l->p->a[3], "#A....#");
-	strcpy(l->p->a[4], "#A....#");
-	strcpy(l->p->a[5], "#.....#");
-	strcpy(l->p->a[6], "#######");
-	// printf("%d", carnum(l->p, parksize(l)));
-	// park* p2 = newpark(l->p);
-	assert(carnum(l->p) == 2);
-	assert(rowsize(l->p) == 7);
-	
-	int cnt = 0;
-	
-	park* this = l->p;
-	while(this){
-//		show(this);
-		if (solve(this) > 0){
-			printf("%d", solve(this));
-			exit(EXIT_SUCCESS);
-		}
-		movectrl(this);
-		this = this->next;
-		cnt++;
-	}
-	printf("%d", cnt);
-	
-	
-	//	panel(l->p);
-	//	
-	//	int cnt = 10;
-	//	park* this = l->p;
-	//	for (int i = 0; i < cnt; i++){
-	//		show(this);
-	//		movectrl(this);
-	//		this = this->next;
-	//		if (!this){
-	//			return 0;
-	//		}
-	//	}
+
 }
 
-/*
-void formatunify(char* str){
-   int len = strlen(str);
-   int cnt = 0;
-   while(cnt < len){
-      if (str[cnt] == '@'){
-         str[cnt] = '#';
-      }else if (str[cnt] == ' '){
-         str[cnt]  = '.';
-      }
-      cnt++;
-   }
-}
-**/

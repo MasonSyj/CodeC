@@ -40,37 +40,37 @@ int main(void) {
 
 bool insert(int* a, int num){
    int i = 0;
-   while (a[(hashlinear(num) + i * i) % S] != 0 && a[(hashlinear(num) + i * i) % S] != -1){
+   while (a[(hashlinear(num) + i) % S] != 0 && a[(hashlinear(num) + i) % S] != -1){
       i++;
-      if (a[(hashlinear(num) + i * i) % S] == a[hashlinear(num)]){
+      if (a[(hashlinear(num) + i) % S] == a[hashlinear(num)]){
          return false;
       }
    }
-   a[(hashlinear(num) + i * i) % S] = num;
+   a[(hashlinear(num) + i) % S] = num;
    return true;
 }
 
 bool delete(int* a, int num){
    int i = 0;
-   while (a[(hashlinear(num) + i * i) % S] != num){
+   while (a[(hashlinear(num) + i) % S] != num){
       i++;
-      if (a[(hashlinear(num) + i * i) % S] == a[hashlinear(num)]){
+      if (a[(hashlinear(num) + i) % S] == a[hashlinear(num)]){
          return false;
       }
    }
-   a[(hashlinear(num) + i * i) % S] = -1;
+   a[(hashlinear(num) + i) % S] = -1;
    return true;
 }
    
 int search(int* a, int num){
    int i = 0;
-   while (a[(hashlinear(num) + i * i) % S] != num){
+   while (a[(hashlinear(num) + i) % S] != num){
       i++;
-      if (a[(hashlinear(num) + i * i) % S] == a[hashlinear(num)]){
+      if (a[(hashlinear(num) + i) % S] == a[hashlinear(num)]){
          return -1;
       }
    }
-   return (hashlinear(num) + i * i) % S;
+   return (hashlinear(num) + i) % S;
 }
    
 int hashlinear(int num){

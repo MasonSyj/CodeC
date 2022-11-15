@@ -29,48 +29,48 @@ void movectrl(list* l, int index);
 void carposition(list* l, int index, char car);
 void moveVertical(int y1, int y2, int x, list* l, int index);
 void moveHorizont(int y1, int y2, int x, list* l, int index);
-park* parkcopy(park* p, int index);
 void add2list(list* l, park* new);
-int carnum(list* l, int index);
-char* carlist(list* l, int index);
-bool samepark(park* p1, park* p2, list* l);
 int solvemovescnt(list* l, int index);
-void show(park* p);
-bool reachVerticalboundary(int y, list* l);
-bool reachHorizontboundary(int x, list* l);
-void carVerticalexit(int y1, int y2, int x, park* p);
-void carHorizontexit(int x1, int x2, int y, park* p);
-char upsquare(int y, int x, list* l, int index);
-char downsquare(int y, int x, list* l, int index);
-char leftsquare(int y, int x, list* l, int index);
-char rightsquare(int y, int x, list* l, int index);
-void moveup(int y1, int y2, int x, park* p);
-void movedown(int y1, int y2, int x, park* p);
-void moveleft(int x1, int x2, int y, park* p);
-void moveright(int x1, int x2, int y, park* p);
-char* tostring(park* p, int row, int col);
-bool closedcase(park* p, int row, int col);
-bool iscar(park* p, int j, int i);
-bool existcararound(park* p, int j, int i);
-bool empty(list* l, int index);
+park* parkcopy(park* p, int index); //
+int carnum(list* l, int index); //
+char* carlist(list* l, int index); //
+bool samepark(park* p1, park* p2, list* l); //
+void show(park* p); //
+bool reachVerticalboundary(int y, list* l); //
+bool reachHorizontboundary(int x, list* l); //
+void carVerticalexit(int y1, int y2, int x, park* p); //
+void carHorizontexit(int x1, int x2, int y, park* p); //
+char upsquare(int y, int x, list* l, int index); //
+char downsquare(int y, int x, list* l, int index); //
+char leftsquare(int y, int x, list* l, int index); //
+char rightsquare(int y, int x, list* l, int index); //
+void moveup(int y1, int y2, int x, park* p);  //
+void movedown(int y1, int y2, int x, park* p); //
+void moveleft(int x1, int x2, int y, park* p); //
+void moveright(int x1, int x2, int y, park* p); //
+char* tostring(park* p, int row, int col); //
+bool closedcase(park* p, int row, int col); //
+bool iscar(park* p, int j, int i); //
+bool samecararound(park* p, int j, int i); //
+bool consec(park* p, int row, int col); //
+bool empty(list* l, int index); //
 bool consec(park* p, int row, int col); //
 int* printlist(list* l, int index);
 void showlist(list* l, int index);
-void test();
-
-
+void independentfunctiontest();
+void dependentfunctiontest();
 
 /* other than normal situations:
 no cars full closed non consec
 */
 
-void test(){
+void independentfunctiontest(){
    list* l = (list*)calloc(1, sizeof(list));
    l->rowsize = 7;
    l->colsize = 7;
-
+   l->current = 0;
    park* p = (park*)calloc(1, sizeof(park));
-   l->p[0] = p;
+   
    strcpy(p->a[0], "#.#####");
    strcpy(p->a[1], ".BBB..#");
    strcpy(p->a[2], "#A....#");
@@ -78,6 +78,8 @@ void test(){
    strcpy(p->a[4], "#A...C#");
    strcpy(p->a[5], "#..DDC#");
    strcpy(p->a[6], "#######");
+   l->p[0] = p;
+   assert(l->current == 0);
    assert(carnum(l, 0) == 4);
    assert(strcmp(carlist(l, 0), "BACD") == 0);
 
@@ -88,10 +90,10 @@ void test(){
    assert(!iscar(p, 2, 2));
    assert(!iscar(p, 3, 3));
 
-   assert(existcararound(p, 1, 1));
-   assert(existcararound(p, 2, 1));
-   assert(existcararound(p, 2, 2));
-   assert(!existcararound(p, 3, 3));
+   assert(samecararound(p, 1, 1));
+   assert(samecararound(p, 2, 1));
+   assert(samecararound(p, 5, 5));
+   assert(!samecararound(p, 3, 3));
 
    assert(upsquare(1, 1, l, 0) == EMPTY);
    assert(upsquare(3, 5, l, 0) == EMPTY);
@@ -126,7 +128,7 @@ void test(){
    assert(consec(p, 7, 7));
 
    park* closedp = (park*)calloc(1, sizeof(park));
-   l->p[1] = closedp;
+   
    strcpy(closedp->a[0], "#######");
    strcpy(closedp->a[1], "#BBB..#");
    strcpy(closedp->a[2], "#A....#");
@@ -134,11 +136,13 @@ void test(){
    strcpy(closedp->a[4], "#A...C#");
    strcpy(closedp->a[5], "#..DDC#");
    strcpy(closedp->a[6], "#######");
+   add2list(l, closedp);
+   assert(l->current == 1);
    assert(closedcase(closedp, 7, 7));
    assert(carnum(l, 1) == 4);
 
    park* emptyp = (park*)calloc(1, sizeof(park));
-   l->p[2] = emptyp;
+
    strcpy(emptyp->a[0], "#######");
    strcpy(emptyp->a[1], "#.....#");
    strcpy(emptyp->a[2], "#.....#");
@@ -146,11 +150,13 @@ void test(){
    strcpy(emptyp->a[4], "#.....#");
    strcpy(emptyp->a[5], "#.....#");
    strcpy(emptyp->a[6], "#######");
+   add2list(l, emptyp);
+   assert(l->current == 2);
    assert(empty(l, 2));
    assert(carnum(l, 2) == 0);
 
    park* exitp = (park*)calloc(1, sizeof(park));
-   l->p[3] = exitp;
+
    strcpy(exitp->a[0], "####C##");
    strcpy(exitp->a[1], "AAA.C.#");
    strcpy(exitp->a[2], "#...C.#");
@@ -158,9 +164,16 @@ void test(){
    strcpy(exitp->a[4], "#..E.B#");
    strcpy(exitp->a[5], "#..E.B#");
    strcpy(exitp->a[6], "###.#B#");
+   add2list(l, exitp);
+   assert(l->current == 3);
    assert(!empty(l, 3));
    assert(carnum(l, 3) == 6);
    assert(strcmp(carlist(l, 3), "CAFDEB") == 0);
+
+   park* copy = parkcopy(l->p[2], 2);
+   add2list(l, copy);
+   assert(l->current == 3);
+   assert(strcmp(tostring(copy, 7, 7), tostring(l->p[3], 7, 7)) == 0);
 
    assert(reachVerticalboundary(1, l));
    assert(reachVerticalboundary(5, l));
@@ -181,17 +194,56 @@ void test(){
    assert(!samepark(l->p[0], l->p[1], l));
    assert(!samepark(l->p[1], l->p[2], l));
    assert(samepark(l->p[1], l->p[1], l));
+
+   park* notconsec = (park*)calloc(1, sizeof(park));
+   
+   strcpy(notconsec->a[0], "####C##");
+   strcpy(notconsec->a[1], "AAA.C.#");
+   strcpy(notconsec->a[2], "#...C.#");
+   strcpy(notconsec->a[3], ".FF.FDD");
+   strcpy(notconsec->a[4], "#..E.B#");
+   strcpy(notconsec->a[5], "#..E.B#");
+   strcpy(notconsec->a[6], "###.#B#");
+
+   add2list(l, notconsec);
+   assert(l->current == 4);
+
+   assert(!consec(notconsec, 7, 7));
+}
+
+void dependentfunctiontest(){
+   list* l = (list*)calloc(1, sizeof(list));
+   l->rowsize = 10;
+   l->colsize = 8;
+
+   park* p = (park*)calloc(1, sizeof(park));
+   l->p[0] = p;
+   strcpy(p->a[0], "########");
+   strcpy(p->a[1], "#DBBBE..");
+   strcpy(p->a[2], "#D.A.E.#");
+   strcpy(p->a[3], "#D.A.E.#");
+   strcpy(p->a[4], "#D.A.E.#");
+   strcpy(p->a[5], "#D.A.E.#");
+   strcpy(p->a[6], ".DCCCE.#");
+   strcpy(p->a[7], "#D...E.#");
+   strcpy(p->a[8], "#......#");
+   strcpy(p->a[9], "#.#.#.##");
+   int i = 0;
+   while (i < N){
+      
+   }
+   
 }
    
 int main(void){
-   test();
-   
+   independentfunctiontest();
+//   dependentfunctiontest();
+
+
    list* l = parkinit();
    bool show = 0;
    int i = 0;
    while(i < N){
- //     show(l->p[i]);
-   
       if (solvemovescnt(l, i) > 0){
          if (show == 1){
            showlist(l, i);
@@ -199,8 +251,12 @@ int main(void){
          printf("%d moves", solvemovescnt(l, i));
          exit(EXIT_SUCCESS);
       }
-      
-      
+
+      if (empty(l, i) == true){
+         fprintf(stderr, "No more new carparks, failed to solve.");
+         exit(EXIT_FAILURE);
+      }
+
       movectrl(l, i);
       i++;
    }
@@ -232,10 +288,7 @@ list* parkinit(void){
       fprintf(stderr, "This park is fully closed.\n");
    }
 
-   if (empty(l, 0) == true){
-      fprintf(stderr, "No more new carparks, failed to solve.");
-      exit(EXIT_FAILURE);
-   }
+
 
    l->p[0]->parentindex = 0;
 
@@ -516,17 +569,22 @@ bool iscar(park* p, int j, int i){
    }
 }
 
-bool existcararound(park* p, int j, int i){
-   return iscar(p, j-1, i) || iscar(p, j, i-1) || iscar(p, j+1, i) || iscar(p, j, i+1);  
+bool samecararound(park* p, int j, int i){
+
+   if (p->a[j][i] == EMPTY || p->a[j][i] == FULL){
+      return false;
+   }
+   if (p->a[j][i] == p->a[j-1][i] || p->a[j][i] == p->a[j+1][i] || p->a[j][i] == p->a[j][i+1] || p->a[j][i] == p->a[j][i-1]){
+      return true;
+   }
+   return false;  
 }
 
 bool consec(park* p, int row, int col){
    for (int j = 1; j < row - 1; j++){
       for (int i = 1; i < col - 1; i++){
-         if (iscar(p, j, i) && existcararound(p, j, i)){
-            if (!(existcararound(p, j, i))){
-               return false;
-            }
+         if (iscar(p, j, i) && !samecararound(p, j, i)){
+            return false;
          }
       }
    }

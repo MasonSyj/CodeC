@@ -9,15 +9,17 @@
 
 #define CAPACITY 20
 
-typedef struct coll{
-   park[N];
-}coll;
+
 
 typedef struct park{
    char a[CAPACITY][CAPACITY+1];
    struct park* next;
    struct park* previous;
 }park;
+
+typedef struct list{
+   park p[N];
+}list;
 
 int solve(park* p);
 int carnum(park* p);

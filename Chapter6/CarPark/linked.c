@@ -25,7 +25,8 @@ void movecar(park* p, char car);
 void cardirctrl(park* p, char car);
 void moveVertical(int y1, int y2, int x, park* p);
 void moveHorizont(int x1, int x2, int y, park* p);
-void add2list(park* p, park* new);
+void add2next(park* p, park* new);
+void add2end(park* p, park* new);
 bool samepark(park* p1, park* p2);
 park* newpark(park* p);
 int rowsize(park* p);
@@ -133,14 +134,14 @@ void moveVertical(int y1, int y2, int x, park* p){
          for (int j = y1; j <= y2; j++){
             new->a[j][x] = '.';
          }
-         add2list(p, new);
+         add2next(p, new);
       }else{
          park* new = newpark(p);
          for (int j = y1 - 1; j < y2; j++){
             new->a[j][x] = new->a[j+1][x];
          }
          new->a[y2][x] = '.';
-         add2list(p, new);
+         add2end(p, new);
       }
    }
    //move down
@@ -150,14 +151,14 @@ void moveVertical(int y1, int y2, int x, park* p){
          for (int j = y1; j <= y2; j++){
             new->a[j][x] = '.';
          }
-         add2list(p, new);
+         add2next(p, new);
       }else{
          park* new = newpark(p);
          for (int j = y2 + 1; j > y1; j--){
             new->a[j][x] = new->a[j-1][x];
          }
          new->a[y1][x] = '.';
-         add2list(p, new);
+         add2end(p, new);
       }
    }
 }
@@ -165,49 +166,45 @@ void moveVertical(int y1, int y2, int x, park* p){
 void moveHorizont(int x1, int x2, int y, park* p){
    //move left
    if (p->a[y][x1 - 1] == '.'){
+      park* new = newpark(p);
       if (x1 - 1 == 0){
-         park* new = newpark(p);
          for (int i = x1; i <= x2; i++){
             new->a[y][i] = '.';
          }
-         add2list(p, new);
+         add2next(p, new);
       }else{
-         park* new = newpark(p);		
          for (int i = x1 - 1; i < x2; i++){
             new->a[y][i] = new->a[y][i+1];
          }
          new->a[y][x2] = '.';
-         add2list(p, new);	
+         add2end(p, new);
       }
    }
    //move right
    if (p->a[y][x2 + 1] == '.'){
+      park* new = newpark(p);
       if (x2 + 1 == colsize(p) - 1){
-         park* new = newpark(p);
          for (int i = x2; i >= x1; i--){
             new->a[y][i] = '.';
          }
-         add2list(p, new);
-         }else{
-            park* new = newpark(p);
-            for (int i = x2 + 1; i > x1; i--){
-               new->a[y][i] = new->a[y][i-1];
-            }
-            new->a[y][x1] = '.';
-            add2list(p, new);
-        }
+         add2next(p, new);
+      }else{
+         for (int i = x2 + 1; i > x1; i--){
+            new->a[y][i] = new->a[y][i-1];
+         }
+         new->a[y][x1] = '.';
+         add2end(p, new);
+     }
    }
 }
 
 
 
-void add2list(park* p, park* new){
-
-
+void add2end(park* p, park* new){
    park* parent = p;
    while (parent->previous && parent->previous != parent){
       parent = parent->previous;
-   }	
+   }
    if (!parent){
       parent = p;
    }
@@ -221,6 +218,11 @@ void add2list(park* p, park* new){
 //   printf("move forward\n");
    }
    parent->next = new;
+}
+
+void add2next(park* p, park* new){
+   new->next = p->next;
+   p->next = new;
 }
 
 park* newpark(park* p){

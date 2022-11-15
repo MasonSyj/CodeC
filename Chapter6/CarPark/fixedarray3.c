@@ -4,9 +4,8 @@
 #include <string.h>
 #include <stdbool.h>
 #include <ctype.h>
-#include <time.h>
    
-#define N 1000000
+#define N 100000
 #define EMPTY '.'
 #define FULL '#'
 #define CAPACITY 20
@@ -19,7 +18,7 @@ typedef struct park{
 }park;
    
 typedef struct list{
-   park* p[N];
+   park* p[10000];
    int rowsize;
    int colsize;
    int current;
@@ -29,7 +28,7 @@ list* parkinit(void);
 void movectrl(list* l, int index);
 void carposition(list* l, int index, char car);
 void moveVertical(int y1, int y2, int x, list* l, int index);
-void moveHorizont(int y1, int y2, int x, list* l, int index);
+void moveHorizont(int x1, int x2, int y, list* l, int index);
 void add2list(list* l, park* new);//
 int solvemovescnt(list* l, int index);//
 park* parkcopy(park* p, int index); //
@@ -173,7 +172,7 @@ void independentfunctiontest(){
 
    park* copy = parkcopy(l->p[3], 3);
    assert(strcmp(tostring(copy, 7, 7), tostring(l->p[3], 7, 7)) == 0);
-   // add a same one to the list, the same one won't add and will be freed.
+   // add a same one to the list, thcarpositione same one won't add and will be freed.
    add2list(l, copy);
    assert(l->current == 3);
 
@@ -250,24 +249,39 @@ void dependentfunctiontest(){
    assert(printl[4] == 20);
    assert(printl[5] == 36);
    assert(printl[6] == 60);
-/*
+
    list* l2 = (list*)calloc(1, sizeof(list));
    l->rowsize = 6;
    l->colsize = 6;
 
    park* p2 = (park*)calloc(1, sizeof(park));
-   l->p[0] = p2;
+   l2->p[0] = p2;
+   strcpy(p2->a[0], "#.#####");
+   strcpy(p2->a[1], "#......");
+   strcpy(p2->a[2], "#A....#");
+   strcpy(p2->a[3], "#A....#");
+   strcpy(p2->a[4], "#A....#");
+   strcpy(p2->a[5], "...DD.#");
+   strcpy(p2->a[6], "####.##");
 
-  */ 
+   moveVertical(2, 4, 1, l2, 0);
+   moveHorizont(3, 4, 5, l2, 0);
+   i = 0;
+   while(i <= l2->current){
+      show(l2->p[i]);
+      i++;
+   }
    
-   
+   carposition(l2, 0, 'A');
+   carposition(l2, 0, 'D');
+   movectrl(l2, 0);
 }
    
 int main(void){
    independentfunctiontest();
    dependentfunctiontest();
 
-   clock_t begin = clock();
+
    list* l = parkinit();
    bool show = 0;
    int i = 0;
@@ -277,9 +291,6 @@ int main(void){
            showlist(l, i);
          }
          printf("%d moves", solvemovescnt(l, i));
-         clock_t end = clock();
-         double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-         printf("Time Spent: %f", time_spent);
          exit(EXIT_SUCCESS);
       }
 
@@ -296,7 +307,7 @@ int main(void){
 }
    
 list* parkinit(void){
-   FILE* fp = fopen("11x9_10c_26t.prk", "r");
+   FILE* fp = fopen("10x8_5c_13t.prk", "r");
    int row, col;
    char x;
    assert(fscanf(fp, "%d%c%d", &row, &x, &col) == 3);

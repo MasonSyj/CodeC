@@ -22,37 +22,7 @@ testrealloc_s : boolarr.h Realloc/specific.h Realloc/realloc.c testboolarr.c ../
 
 clean:
 	rm -fr demo_neillsimplescreen demo_neillncurses demo_neillsdl2
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	
 DOT := $(shell command -v dot 2> /dev/null)
 
 Linkedb.dot:  testlinked

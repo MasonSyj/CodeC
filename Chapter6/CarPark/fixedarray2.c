@@ -34,16 +34,16 @@ void add2list(list* l, park* new);
 int carnum(list* l, int index);
 char* carlist(list* l, int index);
 bool samepark(park* p1, park* p2, list* l);
-int solve(list* l, int index);
+int solvemovescnt(list* l, int index);
 void show(park* p);
-char upsquare(int y, int x, list* l, int index);
-char downsquare(int y, int x, list* l, int index);
-char leftsquare(int y, int x, list* l, int index);
-char rightsquare(int y, int x, list* l, int index);
 bool reachVerticalboundary(int y, list* l);
 bool reachHorizontboundary(int x, list* l);
 void carVerticalexit(int y1, int y2, int x, park* p);
 void carHorizontexit(int x1, int x2, int y, park* p);
+char upsquare(int y, int x, list* l, int index);
+char downsquare(int y, int x, list* l, int index);
+char leftsquare(int y, int x, list* l, int index);
+char rightsquare(int y, int x, list* l, int index);
 void moveup(int y1, int y2, int x, park* p);
 void movedown(int y1, int y2, int x, park* p);
 void moveleft(int x1, int x2, int y, park* p);
@@ -52,46 +52,151 @@ char* tostring(park* p, int row, int col);
 bool closedcase(park* p, int row, int col);
 bool iscar(park* p, int j, int i);
 bool existcararound(park* p, int j, int i);
-bool empty(park* p);
-bool consec(park* p, int row, int col);
+bool empty(list* l, int index);
+bool consec(park* p, int row, int col); //
 int* printlist(list* l, int index);
 void showlist(list* l, int index);
 void test();
 
-char* tostring(park* p, int row, int col){
-   char* str = (char*)calloc(CAPACITY * CAPACITY, sizeof(char));
-   char* head = str;
-   for (int j = 0; j < row; j++){
-      for (int i = 0; i < col; i++){
-         *str++ = p->a[j][i];
-      }
-   }
-   *str = '\0';
-   return head;
-}
+
 
 /* other than normal situations:
 no cars full closed non consec
 */
+
+void test(){
+   list* l = (list*)calloc(1, sizeof(list));
+   l->rowsize = 7;
+   l->colsize = 7;
+
+   park* p = (park*)calloc(1, sizeof(park));
+   l->p[0] = p;
+   strcpy(p->a[0], "#.#####");
+   strcpy(p->a[1], ".BBB..#");
+   strcpy(p->a[2], "#A....#");
+   strcpy(p->a[3], "#A...C#");
+   strcpy(p->a[4], "#A...C#");
+   strcpy(p->a[5], "#..DDC#");
+   strcpy(p->a[6], "#######");
+   assert(carnum(l, 0) == 4);
+   assert(strcmp(carlist(l, 0), "BACD") == 0);
+
+   assert(!closedcase(p, 7, 7));
+
+   assert(iscar(p, 1, 1));
+   assert(iscar(p, 2, 1));
+   assert(!iscar(p, 2, 2));
+   assert(!iscar(p, 3, 3));
+
+   assert(existcararound(p, 1, 1));
+   assert(existcararound(p, 2, 1));
+   assert(existcararound(p, 2, 2));
+   assert(!existcararound(p, 3, 3));
+
+   assert(upsquare(1, 1, l, 0) == EMPTY);
+   assert(upsquare(3, 5, l, 0) == EMPTY);
+   assert(downsquare(1, 4, l, 0) == EMPTY);
+   assert(downsquare(5, 5, l, 0) == FULL);
+   assert(leftsquare(5, 3, l, 0) == EMPTY);
+   assert(rightsquare(5, 5, l, 0) == FULL);
+   assert(rightsquare(1, 3, l, 0) == EMPTY);
+   
+   char* pstr = tostring(p, 7, 7);
+   assert(strcmp(pstr, "#.#####.BBB..##A....##A...C##A...C##..DDC########") == 0);
+
+   moveup(3, 5, 5, p); 
+   assert(strcmp(tostring(p, 7, 7), "#.#####.BBB..##A...C##A...C##A...C##..DD.########") == 0);
+   moveup(2, 4, 5, p); 
+   assert(strcmp(tostring(p, 7, 7), "#.#####.BBB.C##A...C##A...C##A....##..DD.########") == 0);
+   movedown(1, 3, 5, p); 
+   assert(strcmp(tostring(p, 7, 7), "#.#####.BBB..##A...C##A...C##A...C##..DD.########") == 0);
+   moveleft(3, 4, 5, p);
+   assert(strcmp(tostring(p, 7, 7), "#.#####.BBB..##A...C##A...C##A...C##.DD..########") == 0);
+   moveleft(2, 3, 5, p);
+   assert(strcmp(tostring(p, 7, 7), "#.#####.BBB..##A...C##A...C##A...C##DD...########") == 0);
+   moveright(1, 2, 5, p);
+   assert(strcmp(tostring(p, 7, 7), "#.#####.BBB..##A...C##A...C##A...C##.DD..########") == 0);
+   movedown(2, 4, 1, p);
+   assert(strcmp(tostring(p, 7, 7), "#.#####.BBB..##....C##A...C##A...C##ADD..########") == 0);
+   moveleft(1, 3, 1, p);
+   assert(strcmp(tostring(p, 7, 7), "#.#####BBB...##....C##A...C##A...C##ADD..########") == 0);
+   moveright(0, 2, 1, p);
+   assert(strcmp(tostring(p, 7, 7), "#.#####.BBB..##....C##A...C##A...C##ADD..########") == 0);
+   assert(!empty(l, 0));
+   assert(consec(p, 7, 7));
+
+   park* closedp = (park*)calloc(1, sizeof(park));
+   l->p[1] = closedp;
+   strcpy(closedp->a[0], "#######");
+   strcpy(closedp->a[1], "#BBB..#");
+   strcpy(closedp->a[2], "#A....#");
+   strcpy(closedp->a[3], "#A...C#");
+   strcpy(closedp->a[4], "#A...C#");
+   strcpy(closedp->a[5], "#..DDC#");
+   strcpy(closedp->a[6], "#######");
+   assert(closedcase(closedp, 7, 7));
+   assert(carnum(l, 1) == 4);
+
+   park* emptyp = (park*)calloc(1, sizeof(park));
+   l->p[2] = emptyp;
+   strcpy(emptyp->a[0], "#######");
+   strcpy(emptyp->a[1], "#.....#");
+   strcpy(emptyp->a[2], "#.....#");
+   strcpy(emptyp->a[3], "#.....#");
+   strcpy(emptyp->a[4], "#.....#");
+   strcpy(emptyp->a[5], "#.....#");
+   strcpy(emptyp->a[6], "#######");
+   assert(empty(l, 2));
+   assert(carnum(l, 2) == 0);
+
+   park* exitp = (park*)calloc(1, sizeof(park));
+   l->p[3] = exitp;
+   strcpy(exitp->a[0], "####C##");
+   strcpy(exitp->a[1], "AAA.C.#");
+   strcpy(exitp->a[2], "#...C.#");
+   strcpy(exitp->a[3], ".FFF.DD");
+   strcpy(exitp->a[4], "#..E.B#");
+   strcpy(exitp->a[5], "#..E.B#");
+   strcpy(exitp->a[6], "###.#B#");
+   assert(!empty(l, 3));
+   assert(carnum(l, 3) == 6);
+   assert(strcmp(carlist(l, 3), "CAFDEB") == 0);
+
+   assert(reachVerticalboundary(1, l));
+   assert(reachVerticalboundary(5, l));
+   assert(!reachVerticalboundary(3, l));
+   assert(reachHorizontboundary(1, l));
+   assert(!reachHorizontboundary(4, l));
+   assert(!reachHorizontboundary(2, l));
+
+   carVerticalexit(0, 2, 4, exitp);
+   assert(strcmp(tostring(exitp, 7, 7), "####.##AAA...##.....#.FFF.DD#..E.B##..E.B####.#B#") == 0);
+   carHorizontexit(0, 2, 1, exitp);
+   assert(strcmp(tostring(exitp, 7, 7), "####.##......##.....#.FFF.DD#..E.B##..E.B####.#B#") == 0);
+   carHorizontexit(5, 6, 3, exitp);
+   assert(strcmp(tostring(exitp, 7, 7), "####.##......##.....#.FFF...#..E.B##..E.B####.#B#") == 0);
+   carVerticalexit(4, 6, 5, exitp);
+   assert(strcmp(tostring(exitp, 7, 7), "####.##......##.....#.FFF...#..E..##..E..####.#.#") == 0);
+ 
+   assert(!samepark(l->p[0], l->p[1], l));
+   assert(!samepark(l->p[1], l->p[2], l));
+   assert(samepark(l->p[1], l->p[1], l));
+}
    
 int main(void){
    test();
    
    list* l = parkinit();
-   bool show = 1;
+   bool show = 0;
    int i = 0;
    while(i < N){
  //     show(l->p[i]);
-      if (empty(l->p[i]) == true){
-         fprintf(stderr, "No more new carparks, failed to solve.");
-         exit(EXIT_FAILURE);
-      }
    
-      if (solve(l, i) > 0){
+      if (solvemovescnt(l, i) > 0){
          if (show == 1){
            showlist(l, i);
          }
-         printf("%d moves", solve(l, i));
+         printf("%d moves", solvemovescnt(l, i));
          exit(EXIT_SUCCESS);
       }
       
@@ -112,6 +217,9 @@ list* parkinit(void){
    char temp[CAPACITY];
    fgets(temp, CAPACITY, fp);
    list* l = (list*)calloc(1, sizeof(list));
+   l->rowsize = row;
+   l->colsize = col;
+   l->current = 0;
    l->p[0] = (park*)calloc(1, sizeof(park));
 
    for (int j = 0; j < row; j++){
@@ -123,11 +231,15 @@ list* parkinit(void){
    if (closedcase(l->p[0], row, col)){
       fprintf(stderr, "This park is fully closed.\n");
    }
+
+   if (empty(l, 0) == true){
+      fprintf(stderr, "No more new carparks, failed to solve.");
+      exit(EXIT_FAILURE);
+   }
+
    l->p[0]->parentindex = 0;
 
-   l->rowsize = row;
-   l->colsize = col;
-   l->current = 0;
+   
    
    fclose(fp);
    return l;
@@ -228,7 +340,7 @@ park* parkcopy(park* p, int index){
    
 void add2list(list* l, park* new){
    for (int i = 0; i <= l->current; i++){
-      if (samepark(l->p[i], new, l) == 0){
+      if (samepark(l->p[i], new, l)){
          free(new);
          return;
       }
@@ -241,11 +353,11 @@ bool samepark(park* p1, park* p2, list* l){
    for (int j = 0; j < l->rowsize; j++){
       for (int i = 0; i < l->colsize; i++){
          if (p1->a[j][i] != p2->a[j][i]){
-            return true;
+            return false;
          }
       }
    }
-   return false;
+   return true;
 //   return memcmp(p1->a, p2->a, (len + 1) * len);
 }
    
@@ -278,7 +390,7 @@ int carnum(list* l, int index){
    return strlen(carlist(l, index));
 }
    
-int solve(list* l, int index){
+int solvemovescnt(list* l, int index){
    if (carnum(l, index) > 0){
       return 0;
    }
@@ -422,15 +534,17 @@ bool consec(park* p, int row, int col){
 }
 
 
-bool empty(park* p){
-   park* cmp = (park*)calloc(1, sizeof(park));
-   bool result = memcmp(p, cmp, sizeof(park));
-   free(cmp);
-   return !result;
+bool empty(list* l, int index){
+   if (carnum(l, index) > 0){
+      return false;
+   }else{
+      return true;
+   }
+//   return carnum(l, index) == 0;
 }
 
 int* printlist(list* l, int index){
-   int len = solve(l, index);
+   int len = solvemovescnt(l, index);
    int* printl = (int*)calloc(++len, sizeof(int));
    while (index != 0){
       printl[--len] = index;
@@ -442,45 +556,44 @@ int* printlist(list* l, int index){
 
 void showlist(list* l, int index){
    int* printl = printlist(l, index);
-   for (int i = 0; i < solve(l, index) + 1; i++){
+   for (int i = 0; i < solvemovescnt(l, index) + 1; i++){
       show(l->p[printl[i]]);
    }
 }
 
-void test(){
-   park* p = (park*)calloc(1, sizeof(park));
-   strcpy(p->a[0], "#.#####");
-   strcpy(p->a[1], ".BBB..#");
-   strcpy(p->a[2], "#A....#");
-   strcpy(p->a[3], "#A...C#");
-   strcpy(p->a[4], "#A...C#");
-   strcpy(p->a[5], "#..DDC#");
-   strcpy(p->a[6], "#######");
-   
-   char* pstr = tostring(p, 7, 7);
-   assert(strcmp(pstr, "#.#####.BBB..##A....##A...C##A...C##..DDC########") == 0);
-   show(p);
-/*
-   moveup(3, 5, 5, p); // show(p);
-   assert(strcmp(tostring(p, 7, 7), "#.#####.BBB..##A...C##A...C##A....##..DDC########") == 0);
-   moveup(2, 4, 5, p); // show(p);
-   assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB.C##A...C##A....##A....##..DDC########") == 0);
-   movedown(1, 3, 5, p); // show(p);
-   assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##A...C##A...C##A....##..DDC########") == 0);
-   moveleft(5, 6, 5, p);//show(p);
-   assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##A...C##A...C##A....##..DC#.#######") == 0);
-   moveleft(4, 5, 5, p);//show(p);
-   assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##A...C##A...C##A....##..C#..#######") == 0);
-   moveright(4, 5, 5, p);//show(p);
-   assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##A...C##A...C##A....##..C.#.#######") == 0);
-   movedown(2, 4, 1, p);//show(p);
-   assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##....C##A...C##A....##A.C.#.#######") == 0);
-   moveleft(1, 3, 1, p);//show(p);
-   assert(strcmp(tostring(p, 7, 7), "#.###.#BBB...##....C##A...C##A....##A.C.#.#######") == 0);
-   moveright(0, 2, 1, p);//show(p);
-   assert(strcmp(tostring(p, 7, 7), "#.###.#.BBB..##....C##A...C##A....##A.C.#.#######") == 0);
-   show(p);
-*/
-   assert(!empty(p));
-   assert(consec(p, 7, 7));
+char* tostring(park* p, int row, int col){
+   char* str = (char*)calloc(CAPACITY * CAPACITY, sizeof(char));
+   char* head = str;
+   for (int j = 0; j < row; j++){
+      for (int i = 0; i < col; i++){
+         *str++ = p->a[j][i];
+      }
+   }
+   *str = '\0';
+   return head;
 }
+
+
+
+/*
+   moveup(3, 5, 5, p); puts(tostring(p, 7, 7));// show(p); 
+   moveup(2, 4, 5, p); puts(tostring(p, 7, 7));// show(p);
+   movedown(1, 3, 5, p); puts(tostring(p, 7, 7));// show(p);
+   moveleft(3, 4, 5, p);puts(tostring(p, 7, 7));//show(p);
+   moveleft(2, 3, 5, p);puts(tostring(p, 7, 7));//show(p);
+   moveright(1, 2, 5, p);puts(tostring(p, 7, 7));//show(p);
+   movedown(2, 4, 1, p);puts(tostring(p, 7, 7));//show(p);
+   moveleft(1, 3, 1, p);puts(tostring(p, 7, 7));//show(p);
+   moveright(0, 2, 1, p);puts(tostring(p, 7, 7));//show(p);
+   show(p);
+
+#.#####.BBB..##A...C##A...C##A...C##..DD.########
+#.#####.BBB.C##A...C##A...C##A....##..DD.########
+#.#####.BBB..##A...C##A...C##A...C##..DD.########
+#.#####.BBB..##A...C##A...C##A...C##.DD..########
+#.#####.BBB..##A...C##A...C##A...C##DD...########
+#.#####.BBB..##A...C##A...C##A...C##.DD..########
+#.#####.BBB..##....C##A...C##A...C##ADD..########
+#.#####BBB...##....C##A...C##A...C##ADD..########
+#.#####.BBB..##....C##A...C##A...C##ADD..########
+*/

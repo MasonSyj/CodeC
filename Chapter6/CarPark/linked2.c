@@ -41,10 +41,8 @@ int main(void){
    park* p = parkinit();
 
    park* this = p;
-   int i = 0;
-   while(i++ < 10){
+   while(this){
       show(this);
-      printf("main here.\n");
       if (solve(this) > 0){
          printf("%d moves", solve(this));
          clock_t end = clock();
@@ -64,7 +62,7 @@ park* parkinit(void){
    park* p = (park*)calloc(1, sizeof(park));
    assert(p);
 
-   FILE* fp = fopen("6x6_2c_3t.prk", "r");
+   FILE* fp = fopen("11x9_10c_26t.prk", "r");
    int row, col;
    char x;
    assert(fscanf(fp, "%d%c%d", &row, &x, &col) == 3);
@@ -77,7 +75,8 @@ park* parkinit(void){
       temp[col] = '\0';
       strncpy(p->a[j], temp, col);
    }
-
+   
+// p->previous = p;
    assert(rowsize(p) == row);
    assert(colsize(p) == col);
    
@@ -134,12 +133,17 @@ void moveVertical(int y1, int y2, int x, park* p){
 
    park* new = newpark(p);
    bool upexit = 0;
+   bool upstay = 0;
    int up = y1;
-   int i = 0;
-   while (up - i >= 0 && p->a[y1 - i][x] == '.'){
+   int i = 1;
+   
+   if (p->a[y1 - 1][x] == '#'){
+      upstay = 1;
+   }
+   while (up - i >= 0 && p->a[y1 - 1][x] == '.'){
       i++;
    }
-   int newy1 = up - i;
+   int newy1 = up - i + 1;
 
    for (int j = y1; j <= y2; j++){
       new->a[j][x] = '.';
@@ -154,29 +158,35 @@ void moveVertical(int y1, int y2, int x, park* p){
    }
 
 
-
    if (upexit == 1){
       add2next(p, new);
       return;
-   }else{
+   }else if (upexit == 0 && upstay == 0){
       add2end(p, new);
    }
-
+   
+   //move down
    park* new2 = newpark(p);
    int down = y2;
    bool downexit = 0;
-   i = 0;
+   bool downstay = 0;
+
+   if (p->a[y2 + 1][x]){
+      downstay = 1;
+   }
+   i = 1;
    while (down + i < rowsize(p) && p->a[y2 + i][x] == '.'){
       i++;
    }
-   int newy2 = down + i;
+   int newy2 = down + i - 1;
 
    for (int j = y1; j <= y2; j++){
       new2->a[j][x] = '.';
    }
+   
    if (newy2 != rowsize(p) - 1){
       for (int j = newy2; j >= newy2 + y1 - y2; j--){
-         new->a[j][x] = car;
+         new2->a[j][x] = car;
       }
    }else{
       downexit = 1;
@@ -185,7 +195,7 @@ void moveVertical(int y1, int y2, int x, park* p){
    if (downexit == 1){
       add2next(p, new2);
       return;
-   }else{
+   }else if (downexit == 0 && downstay == 0){
       add2end(p, new2);
    }
 
@@ -198,12 +208,16 @@ void moveHorizont(int x1, int x2, int y, park* p){
 
    park* new = newpark(p);
    bool leftexit = 0;
+   bool leftstay = 0;
    int left = x1;
-   int i = 0;
+   int i = 1;
+   if (p->a[y][x1 - 1] == '#'){
+      leftstay = 1;
+   }
    while (left - i >= 0 && p->a[y][x1 - i] == '.'){
       i++;
    }
-   int newleft = left - i;
+   int newleft = left - i + 1;
 
    for (int i = x1; i <= x2; i++){
       new->a[y][i] = '.';
@@ -221,7 +235,7 @@ void moveHorizont(int x1, int x2, int y, park* p){
    if (leftexit == 1){
       add2next(p, new);
       return;
-   }else{
+   }else if (leftexit == 0 && leftstay == 0){
       add2end(p, new);
    }
 
@@ -229,18 +243,23 @@ void moveHorizont(int x1, int x2, int y, park* p){
    park* new2 = newpark(p);
    int right = x2;
    bool rightexit = 0;
-   i = 0;
+   bool rightstay = 0;
+   i = 1;
+   if (p->a[y][x2 + 1] == '#'){
+      rightstay = 1;
+   }
+
    while (right + i < colsize(p) && p->a[y][x2 + i] == '.'){
       i++;
    }
-   int newx2 = right + i;
+   int newx2 = right + i - 1;
 
    for (int i = x1; i <= x2; i++){
       new2->a[y][i] = '.';
    }
    if (newx2 != colsize(p) - 1){
       for (int i = newx2; i >= newx2 + x1 - x2; i--){
-         new->a[y][i] = car;
+         new2->a[y][i] = car;
       }
    }else{
       rightexit = 1;
@@ -250,7 +269,7 @@ void moveHorizont(int x1, int x2, int y, park* p){
    if (rightexit == 1){
       add2next(p, new2);
       return;
-   }else{
+   }else if (rightexit == 0 && rightstay == 0){
       add2end(p, new2);
    }
 }
@@ -277,6 +296,22 @@ void add2end(park* p, park* new){
 }
 
 void add2next(park* p, park* new){
+   park* parent = p;
+   while (parent->previous && parent->previous != parent){
+      parent = parent->previous;
+   }
+   if (!parent){
+      parent = p;
+   }
+   
+   while(parent->next){
+      if (samepark(parent, new) == false){
+         free(new);
+         return;
+      }
+      parent = parent->next;
+   }
+   
    new->next = p->next;
    p->next = new;
 }
@@ -354,7 +389,7 @@ int carnum(park* p){
 int solve(park* p){
    int cnt = 0;
    if (carnum(p) == 0){
-      while(p->previous && p->previous != p){
+      while(p && p->previous && p->previous != p){
          cnt++;
          p = p->previous;
       }

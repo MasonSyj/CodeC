@@ -23,6 +23,9 @@ typedef struct list{
    int colsize;
    int current;
 }list;
+
+//question 1, can i calulate park's row and col by function instead of store information into park;
+//question 2, what does const char*, the const mean?
    
 list* parkinit(void);
 void movectrl(list* l, int index);
@@ -49,19 +52,31 @@ char downsquare(int y, int x, list* l, int index); //
 char leftsquare(int y, int x, list* l, int index); //
 char rightsquare(int y, int x, list* l, int index); //
 char* tostring(park p, int row, int col); //
-bool closedcase(park p, int row, int col); //
+bool rightshape(list* l, int index);
 bool iscar(park p, int j, int i); //
-bool samecararound(park p, int j, int i); //
-bool consec(park p, int row, int col); //
 bool empty(list* l, int index); //
 int* printlist(list* l, int index);//
-void showlist(list* l, int index);
+void showlist(list* l, int index);//
+void carcoord(int* y1, int* y2, int* x1, int* x2, park p, char car);
+int rowsize(park p);
+int colsize(park p);
 void test1();
 void test2();
 
 /* other than normal situations:
 no cars full closed non consec
 */
+
+int rowsize(park p){
+   int cnt = 0;
+   while (p.a[cnt][0] == FULL || p.a[cnt][0] == EMPTY){
+      cnt++;
+   }
+   return cnt;
+}
+int colsize(park p){
+   return strlen(p.a[0]);
+}
    
 int main(void){
    test1();
@@ -111,10 +126,6 @@ list* parkinit(void){
       strncpy(l->p[0].a[j], temp, col);
    }
    l->current = 0;
-
-   if (closedcase(l->p[0], row, col)){
-      fprintf(stderr, "This park is fully closed.\n");
-   }
    
    l->p[0].parentindex = 0;
    
@@ -133,10 +144,28 @@ void movectrl(list* l, int index){
    }
    free(list);
 }
+
+void carcoord(int* y1, int* y2, int* x1, int* x2, park p, char car){
+   *y1 = 0;
+   for (int j = 1; j < rowsize(p); j++){
+      for (int i = 1; i < colsize(p); i++){
+         if (p.a[j][i] == car){
+            if (*y1 == 0){
+               *y1 = j;
+               *x1 = i;
+            }else{
+               *y2 = j;
+               *x2 = i;
+            }
+         }
+      }
+   }
+}
    
 void carposition(list* l, int index, char car){
    int y1 = 0, x1 = 0;
    int y2 = 0, x2 = 0;
+/*
    for (int j = 1; j < l->rowsize; j++){
       for (int i = 1; i < l->colsize; i++){
          if (l->p[index].a[j][i] == car){
@@ -150,12 +179,15 @@ void carposition(list* l, int index, char car){
          }
       }
    }
+*/
+   carcoord(&y1, &y2, &x1, &x2, l->p[index], car);
    
    if (y1 == y2){
       moveHorizont(x1, x2, y1, l, index);
    }else{
       moveVertical(y1, y2, x1, l, index);
    }
+   printf("%d %d %d %d\n", y1, y2, x1, x2);
 }
 
 
@@ -269,6 +301,83 @@ void show(park p){
 int carnum(list* l, int index){
    return strlen(carlist(l, index));
 }
+
+bool samesign(park p, char car){
+   int y1 = 0, x1 = 0;
+   int y2 = 0, x2 = 0;
+
+   carcoord(&y1, &y2, &x1, &x2, p, car);
+
+   if (y1 == y2){
+      for (int i = x1; i <= x2; i++){
+         if (p.a[y1][i] != car){
+            return false;
+         }
+      }
+   }else{
+      for (int j = y1; j <= y2; j++){
+         if (p.a[j][x1] != car){
+            return false;
+         }
+      }
+   }
+   return true;
+}
+
+bool noother(park p, char car){
+   int y1 = 0, x1 = 0;
+   int y2 = 0, x2 = 0;
+   int len = 0;
+
+   carcoord(&y1, &y2, &x1, &x2, p, car);
+
+   if (y1 == y2){
+      len = y2 - y1;
+
+   }else{
+      len = x2 - x1;
+   }
+
+   int cnt = 0;
+   for (int j = 1; j < rowsize(p) - 1; j++){
+      for (int i = 1; i < colsize(p) - 1; i++){
+         if (p.a[j][i] == car){
+            cnt++;
+         }
+      }
+   }
+   return len == cnt;
+}
+
+
+// find out the head and tail of the car.
+// rule 1, between head and tail, must be car.
+// rule 2, other cells is not car.
+
+bool rightshape(list* l, int index){
+   char* list = carlist(l, index);
+   int len = strlen(list);
+   int i = 0;
+   while (i < len){
+      char car = list[i];
+      if (!samesign(l->p[index], car) || !noother(l->p[index], car)){
+         return false;
+      }
+      i++;
+   }
+   return true;
+}
+
+
+bool empty(list* l, int index){
+   if (carnum(l, index) > 0){
+      return false;
+   }else{
+      return true;
+   }
+//   return carnum(l, index) == 0;
+}
+
    
 int solvemovescnt(list* l, int index){
    if (carnum(l, index) > 0){
@@ -364,30 +473,6 @@ void moveright(int x1, int x2, int y, park* p){
    p->a[y][x1] = EMPTY;
 }
 
-bool closedcase(park p, int row, int col){
-   for (int j = 0; j < row; j++){
-      if (p.a[j][0] != FULL){
-         return false;
-      }
-   
-      if (p.a[j][col-1] != FULL){
-         return false;
-      }
-   }
-
-   for (int i = 0; i < col; i++){
-      if (p.a[0][i] != FULL){
-         return false;
-      }
-      
-      if (p.a[row-1][i] != FULL){
-         return false;
-      }
-   }
-   
-   return true;
-}
-
 bool iscar(park p, int j, int i){
    if (isalpha(p.a[j][i])){
       return true;
@@ -396,45 +481,14 @@ bool iscar(park p, int j, int i){
    }
 }
 
-bool samecararound(park p, int j, int i){
-
-   if (p.a[j][i] == EMPTY || p.a[j][i] == FULL){
-      return false;
-   }
-   if (p.a[j][i] == p.a[j-1][i] || p.a[j][i] == p.a[j+1][i] 
-   || p.a[j][i] == p.a[j][i+1] || p.a[j][i] == p.a[j][i-1]){
-      return true;
-   }
-   return false;  
-}
-
-bool consec(park p, int row, int col){
-   for (int j = 1; j < row - 1; j++){
-      for (int i = 1; i < col - 1; i++){
-         if (iscar(p, j, i) && !samecararound(p, j, i)){
-            return false;
-         }
-      }
-   }
-   return true;
-}
-
-
-bool empty(list* l, int index){
-   if (carnum(l, index) > 0){
-      return false;
-   }else{
-      return true;
-   }
-//   return carnum(l, index) == 0;
-}
 
 int* printlist(list* l, int index){
    int len = solvemovescnt(l, index);
+   printf("len: %d\n", len);
    int* printl = (int*)calloc(++len, sizeof(int));
    while (index != 0){
       printl[--len] = index;
-      //printf("%d %d\n", index, printl[len]);
+      printf("%d %d\n", index, printl[len]);
       index = l->p[index].parentindex;
    }
    return printl;
@@ -478,17 +532,11 @@ void test1(){
    assert(carnum(l, 0) == 4);
    assert(strcmp(carlist(l, 0), "BACD") == 0);
 
-   assert(!closedcase(l->p[0], 7, 7));
-
    assert(iscar(l->p[0], 1, 1));
    assert(iscar(l->p[0], 2, 1));
    assert(!iscar(l->p[0], 2, 2));
    assert(!iscar(l->p[0], 3, 3));
 
-   assert(samecararound(l->p[0], 1, 1));
-   assert(samecararound(l->p[0], 2, 1));
-   assert(samecararound(l->p[0], 5, 5));
-   assert(!samecararound(l->p[0], 3, 3));
 
    assert(upsquare(1, 1, l, 0) == EMPTY);
    assert(upsquare(3, 5, l, 0) == EMPTY);
@@ -520,7 +568,6 @@ void test1(){
    moveright(0, 2, 1, &l->p[0]);
    assert(strcmp(tostring(l->p[0], 7, 7), "#.#####.BBB..##....C##A...C##A...C##ADD..########") == 0);
    assert(!empty(l, 0));
-   assert(consec(l->p[0], 7, 7));
    
    park closedp;
    strcpy(closedp.a[0], "#######");
@@ -532,7 +579,6 @@ void test1(){
    strcpy(closedp.a[6], "#######");
    add2list(l, closedp);
    assert(l->current == 1);
-   assert(closedcase(closedp, 7, 7));
    assert(carnum(l, 1) == 4);
    
    park emptyp;
@@ -589,20 +635,20 @@ void test1(){
    assert(!samepark(l->p[1], l->p[2], l));
    assert(samepark(l->p[1], l->p[1], l));
 
-   park* notconsec = (park*)calloc(1, sizeof(park));
+   park* wrongshape = (park*)calloc(1, sizeof(park));
    
-   strcpy(notconsec->a[0], "####C##");
-   strcpy(notconsec->a[1], "AAA.C.#");
-   strcpy(notconsec->a[2], "#...C.#");
-   strcpy(notconsec->a[3], ".FF.FDD");
-   strcpy(notconsec->a[4], "#..E.B#");
-   strcpy(notconsec->a[5], "#..E.B#");
-   strcpy(notconsec->a[6], "###.#B#");
+   strcpy(wrongshape->a[0], "####C##");
+   strcpy(wrongshape->a[1], "AAA.C.#");
+   strcpy(wrongshape->a[2], "#..EC.#");
+   strcpy(wrongshape->a[3], ".FF..DD");
+   strcpy(wrongshape->a[4], "#.FE.B#");
+   strcpy(wrongshape->a[5], "#..E.B#");
+   strcpy(wrongshape->a[6], "###.#B#");
 
-   add2list(l, *notconsec);
+   add2list(l, *wrongshape);
    assert(l->current == 4);
 
-   assert(!consec(*notconsec, 7, 7));
+   assert(!rightshape(l, 4));
 }
 
 void test2(){
@@ -610,7 +656,7 @@ void test2(){
    l->rowsize = 10;
    l->colsize = 8;
    l->current = -1;
-   park p ;
+   park p;
    strcpy(p.a[0], "########");
    strcpy(p.a[1], "#DBBBE..");
    strcpy(p.a[2], "#D.A.E.#");
@@ -637,6 +683,7 @@ void test2(){
    int* printl = printlist(l, markindex);
    
    assert(printl[0] == 0);
+   printf("%d", printl[1]);
    assert(printl[1] == 1);
    assert(printl[2] == 4);
    assert(printl[3] == 10);

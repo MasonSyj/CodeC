@@ -6,7 +6,9 @@
 #include <ctype.h>
 #include <time.h>
 
-#define N 100000
+#define EMPTY '.'
+#define FULL '#'
+#define A 'A'
 
 #define CAPACITY 20
 
@@ -16,13 +18,13 @@ typedef struct park{
    struct park* previous;
 }park;
 
-park* parkinit(void);
+park* parkinit(int argc, char* argv[]);
 int solve(park* p);
 int carnum(park* p);
 char* carlist(park* p);
 void movectrl(park* p);
 void movecar(park* p, char car);
-void cardirctrl(park* p, char car);
+void carposition(park* p, char car);
 void moveVertical(int y1, int y2, int x, park* p);
 void moveHorizont(int x1, int x2, int y, park* p);
 void add2next(park* p, park* new);
@@ -31,25 +33,34 @@ bool samepark(park* p1, park* p2);
 park* newpark(park* p);
 int rowsize(park* p);
 int colsize(park* p);
-void panel(park* p);
+bool rightshape(park *p);
+// based on the car in a carpark, get its head and tail(two [y][x] naturally)
+void carcoord(int* y1, int* y2, int* x1, int* x2, park* p, char car);
+// given a car, no other place should apper except its head and tail and between.
+bool oneplace(park* p, char car);
+// given a car, locate its head and tail, and between all chars are same sign
+bool straight(park* p, char car);
+// check all cars in a park are at least length 2
+bool eligiblelength(park* p, char car);
+bool solveable(park* p);
+bool isexistexit(park* p, char car);
 void show(park* p);
 void test();
+// check if the park is empty, if empty, then means solved
+bool empty(park* p); //
 
-int main(void){
-   //test();
+bool empty(park* p){
+   return carnum(p) == 0;
+}
+
+int main(int argc, char* argv[]){
    clock_t begin = clock();
-   park* p = parkinit();
-   
+   park* p = parkinit(argc, argv);
    park* this = p;
    while(this){
-      if (solve(this) > 0){
-         printf("%d moves\n", solve(this));
-   /*
-         while (this){
-            show(this);
-            this = this->previous;
-         }
-   */
+      if (empty(this)){
+         int movescnt = solve(this);
+         printf("%d moves\n", movescnt);
          clock_t end = clock();
          double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
          printf("Time Spent: %f\n", time_spent);
@@ -58,16 +69,14 @@ int main(void){
       movectrl(this);
       this = this->next;
    }
-   
-   
    return 0;
 }
 
-park* parkinit(void){
+park* parkinit(int argc, char* argv[]){
    park* p = (park*)calloc(1, sizeof(park));
    assert(p);
-
-   FILE* fp = fopen("11x9_10c_26t.prk", "r");
+   assert(argc == 2 || argc == 1);
+   FILE* fp = fopen(argv[1], "r");
    int row, col;
    char x;
    assert(fscanf(fp, "%d%c%d", &row, &x, &col) == 3);
@@ -83,30 +92,58 @@ park* parkinit(void){
 
    assert(rowsize(p) == row);
    assert(colsize(p) == col);
+   p->previous = p;
+
+   if (!rightshape(p)){
+      fprintf(stderr, "carpark is not in right shape.");
+      exit(EXIT_FAILURE);
+   }
+
+   if (!solveable(p)){
+      printf("No solution\n");
+      exit(EXIT_SUCCESS);	
+   }
    
    fclose(fp);
    return p;
-}
-
-
-void panel(park* p){
-   while(p){
-      movectrl(p);
-      p = p->next;
-   }
 }
 
 void movectrl(park* p){
    char* list = carlist(p);
    unsigned int i = 0;
    while (i < strlen(list)){
-      cardirctrl(p, list[i]);
+      carposition(p, list[i]);
       i++;
    }
    free(list);
 }
+
+bool isexistexit(park* p, char car){
+   int y1 = 0, x1 = 0, y2 = 0, x2 = 0;
+   carcoord(&y1, &y2, &x1, &x2, p, car);
+
+   if (y1 == y2){
+      return p->a[y1][0] == EMPTY || p->a[y1][colsize(p) - 1] == EMPTY;
+   }else{
+      return p->a[0][x1] == EMPTY || p->a[rowsize(p) - 1][x1] == EMPTY;
+   }
+
+}
+
+bool solveable(park* p){
+   char* list = carlist(p);
+   unsigned int i = 0;
+   while (i < strlen(list)){
+      if (!isexistexit(p, list[i])){
+         return false;
+      }
+      i++;
+   }
+   free(list);
+   return true;
+}
    
-void cardirctrl(park* p, char car){
+void carposition(park* p, char car){
    int y1 = 0, x1 = 0;
    int y2 = 0, x2 = 0;
    for (int j = 1; j < rowsize(p); j++){
@@ -133,7 +170,7 @@ void cardirctrl(park* p, char car){
 
 bool isdown(int y, int x, park* p){
    for (int j = y + 1; j < rowsize(p); j++){
-      if (p->a[j][x] != '.'){
+      if (p->a[j][x] != EMPTY){
          return false;
       }
    }
@@ -142,18 +179,37 @@ bool isdown(int y, int x, park* p){
 
 bool isup(int y, int x, park* p){
    for (int j = y - 1; j >= 0; j--){
-      if (p->a[j][x] != '.'){
+      if (p->a[j][x] != EMPTY){
          return false;
       }
    }
    return true;
 }
 
-park* oneup(park* p, int y1, int y2, int x, int updegree){
+
+bool isleft(int y, int x, park* p){
+   for (int i = x - 1; i >= 0; i--){
+      if (p->a[y][i] != EMPTY){
+         return false;
+      }
+   }
+   return true;
+}
+
+bool isright(int y, int x, park* p){
+   for (int i = x + 1; i < colsize(p); i++){
+      if (p->a[y][i] != EMPTY){
+         return false;
+      }
+   }
+   return true;
+}
+
+park* upop(park* p, int y1, int y2, int x, int updegree){
    char car = p->a[y1][x];
    park* new = newpark(p);
    for (int j = y1; j <= y2; j++){
-      new->a[j][x] = '.';
+      new->a[j][x] = EMPTY;
    }
    for(int j = y1 - updegree; j <= y2 - updegree; j++){
       new->a[j][x] = car;
@@ -162,74 +218,23 @@ park* oneup(park* p, int y1, int y2, int x, int updegree){
    return new;
 }
 
-park* onedown(park* p, int y1, int y2, int x, int downdegree){
+park* downop(park* p, int y1, int y2, int x, int downdegree){
    char car = p->a[y1][x];
    park* new = newpark(p);
    for (int j = y1; j <= y2; j++){
-      new->a[j][x] = '.';
+      new->a[j][x] = EMPTY;
    }
    for(int j = y1 + downdegree; j <= y2 + downdegree; j++){
       new->a[j][x] = car;
    }
-
    return new;
 }
 
-void uptoexit(int y1, int y2, int x, park* p){
-   int move = y1 - 0;
-   park* pre = p;
-   for (int cnt = 1; cnt < move; cnt++){
-      park* this = oneup(p, y1, y2, x, cnt);
-      this->previous = pre;
-      pre = this;
-      add2end(p, this);
-   }
-   park* new = newpark(p);
-   for (int j = y1; j <= y2; j++){
-      new->a[j][x] = '.';
-   }
-   new->previous = pre;
-   add2next(p, new);
-/*
-   for (int i = 1; i < move; i++){
-      p->next->previous = p;
-      p = p->next;
-   }
-*/
-}
-
-void downtoexit(int y1, int y2, int x, park* p){
-   int move = rowsize(p) - 1 - y2;
-   park* previous = p;
-   for (int cnt = 1; cnt < move; cnt++){
-      park* this = onedown(p, y1, y2, x, cnt);
-      this->previous = previous;
-      previous = this;
-      add2end(p, this);
-   }
-   park* new = newpark(p);
-   for (int j = y1; j <= y2; j++){
-      new->a[j][x] = '.';
-   }
-   new->previous = previous;
-   add2next(p, new);
-
-}
-
-bool isleft(int y, int x, park* p){
-   for (int i = x - 1; i >= 0; i--){
-      if (p->a[y][i] != '.'){
-         return false;
-      }
-   }
-   return true;
-}
-
-park* oneleft(park* p, int x1, int x2, int y, int leftdegree){
+park* leftop(park* p, int x1, int x2, int y, int leftdegree){
    char car = p->a[y][x1];
    park* new = newpark(p);
    for (int i = x1; i <= x2; i++){
-      new->a[y][i] = '.';
+      new->a[y][i] = EMPTY;
    }
    for(int i = x1 - leftdegree; i <= x2 - leftdegree; i++){
       new->a[y][i] = car;
@@ -238,37 +243,11 @@ park* oneleft(park* p, int x1, int x2, int y, int leftdegree){
    return new;
 }
 
-void lefttoexit(int x1, int x2, int y, park* p){
-   int move = x1 - 0;
-   park* previous = p;
-   for (int cnt = 1; cnt < move; cnt++){
-      park* this = oneleft(p, x1, x2, y, cnt);
-      this->previous = previous;
-      previous = this;
-      add2end(p, this);
-   }
-   park* new = newpark(p);
-   for (int i = x1; i <= x2; i++){
-      new->a[y][i] = '.';
-   }
-   new->previous = previous;
-   add2next(p, new);
-}
-
-bool isright(int y, int x, park* p){
-   for (int i = x + 1; i < colsize(p); i++){
-      if (p->a[y][i] != '.'){
-         return false;
-      }
-   }
-   return true;
-}
-
-park* oneright(park* p, int x1, int x2, int y, int rightdegree){
+park* rightop(park* p, int x1, int x2, int y, int rightdegree){
    char car = p->a[y][x1];
    park* new = newpark(p);
    for (int i = x1; i <= x2; i++){
-      new->a[y][i] = '.';
+      new->a[y][i] = EMPTY;
    }
    for(int i = x1 + rightdegree; i <= x2 + rightdegree; i++){
       new->a[y][i] = car;
@@ -276,18 +255,71 @@ park* oneright(park* p, int x1, int x2, int y, int rightdegree){
    return new;
 }
 
-void righttoexit(int x1, int x2, int y, park* p){
-   int move = colsize(p) - 1 - x2;
+void uptoexit(int y1, int y2, int x, park* p){
+   int move = y1 - 0;
+   park* pre = p;
+   for (int cnt = 1; cnt < move; cnt++){
+      park* this = upop(p, y1, y2, x, cnt);
+      this->previous = pre;
+      pre = this;
+      add2end(p, this);
+   }
+   park* new = newpark(p);
+   for (int j = y1; j <= y2; j++){
+      new->a[j][x] = EMPTY;
+   }
+   new->previous = pre;
+   add2next(p, new);
+}
+
+void downtoexit(int y1, int y2, int x, park* p){
+   int move = rowsize(p) - 1 - y2;
    park* previous = p;
    for (int cnt = 1; cnt < move; cnt++){
-      park* this = oneright(p, x1, x2, y, cnt);
+      park* this = downop(p, y1, y2, x, cnt);
+      this->previous = previous;
+      previous = this;
+      add2end(p, this);
+   }
+   park* new = newpark(p);
+   for (int j = y1; j <= y2; j++){
+      new->a[j][x] = EMPTY;
+   }
+   new->previous = previous;
+   add2next(p, new);
+}
+
+void lefttoexit(int x1, int x2, int y, park* p){
+   int move = x1 - 0;
+   park* previous = p;
+   for (int cnt = 1; cnt < move; cnt++){
+      park* this = leftop(p, x1, x2, y, cnt);
       this->previous = previous;
       previous = this;
       add2end(p, this);
    }
    park* new = newpark(p);
    for (int i = x1; i <= x2; i++){
-      new->a[y][i] = '.';
+      new->a[y][i] = EMPTY;
+   }
+   new->previous = previous;
+   add2next(p, new);
+}
+
+
+
+void righttoexit(int x1, int x2, int y, park* p){
+   int move = colsize(p) - 1 - x2;
+   park* previous = p;
+   for (int cnt = 1; cnt < move; cnt++){
+      park* this = rightop(p, x1, x2, y, cnt);
+      this->previous = previous;
+      previous = this;
+      add2end(p, this);
+   }
+   park* new = newpark(p);
+   for (int i = x1; i <= x2; i++){
+      new->a[y][i] = EMPTY;
    }
    new->previous = previous;
    add2next(p, new);
@@ -296,20 +328,10 @@ void righttoexit(int x1, int x2, int y, park* p){
 
 void moveVertical(int y1, int y2, int x, park* p){
    //move up 
-   // if can straight to exit
-   
-   //else, add 2 end as usual
    if (p->a[y1 - 1][x] == '.'){
       if (isup(y1, x, p)){
        uptoexit(y1, y2, x, p);
-/*
-      if (y1 - 1 == 0){
-         park* new = newpark(p);
-         for (int j = y1; j <= y2; j++){
-            new->a[j][x] = '.';
-         }
-         add2next(p, new);
-*/
+
       }else{
          park* new = newpark(p);
          for (int j = y1 - 1; j < y2; j++){
@@ -323,16 +345,6 @@ void moveVertical(int y1, int y2, int x, park* p){
    if (p->a[y2 + 1][x] == '.'){
        if (isdown(y2, x, p)){
           downtoexit(y1, y2, x, p);
-/*
-       }
-       
-      if (y2 + 1 == rowsize(p) - 1){
-         park* new = newpark(p);         
-         for (int j = y1; j <= y2; j++){
-            new->a[j][x] = '.';
-         }
-         add2next(p, new);
-*/
       }else{
          park* new = newpark(p);
          for (int j = y2 + 1; j > y1; j--){
@@ -352,13 +364,6 @@ void moveHorizont(int x1, int x2, int y, park* p){
       if (isleft(y, x1, p)){
          lefttoexit(x1, x2, y, p);
          return;
-/*
-      if (x1 - 1 == 0){
-         for (int i = x1; i <= x2; i++){
-            new->a[y][i] = '.';
-         }
-         add2next(p, new);
-*/
       }else{
          park* new = newpark(p);
          for (int i = x1 - 1; i < x2; i++){
@@ -373,13 +378,6 @@ void moveHorizont(int x1, int x2, int y, park* p){
          if (isright(y, x2, p)){
             righttoexit(x1, x2, y, p);
             return;
-/*
-      if (x2 + 1 == colsize(p) - 1){
-         for (int i = x2; i >= x1; i--){
-            new->a[y][i] = '.';
-         }
-         add2next(p, new);
-*/
       }else{
          park* new = newpark(p);
          for (int i = x2 + 1; i > x1; i--){
@@ -391,26 +389,30 @@ void moveHorizont(int x1, int x2, int y, park* p){
    }
 }
 
-
-
-void add2end(park* p, park* new){
+park* allparkcmp(park* p, park* new){
    park* parent = p;
-   while (parent->previous && parent->previous != parent){
+   while (parent && parent->previous && parent->previous != parent){
       parent = parent->previous;
    }
-   if (!parent){
-      parent = p;
-   }
-   	
    while(parent->next){
       if (samepark(parent, new) == false){
          free(new);
-         return;
+         return p;
       }
       parent = parent->next;
-//   printf("move forward\n");
    }
-   parent->next = new;
+   return parent;
+}
+
+void add2end(park* p, park* new){
+   if (!p->next){
+      p->next = new;
+      return;
+   }
+   park* end = allparkcmp(p, new);
+   if (end != p){
+      end->next = new;
+   }
 }
 
 void add2next(park* p, park* new){
@@ -436,7 +438,6 @@ bool samepark(park* p1, park* p2){
       }
    }
    return false;
-//	return memcmp(p1->a, p2->a, (len + 1) * len);
 }
    
 int colsize(park* p){
@@ -452,7 +453,7 @@ int rowsize(park* p){
    }
    
    int i = 0;
-   while (p->a[i][0] == '#' || p->a[i][0] == '.'){
+   while (p->a[i][0] == EMPTY || p->a[i][0] == FULL){
       i++;
    }
    return i;
@@ -464,8 +465,8 @@ char* carlist(park* p){
    char car[100];
    for (int j = 1; j < rowsize(p) - 1; j++){
       for (int i = 1; i < colsize(p) - 1; i++){
-         if (isalpha(p->a[j][i]) && temp[p->a[j][i] - 'A'] == 0){
-            temp[p->a[j][i] - 'A'] = 1;
+         if (isalpha(p->a[j][i]) && temp[p->a[j][i] - A] == 0){
+            temp[p->a[j][i] - A] = 1;
             car[cnt++] = p->a[j][i];
          }
        }
@@ -491,8 +492,6 @@ int solve(park* p){
    int cnt = 0;
    if (carnum(p) == 0){
       while(p->previous && p->previous != p){
-//         printf("%d: \n", cnt);
-//         show(p);
          cnt++;
          p = p->previous;
       }
@@ -500,6 +499,89 @@ int solve(park* p){
    return cnt;
 }
 
-void test(){
+bool rightshape(park* p){
+   char* list = carlist(p);
+   int len = strlen(list);
+   int i = 0;
+   while (i < len){
+      char car = list[i];
+      if (!straight(p, car)
+       || !oneplace(p, car)
+       || !eligiblelength(p, car)){
+         return false;
+      }
+      i++;
+   }
+   return true;
+}
 
+bool oneplace(park* p, char car){
+   int y1 = 0, x1 = 0, y2 = 0, x2 = 0;
+   int len = 0;
+
+   carcoord(&y1, &y2, &x1, &x2, p, car);
+
+   if (y1 == y2){
+      len = x2 - x1;
+   }else{
+      len = y2 - y1;
+   }
+
+   int cnt = 0;
+   for (int j = 1; j < rowsize(p) - 1; j++){
+      for (int i = 1; i < colsize(p) - 1; i++){
+         if (p->a[j][i] == car){
+            cnt++;
+         }
+      }
+   }
+   return ++len == cnt;
+}
+
+bool straight(park* p, char car){
+   int y1 = 0, x1 = 0, y2 = 0, x2 = 0;
+   carcoord(&y1, &y2, &x1, &x2, p, car);
+
+   if (y1 == y2){
+      for (int i = x1; i <= x2; i++){
+         if (p->a[y1][i] != car){
+            return false;
+         }
+      }
+   }else{
+      for (int j = y1; j <= y2; j++){
+         if (p->a[j][x1] != car){
+            return false;
+         }
+      }
+   }
+   return true;
+}
+
+bool eligiblelength(park* p, char car){
+   int y1 = 0, x1 = 0, y2 = 0, x2 = 0;
+   carcoord(&y1, &y2, &x1, &x2, p, car);
+
+   if (x2 == 0 && y2 == 0){
+      return false;
+   }else{
+      return true;
+   }
+}
+
+void carcoord(int* y1, int* y2, int* x1, int* x2, park* p, char car){
+   *y1 = 0;
+   for (int j = 1; j < rowsize(p); j++){
+      for (int i = 1; i < colsize(p); i++){
+         if (p->a[j][i] == car){
+            if (*y1 == 0){
+               *y1 = j;
+               *x1 = i;
+            }else{
+               *y2 = j;
+               *x2 = i;
+            }
+         }
+      }
+   }
 }

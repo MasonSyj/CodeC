@@ -7,6 +7,7 @@ PRODUCTION= $(COMMON) -O3
 LDLIBS = -lm
 
 all : prk16t prknonet1 prk1t prk3t prk11t prk13t nocars nonconsec
+all_extension : prk16t_ex prknonet1_ex prk1t_ex prk3t_ex prk11t_ex prk13t_ex nocars_ex nonconsec_ex prk26t_ex
 
 prk16t : main2.c
 	$(CC) main2.c -o prk16t $(PRODUCTION)
@@ -41,6 +42,49 @@ wrongshape2: main2.c
 prk26t: main2.c
 	$(CC) main2.c -o prk26t $(SANITIZE) $(LDLIBS)
 	
+prk26: prk26t
+	./prk26t 11x9_10c_26t.prk
+	
+	
+	
+prk16t_ex : extension.c
+	$(CC) extension.c -o prk16t_ex $(PRODUCTION)
+
+prknonet1_ex : extension.c
+	$(CC) extension.c -o prknonet1_ex $(SANITIZE) $(LDLIBS)
+
+prk1t_ex : extension.c
+	$(CC) extension.c -o prk1t_ex $(COMMON) $(LDLIBS)
+	
+prk3t_ex : extension.c
+	$(CC) extension.c -o prk3t_ex $(SANITIZE) $(LDLIBS)
+	
+prk11t_ex : extension.c
+	$(CC) extension.c -o prk11t_ex $(SANITIZE) $(LDLIBS)
+	
+prk13t_ex : extension.c
+	$(CC) extension.c -o prk13t_ex $(SANITIZE) $(LDLIBS)
+	
+nocars_ex : extension.c
+	$(CC) extension.c -o nocars_ex $(SANITIZE) $(LDLIBS)
+	
+nonconsec_ex : extension.c
+	$(CC) extension.c -o nonconsec_ex $(SANITIZE) $(LDLIBS)
+	
+wrongshape_ex : extension.c
+	$(CC) extension.c -o wrongshape_ex $(SANITIZE) $(LDLIBS)
+	
+wrongshape2_ex : extension.c
+	$(CC) extension.c -o wrongshape2_ex $(SANITIZE) $(LDLIBS)
+
+prk26t_ex : extension.c
+	$(CC) extension.c -o prk26t_ex $(SANITIZE) $(LDLIBS)
+	
+w1: wrongshape2
+	./wrongshape2 wrongshape2.prk
+w2: wrongshape
+	./wrongshape wrongshpae.prk
+	
 run: all
 	./prk16t 10x7_8c_16t.prk
 	./prknonet1 10x7_8c_none.prk
@@ -50,15 +94,19 @@ run: all
 	./prk13t 10x8_5c_13t.prk
 	./nocars nocars.prk
 	./nonconsec nonconsec.prk
-
-prk26: prk26t
-	./prk26t 11x9_10c_26t.prk
 	
-w1: wrongshape2
-	./wrongshape2 wrongshape2.prk
-w2: wrongshape
-	./wrongshape wrongshpae.prk
+run_ex: all_extension
+	./prk16t_ex 10x7_8c_16t.prk
+	./prknonet1_ex 10x7_8c_none.prk
+	./prk1t_ex 4x4_1c_1t.prk
+	./prk3t_ex 6x6_2c_3t.prk
+	./prk11t_ex 7x7_4c_11t.prk
+	./prk13t_ex 10x8_5c_13t.prk
+	./nocars_ex nocars.prk
+	./nonconsec_ex nonconsec.prk
+	./prk26t_ex 11x9_10c_26t.prk
+
 	
 
 clean:
-	rm -fr prk16t prknonet1 prk1t prk3t prk11t prk13t nocars nonconsec wrongshape wrongshape2 prk26t
+	rm -fr prk16t prknonet1 prk1t prk3t prk11t prk13t nocars nonconsec wrongshape wrongshape2 prk26t prk16t_ex prknonet1_ex prk1t_ex prk3t_ex prk11t_ex prk13t_ex nocars_ex nonconsec_ex wrongshape_ex wrongshape2_ex prk26t_ex

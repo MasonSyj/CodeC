@@ -106,7 +106,7 @@ int main(int argc, char* argv[]){
 
    static list state;
    parkinit(&state, argc, argv);
-   bool isshow = false;
+   bool isshow = true;
    int i = 0;
    while(i <= state.end){
       if (empty(&state, i)){

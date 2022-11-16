@@ -15,7 +15,7 @@ typedef struct park{
    struct park* next;
    struct park* previous;
 }park;
-
+   
 park* parkinit(void);
 int solve(park* p);
 int carnum(park* p);
@@ -44,14 +44,15 @@ int main(void){
    while(this){
       if (solve(this) > 0){
          printf("%d moves\n", solve(this));
-   
+   /*
          while (this){
             show(this);
             this = this->previous;
          }
+   */
          clock_t end = clock();
          double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-         printf("%f\n", time_spent);
+         printf("Time Spent: %f\n", time_spent);
          exit(EXIT_SUCCESS);
       }
       movectrl(this);
@@ -498,8 +499,7 @@ int solve(park* p){
    }
    return cnt;
 }
-
+   
 void test(){
-
+   
 }
-

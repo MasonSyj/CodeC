@@ -26,39 +26,79 @@ typedef struct list{
 
 //question 1, can i calulate park's row and col by function instead of store information into park;
 //question 2, what does const char*, the const mean?
-   
+//question 3, test in the extension.c?
+//question 4, alloc issue?
+
+
+// read from a file initiate the list and the first carpark
 list* parkinit(void);
+// main control function to process one carpark's all possible moves 
 void movectrl(list* l, int index);
+// based on the car, find out the its [y][x] in the 2D array
 void carposition(list* l, int index, char car);
+// for vertical direction car, do the up and down move
 void moveVertical(int y1, int y2, int x, list* l, int index);
+// for horizont direction car, do the left and right move
 void moveHorizont(int x1, int x2, int y, list* l, int index);
-void add2list(list* l, park new);//
-int solvemovescnt(list* l, int index);//
-park parkcopy(park p, int index); //
-int carnum(list* l, int index); //
-char* carlist(list* l, int index); //
-bool samepark(park p1, park p2, list* l); //
-void show(park p); //
-bool reachVerticalboundary(int y, list* l); //
-bool reachHorizontboundary(int x, list* l); //
+// add the new park to the list
+void add2list(list* l, park new);
+// when one carpark is solved, count its moves by its parentindex
+int solvemovescnt(list* l, int index);
+// make a copy of the park
+park parkcopy(park p, int index); 
+// count the number of cars in a carpark
+int carnum(list* l, int index); 
+// get the list of cars in a carpark
+char* carlist(list* l, int index); 
+// check if two carparks are same, true if same
+bool samepark(park p1, park p2, list* l); 
+// show the park
+void show(park p);
+// check if one car moves vertically reach boundary(also check not bollards)
+bool reachVerticalboundary(int y, list* l); 
+// check if one car moves horizontally reach boundary(check not bollards)
+bool reachHorizontboundary(int x, list* l); 
+// for a car moves vertically reach exit, remove it from the park
 void carVerticalexit(int y1, int y2, int x, park* p); //
-void carHorizontexit(int x1, int x2, int y, park* p); //
-void moveup(int y1, int y2, int x, park* p);  //
-void movedown(int y1, int y2, int x, park* p); //
-void moveleft(int x1, int x2, int y, park* p); //
-void moveright(int x1, int x2, int y, park* p); //
-char upsquare(int y, int x, list* l, int index); //
-char downsquare(int y, int x, list* l, int index); //
-char leftsquare(int y, int x, list* l, int index); //
-char rightsquare(int y, int x, list* l, int index); //
-char* tostring(park p, int row, int col); //
+// for a car moves horizontally reach exit, remove it from the park
+void carHorizontexit(int x1, int x2, int y, park* p); 
+// for a car, move up if it can
+void moveup(int y1, int y2, int x, park* p);  
+// for a car, move down if it can
+void movedown(int y1, int y2, int x, park* p); 
+// for a car, move left if it can
+void moveleft(int x1, int x2, int y, park* p); 
+// for a car, move right if it can
+void moveright(int x1, int x2, int y, park* p); 
+// see what the up square  is, if not bollard, prepare for move up
+char upsquare(int y, int x, list* l, int index); 
+// see what the down square  is, if not bollard, prepare for move up
+char downsquare(int y, int x, list* l, int index); 
+// see what the left square is, if not bollard, prepare for move up
+char leftsquare(int y, int x, list* l, int index); 
+// see what the right square is, if not bollard, prepare for move up
+char rightsquare(int y, int x, list* l, int index); 
+// convert a park into a 1D array for testing
+char* tostring(park p, int row, int col);
+// check if the park is in right shape which car is connected and length at least 2
 bool rightshape(list* l, int index);
-bool iscar(park p, int j, int i); //
+// given a car, no other place should apper except its head and tail and between.
+bool noother(park p, char car);
+// given a car, locate its head and tail, and between all chars are same sign
+bool samesign(park p, char car);
+// check if the [j][i] is car
+bool iscar(park p, int j, int i); 
+// check if the park is empty, if empty, then means solved
 bool empty(list* l, int index); //
-int* printlist(list* l, int index);//
+// record the index of the correct moves into a 1D array
+int* printlist(list* l, int index);
+// based the array recording parent index, show all carparks
 void showlist(list* l, int index);//
+// based on the car in a carpark, get its head and tail(two [y][x] naturally)
 void carcoord(int* y1, int* y2, int* x1, int* x2, park p, char car);
+// return one park's rowsize
 int rowsize(park p);
+// return one park's colsize
 int colsize(park p);
 void test1();
 void test2();
@@ -66,22 +106,10 @@ void test2();
 /* other than normal situations:
 no cars full closed non consec
 */
-
-int rowsize(park p){
-   int cnt = 0;
-   while (p.a[cnt][0] == FULL || p.a[cnt][0] == EMPTY){
-      cnt++;
-   }
-   return cnt;
-}
-int colsize(park p){
-   return strlen(p.a[0]);
-}
    
 int main(void){
    test1();
    test2();
-   
    
    list* l = parkinit();
    bool show = true;
@@ -108,7 +136,7 @@ int main(void){
 }
    
 list* parkinit(void){
-   FILE* fp = fopen("10x8_5c_13t.prk", "r");
+   FILE* fp = fopen("11x9_10c_26t.prk", "r");
    int row, col;
    char x;
    assert(fscanf(fp, "%d%c%d", &row, &x, &col) == 3);
@@ -119,7 +147,6 @@ list* parkinit(void){
    l->rowsize = row;
    l->colsize = col;
    
-   
    for (int j = 0; j < row; j++){
       fgets(temp, CAPACITY, fp);
       temp[col] = '\0';
@@ -128,8 +155,6 @@ list* parkinit(void){
    l->current = 0;
    
    l->p[0].parentindex = 0;
-   
-   
    
    fclose(fp);
    return l;
@@ -165,21 +190,7 @@ void carcoord(int* y1, int* y2, int* x1, int* x2, park p, char car){
 void carposition(list* l, int index, char car){
    int y1 = 0, x1 = 0;
    int y2 = 0, x2 = 0;
-/*
-   for (int j = 1; j < l->rowsize; j++){
-      for (int i = 1; i < l->colsize; i++){
-         if (l->p[index].a[j][i] == car){
-            if (y1 == 0){
-               y1 = j;
-               x1 = i;
-            }else{
-               y2 = j;
-               x2 = i;
-            }
-         }
-      }
-   }
-*/
+
    carcoord(&y1, &y2, &x1, &x2, l->p[index], car);
    
    if (y1 == y2){
@@ -187,7 +198,7 @@ void carposition(list* l, int index, char car){
    }else{
       moveVertical(y1, y2, x1, l, index);
    }
-   printf("%d %d %d %d\n", y1, y2, x1, x2);
+
 }
 
 
@@ -272,7 +283,7 @@ bool samepark(park p1, park p2, list* l){
 char* carlist(list* l, int index){
    int cnt = 0;
    bool temp[CARSIZE] = {0};
-   char car[100];
+   char car[CARSIZE];
    for (int j = 0; j < l->rowsize; j++){
       for (int i = 0; i < l->colsize; i++){
          if (isalpha(l->p[index].a[j][i]) && temp[l->p[index].a[j][i] - A] == 0){
@@ -349,11 +360,6 @@ bool noother(park p, char car){
    return len == cnt;
 }
 
-
-// find out the head and tail of the car.
-// rule 1, between head and tail, must be car.
-// rule 2, other cells is not car.
-
 bool rightshape(list* l, int index){
    char* list = carlist(l, index);
    int len = strlen(list);
@@ -367,7 +373,6 @@ bool rightshape(list* l, int index){
    }
    return true;
 }
-
 
 bool empty(list* l, int index){
    if (carnum(l, index) > 0){
@@ -484,11 +489,9 @@ bool iscar(park p, int j, int i){
 
 int* printlist(list* l, int index){
    int len = solvemovescnt(l, index);
-   printf("len: %d\n", len);
    int* printl = (int*)calloc(++len, sizeof(int));
    while (index != 0){
       printl[--len] = index;
-      printf("%d %d\n", index, printl[len]);
       index = l->p[index].parentindex;
    }
    return printl;
@@ -511,6 +514,17 @@ char* tostring(park p, int row, int col){
    }
    *str = '\0';
    return head;
+}
+
+int rowsize(park p){
+   int cnt = 0;
+   while (p.a[cnt][0] == FULL || p.a[cnt][0] == EMPTY){
+      cnt++;
+   }
+   return cnt;
+}
+int colsize(park p){
+   return strlen(p.a[0]);
 }
 
 
@@ -635,17 +649,17 @@ void test1(){
    assert(!samepark(l->p[1], l->p[2], l));
    assert(samepark(l->p[1], l->p[1], l));
 
-   park* wrongshape = (park*)calloc(1, sizeof(park));
+   park wrongshape;
    
-   strcpy(wrongshape->a[0], "####C##");
-   strcpy(wrongshape->a[1], "AAA.C.#");
-   strcpy(wrongshape->a[2], "#..EC.#");
-   strcpy(wrongshape->a[3], ".FF..DD");
-   strcpy(wrongshape->a[4], "#.FE.B#");
-   strcpy(wrongshape->a[5], "#..E.B#");
-   strcpy(wrongshape->a[6], "###.#B#");
+   strcpy(wrongshape.a[0], "####C##");
+   strcpy(wrongshape.a[1], "AAA.C.#");
+   strcpy(wrongshape.a[2], "#..EC.#");
+   strcpy(wrongshape.a[3], ".FF..DD");
+   strcpy(wrongshape.a[4], "#.FE.B#");
+   strcpy(wrongshape.a[5], "#..E.B#");
+   strcpy(wrongshape.a[6], "###.#B#");
 
-   add2list(l, *wrongshape);
+   add2list(l, wrongshape);
    assert(l->current == 4);
 
    assert(!rightshape(l, 4));
@@ -683,7 +697,6 @@ void test2(){
    int* printl = printlist(l, markindex);
    
    assert(printl[0] == 0);
-   printf("%d", printl[1]);
    assert(printl[1] == 1);
    assert(printl[2] == 4);
    assert(printl[3] == 10);

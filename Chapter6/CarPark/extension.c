@@ -20,21 +20,36 @@ typedef struct park{
    struct park* parent;
 }park;
 
+// read from a file initiate the list and the first carpark
 park* parkinit(int argc, char* argv[]);
-int solve(park* p);
+// // when one carpark is solved, count its moves by its parentindex
+int solvemovescnt(park* p);
+// return number of cars in a park
 int carnum(park* p);
+// generate a char array containg all cars for a park
 char* carlist(park* p);
+// main control function to process one carpark's all possible moves of all cars
 void movectrl(park* p);
-void movecar(park* p, char car);
+// locate car's position to choose move vertically or horizontally 
 void carposition(park* p, char car);
+// for vertical direction car, do the up and down move, render y1 < y2
 void moveVertical(int y1, int y2, int x, park* p);
+// for horizont direction car, do the left and right move, render x1 < x2
 void moveHorizont(int x1, int x2, int y, park* p);
+// make new = p->next
 void add2next(park* p, park* new);
+// for a linked list, make new the end of list
 void add2end(park* p, park* new);
+// check if the samepark
 bool samepark(park* p1, park* p2);
+// generate a newpark and return its address
+// if it's a duplicate one, will be freed, else it will in the list
 park* newpark(park* p);
+// return rowsize of a park
 int rowsize(park* p);
+// return colsize of a park
 int colsize(park* p);
+// check a park is in rightshape
 bool rightshape(park *p);
 // based on the car in a carpark, get its head and tail(two [y][x] naturally)
 void carcoord(int* y1, int* y2, int* x1, int* x2, park* p, char car);
@@ -44,20 +59,38 @@ bool oneplace(park* p, char car);
 bool straight(park* p, char car);
 // check all cars in a park are at least length 2
 bool eligiblelength(park* p, char car);
+// assert all cars are in uppercase, false if not
+bool uppercase(park* p);
+// assert cars are in alphabetaically order.
+bool consec(park* p);
+// return end of linked list of park, 
+// meanwhile check if new one is same to any of the existing parks
 park* allparkcmp(park* p, park* new);
+// at the beginning, check if the park is solvable
 bool solveable(park* p);
-bool isexistexit(park* p, char car);
+// for each car, check in a park, it has exit
+bool hasexit(park* p, char car);
 void show(park* p);
+// check if no obstacles between car and exit(when down)
 bool candown2exit(int y, int x, park* p);
 bool canup2exit(int y, int x, park* p);
 bool canleft2exit(int y, int x, park* p);
 bool canright2exit(int y, int x, park* p);
+// when no obstacles, make several moves for a car to exit
 void up2exit(int y1, int y2, int x, park* p);
 void down2exit(int y1, int y2, int x, park* p);
 void left2exit(int x1, int x2, int y, park* p);
 void right2exit(int x1, int x2, int y, park* p);
+park* upop(park* p, int y1, int y2, int x, int updegree);
+park* downop(park* p, int y1, int y2, int x, int updegree);
+park* leftop(park* p, int x1, int x2, int y, int updegree);
+park* rightop(park* p, int x1, int x2, int y, int updegree);
+// a car in park which can straightly go to exit
 char acecar(park* p);
+// find a car in park which can straightly go to exit
+// can be all directions.
 bool straight2exit(park* p, char car);
+// clean useless and reduntant carparks.
 void clean(park* p);
 void test();
 // check if the park is empty, if empty, then means solved
@@ -74,7 +107,7 @@ int main(int argc, char* argv[]){
          if (strcmp(argv[1], SHOWFLAG) == 0){
             showchain(this);
          }
-         int movescnt = solve(this);
+         int movescnt = solvemovescnt(this);
          printf("%d moves\n", movescnt);
          clock_t end = clock();
          double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
@@ -141,12 +174,12 @@ void movectrl(park* p){
       return;
    }
    unsigned int i = 0;
-   char* list = carlist(p);
-   while (i < strlen(list)){
-      carposition(p, list[i]);
+   char* listofcar = carlist(p);
+   while (i < strlen(listofcar)){
+      carposition(p, listofcar[i]);
       i++;
    }
-   free(list);
+   free(listofcar);
 }
    
 void carposition(park* p, char car){
@@ -235,6 +268,7 @@ void moveHorizont(int x1, int x2, int y, park* p){
      }
    }
 }
+
 park* allparkcmp(park* p, park* new){
    park* tmp = p;
    while (tmp && tmp->parent && tmp->parent != tmp){
@@ -321,10 +355,10 @@ char* carlist(park* p){
          }
        }
    }
-   char* list = (char*)calloc(cnt + 1, sizeof(char));	
-   strncpy(list, car, cnt);
+   char* listofcar = (char*)calloc(cnt + 1, sizeof(char));	
+   strncpy(listofcar, car, cnt);
    	
-   return list;
+   return listofcar;
 }
 
 void show(park* p){
@@ -338,7 +372,7 @@ int carnum(park* p){
    return strlen(carlist(p));
 }
 
-int solve(park* p){
+int solvemovescnt(park* p){
    int cnt = 0;
    if (carnum(p) == 0){
       while(p->parent && p->parent != p){
@@ -350,11 +384,15 @@ int solve(park* p){
 }
 
 bool rightshape(park* p){
-   char* list = carlist(p);
-   int len = strlen(list);
+   if (!uppercase(p) || !consec(p)){
+      return false;
+   }
+   printf("here");
+   char* listofcar = carlist(p);
+   int len = strlen(listofcar);
    int i = 0;
    while (i < len){
-      char car = list[i];
+      char car = listofcar[i];
       if (!straight(p, car)
        || !oneplace(p, car)
        || !eligiblelength(p, car)){
@@ -417,6 +455,37 @@ bool eligiblelength(park* p, char car){
    }else{
       return true;
    }
+}
+
+// assert all cars are in uppercase, false if not
+bool uppercase(park* p){
+   for (int j = 1; j < rowsize(p) - 1; j++){
+      for (int i = 1; i < colsize(p) - 1; i++){
+         if (islower(p->a[j][i])){
+            return false;
+         }
+      }
+   }
+   return true;
+}
+// assert cars are in alphabetaically order.
+bool consec(park* p){
+   int numofcar = carnum(p);
+
+   if (numofcar == 0){
+      return true;
+   }   
+
+   char biggestcar = 'A';
+   for (int j = 1; j < rowsize(p) - 1; j++){
+      for (int i = 1; i < colsize(p) - 1; i++){
+         if (isalpha(p->a[j][i])){
+            biggestcar = biggestcar>p->a[j][i]?biggestcar:p->a[j][i];
+         }
+      }
+   }
+
+   return biggestcar - A + 1 == numofcar;
 }
 
 void carcoord(int* y1, int* y2, int* x1, int* x2, park* p, char car){
@@ -590,10 +659,10 @@ void right2exit(int x1, int x2, int y, park* p){
 }
    
 char acecar(park* p){
-   char* list = carlist(p);
+   char* listofcar = carlist(p);
    unsigned int i = 0;
-   while (i < strlen(list)){
-      char car = list[i];
+   while (i < strlen(listofcar)){
+      char car = listofcar[i];
       if (straight2exit(p, car)){
          return car;
       }
@@ -632,7 +701,7 @@ bool empty(park* p){
    return carnum(p) == 0;
 }
    
-bool isexistexit(park* p, char car){
+bool hasexit(park* p, char car){
    int y1 = 0, x1 = 0, y2 = 0, x2 = 0;
    carcoord(&y1, &y2, &x1, &x2, p, car);
 
@@ -647,7 +716,7 @@ bool solveable(park* p){
    char* list = carlist(p);
    unsigned int i = 0;
    while (i < strlen(list)){
-      if (!isexistexit(p, list[i])){
+      if (!hasexit(p, list[i])){
          return false;
       }
       i++;

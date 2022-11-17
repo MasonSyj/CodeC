@@ -39,21 +39,21 @@ void moveHorizont(int x1, int x2, int y, list* state, int index);
 // add the new park to the list
 void add2list(list* state, park* new);
 // when one carpark is solved, count its moves by its parentindex
-int solvemovescnt(list* state, int index);
+int solvemovescnt(list* state, int index);  //
 // make a copy of the park
 park parkchild(park* p, int index);
 // count the number of cars in a carpark
-int carnum(list* state, int index);
+int carnum(list* state, int index); //
 // get the list of cars in a carpark
-void carlist(list* state, int index, char* list);
+void carlist(list* state, int index, char* list); //
 // check if two carparks are same, true if same
-bool samepark(park* p1, park* p2, list* state);
+bool samepark(park* p1, park* p2, list* state); //
 // show the park
 void show(park* p);
 // check if one car moves vertically reach boundary
-bool reachVerticalboundary(int y, list* state);
+bool reachVerticalboundary(int y, list* state); //
 // check if one car moves horizontally reach boundary
-bool reachHorizontboundary(int x, list* state);
+bool reachHorizontboundary(int x, list* state); //
 // for a car moves vertically reach exit, remove it from the park
 // render y1 < y2, so y1 will compare to 0, y2 compare to rowsize
 void carVerticalexit(int y1, int y2, int x, park* p);
@@ -84,6 +84,10 @@ bool rightshape(list* state, int index);
 bool oneplace(park* p, char car);
 // given a car, locate its head and tail, and between all chars are same sign
 bool straight(park* p, char car);
+// assert all cars are in uppercase, false if not
+bool uppercase(park* p);
+// assert cars are in alphabetaically order.
+bool consec(park* p);
 // check all cars in a park are at least length 2
 bool eligiblelength(park* p, char car);
 // check if the park is empty, if empty, then means solved
@@ -365,8 +369,40 @@ bool eligiblelength(park* p, char car){
    }
 }
 
+// assert all cars are in uppercase, false if not
+bool uppercase(park* p){
+   for (int j = 1; j < rowsize(p) - 1; j++){
+      for (int i = 1; i < colsize(p) - 1; i++){
+         if (islower(p->a[j][i])){
+            return false;
+         }
+      }
+   }
+   return true;
+}
+// assert cars are in alphabetaically order.
+bool consec(park* p){
+   bool carappear[CARSIZE] = {0};
+   int cnt = 0;
+   char biggestcar = 'A';
+   for (int j = 1; j < rowsize(p) - 1; j++){
+      for (int i = 1; i < colsize(p) - 1; i++){
+         if (isalpha(p->a[j][i]) && carappear[p->a[j][i] - A] == false){
+            carappear[p->a[j][i] - A] = true;
+            cnt++; 
+            biggestcar = biggestcar>p->a[j][i]?biggestcar:p->a[j][i];
+         }
+      }
+   }
+   return biggestcar - A + 1 == cnt;
+}
+
 bool rightshape(list* state, int index){
-   char list[STRSIZE];
+   if (!uppercase(&state->p[index]) || !consec(&state->p[index])){
+      return false;
+   }
+   
+   char list[CARSIZE];
    carlist(state, index, list);
    int len = strlen(list);
    int i = 0;
@@ -579,7 +615,7 @@ void test1(){
    add2list(&state, &closedp);
    assert(state.end == 1);
    assert(carnum(&state, 1) == 4);
-   assert(rightshape(&state, 3));
+   assert(rightshape(&state, 1));
 
    park emptyp;
    strcpy(emptyp.a[0], "#######");
@@ -609,7 +645,9 @@ void test1(){
    assert(carnum(&state, 3) == 5);
    carlist(&state, 3, str1);
    assert(strncmp(str1, "ACFEB", 5) == 0);
-   assert(rightshape(&state, 3));
+   assert(uppercase(&state.p[3]));
+   assert(!consec(&state.p[3]));
+   assert(!rightshape(&state, 3));
 
    park copy = parkchild(&state.p[3], 3);
    tostring(&copy, 7, 7, str1);
@@ -644,7 +682,7 @@ void test1(){
    strcpy(wrongshape.a[0], "####.##");
    strcpy(wrongshape.a[1], ".AAEC.#");
    strcpy(wrongshape.a[2], "#..EC.#");
-   strcpy(wrongshape.a[3], ".FF..D.");
+   strcpy(wrongshape.a[3], ".FFHHD.");
    strcpy(wrongshape.a[4], "#.FE.B#");
    strcpy(wrongshape.a[5], "#C.E.B#");
    strcpy(wrongshape.a[6], "###.#.#");
@@ -659,6 +697,7 @@ void test1(){
    assert(!oneplace(&wrongshape, 'C'));
    assert(oneplace(&wrongshape, 'B'));
    assert(!rightshape(&state, 4));
+   assert(!consec(&state.p[4]));
 }
 
 void test2(){

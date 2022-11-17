@@ -25,9 +25,9 @@ int carnum(park* p);
 char* carlist(park* p);
 void movectrl(park* p);
 void movecar(park* p, char car);
-bool carposition(park* p, char car);
-bool moveVertical(int y1, int y2, int x, park* p);
-bool moveHorizont(int x1, int x2, int y, park* p);
+void carposition(park* p, char car);
+void moveVertical(int y1, int y2, int x, park* p);
+void moveHorizont(int x1, int x2, int y, park* p);
 void add2next(park* p, park* new);
 void add2end(park* p, park* new);
 bool samepark(park* p1, park* p2);
@@ -46,16 +46,16 @@ bool eligiblelength(park* p, char car);
 bool solveable(park* p);
 bool isexistexit(park* p, char car);
 void show(park* p);
-bool isdown(int y, int x, park* p);
-bool isup(int y, int x, park* p);
-bool isleft(int y, int x, park* p);
-bool isright(int y, int x, park* p);
-void uptoexit(int y1, int y2, int x, park* p);
-void downtoexit(int y1, int y2, int x, park* p);
-void lefttoexit(int x1, int x2, int y, park* p);
-void righttoexit(int x1, int x2, int y, park* p);
+bool candown2exit(int y, int x, park* p);
+bool canup2exit(int y, int x, park* p);
+bool canleft2exit(int y, int x, park* p);
+bool canright2exit(int y, int x, park* p);
+void up2exit(int y1, int y2, int x, park* p);
+void down2exit(int y1, int y2, int x, park* p);
+void left2exit(int x1, int x2, int y, park* p);
+void right2exit(int x1, int x2, int y, park* p);
 char acecar(park* p);
-bool straighttoexit(park* p, char car);
+bool straight2exit(park* p, char car);
 void clean(park* p);
 void test();
 // check if the park is empty, if empty, then means solved
@@ -69,7 +69,9 @@ int main(int argc, char* argv[]){
    park* this = p;
    while(this){
       if (empty(this)){
-         showchain(p);
+         if (strcmp(argv[1], SHOWFLAG) == 0){
+            showchain(this);
+         }
          int movescnt = solve(this);
          printf("%d moves\n", movescnt);
          clock_t end = clock();
@@ -118,14 +120,14 @@ park* parkinit(int argc, char* argv[]){
    return p;
 }
 
-bool straighttoexit(park* p, char car){
+bool straight2exit(park* p, char car){
    int y1 = 0, x1 = 0, y2 = 0, x2 = 0;
    carcoord(&y1, &y2, &x1, &x2, p, car);
 
    if (y1 == y2){
-      return isleft(y1, x1, p) || isright(y1, x2, p);
+      return canleft2exit(y1, x1, p) || canright2exit(y1, x2, p);
    }else{
-      return isup(y1, x1, p) || isdown(y2, x1, p);
+      return canup2exit(y1, x1, p) || candown2exit(y2, x1, p);
    }
 }
    
@@ -145,7 +147,7 @@ void movectrl(park* p){
    free(list);
 }
    
-bool carposition(park* p, char car){
+void carposition(park* p, char car){
    int y1 = 0, x1 = 0;
    int y2 = 0, x2 = 0;
    for (int j = 1; j < rowsize(p); j++){
@@ -163,19 +165,19 @@ bool carposition(park* p, char car){
    }
    
    if (y1 == y2){
-      return moveHorizont(x1, x2, y1, p);
+      moveHorizont(x1, x2, y1, p);
    }else{
-      return moveVertical(y1, y2, x1, p);
+      moveVertical(y1, y2, x1, p);
    }
    
 }
    
-bool moveVertical(int y1, int y2, int x, park* p){
+void moveVertical(int y1, int y2, int x, park* p){
    //move up 
    if (p->a[y1 - 1][x] == '.'){
-      if (isup(y1, x, p)){
-          uptoexit(y1, y2, x, p);
-          return 1;
+      if (canup2exit(y1, x, p)){
+          up2exit(y1, y2, x, p);
+          return;
       }else{
          park* new = newpark(p);
          for (int j = y1 - 1; j < y2; j++){
@@ -183,14 +185,13 @@ bool moveVertical(int y1, int y2, int x, park* p){
          }
          new->a[y2][x] = '.';
          add2end(p, new);
-         return false;	
       }
    }
    //move down
    if (p->a[y2 + 1][x] == '.'){
-       if (isdown(y2, x, p)){
-          downtoexit(y1, y2, x, p);
-          return 1;
+       if (candown2exit(y2, x, p)){
+          down2exit(y1, y2, x, p);
+          return;
       }else{
          park* new = newpark(p);
          for (int j = y2 + 1; j > y1; j--){
@@ -198,18 +199,16 @@ bool moveVertical(int y1, int y2, int x, park* p){
          }
          new->a[y1][x] = '.';
          add2end(p, new);
-         return false;	
       }
    }
-   return false;
 }
    
-bool moveHorizont(int x1, int x2, int y, park* p){
+void moveHorizont(int x1, int x2, int y, park* p){
    //move left
    if (p->a[y][x1 - 1] == '.'){
-      if (isleft(y, x1, p)){
-         lefttoexit(x1, x2, y, p);
-         return true;
+      if (canleft2exit(y, x1, p)){
+         left2exit(x1, x2, y, p);
+         return;
       }else{
          park* new = newpark(p);
          for (int i = x1 - 1; i < x2; i++){
@@ -217,14 +216,13 @@ bool moveHorizont(int x1, int x2, int y, park* p){
          }
          new->a[y][x2] = '.';
          add2end(p, new);
-         return false;	
       }
    }
    //move right
       if (p->a[y][x2 + 1] == '.'){
-         if (isright(y, x2, p)){
-            righttoexit(x1, x2, y, p);
-            return true;
+         if (canright2exit(y, x2, p)){
+            right2exit(x1, x2, y, p);
+            return;
       }else{
          park* new = newpark(p);
          for (int i = x2 + 1; i > x1; i--){
@@ -232,10 +230,8 @@ bool moveHorizont(int x1, int x2, int y, park* p){
          }
          new->a[y][x1] = '.';
          add2end(p, new);
-         return false;
      }
    }
-   return false;
 }
 
 park* allparkcmp(park* p, park* new){
@@ -316,6 +312,9 @@ int rowsize(park* p){
    int i = 0;
    while (p->a[i][0] == EMPTY || p->a[i][0] == FULL){
       i++;
+      if (i == CAPACITY){
+         return CAPACITY;
+      }
    }
    return i;
 }
@@ -448,7 +447,7 @@ void carcoord(int* y1, int* y2, int* x1, int* x2, park* p, char car){
 }
 
 
-bool isdown(int y, int x, park* p){
+bool candown2exit(int y, int x, park* p){
    for (int j = y + 1; j < rowsize(p); j++){
       if (p->a[j][x] != EMPTY){
          return false;
@@ -457,7 +456,7 @@ bool isdown(int y, int x, park* p){
    return true;
 }
 
-bool isup(int y, int x, park* p){
+bool canup2exit(int y, int x, park* p){
    for (int j = y - 1; j >= 0; j--){
       if (p->a[j][x] != EMPTY){
          return false;
@@ -467,7 +466,7 @@ bool isup(int y, int x, park* p){
 }
 
 
-bool isleft(int y, int x, park* p){
+bool canleft2exit(int y, int x, park* p){
    for (int i = x - 1; i >= 0; i--){
       if (p->a[y][i] != EMPTY){
          return false;
@@ -476,7 +475,7 @@ bool isleft(int y, int x, park* p){
    return true;
 }
 
-bool isright(int y, int x, park* p){
+bool canright2exit(int y, int x, park* p){
    for (int i = x + 1; i < colsize(p); i++){
       if (p->a[y][i] != EMPTY){
          return false;
@@ -535,7 +534,7 @@ park* rightop(park* p, int x1, int x2, int y, int rightdegree){
    return new;
 }
 
-void uptoexit(int y1, int y2, int x, park* p){
+void up2exit(int y1, int y2, int x, park* p){
    int move = y1 - 0;
    park* pre = p;
    for (int cnt = 1; cnt < move; cnt++){
@@ -551,7 +550,7 @@ void uptoexit(int y1, int y2, int x, park* p){
    add2next(p, new);
 }
 
-void downtoexit(int y1, int y2, int x, park* p){
+void down2exit(int y1, int y2, int x, park* p){
    int move = rowsize(p) - 1 - y2;
    park* previous = p;
    for (int cnt = 1; cnt < move; cnt++){
@@ -567,7 +566,7 @@ void downtoexit(int y1, int y2, int x, park* p){
    add2next(p, new);
 }
 
-void lefttoexit(int x1, int x2, int y, park* p){
+void left2exit(int x1, int x2, int y, park* p){
    int move = x1 - 0;
    park* previous = p;
    for (int cnt = 1; cnt < move; cnt++){
@@ -583,7 +582,7 @@ void lefttoexit(int x1, int x2, int y, park* p){
    add2next(p, new);
 }
    
-void righttoexit(int x1, int x2, int y, park* p){
+void right2exit(int x1, int x2, int y, park* p){
    int move = colsize(p) - 1 - x2;
    park* previous = p;
    for (int cnt = 1; cnt < move; cnt++){
@@ -605,7 +604,7 @@ char acecar(park* p){
    unsigned int i = 0;
    while (i < strlen(list)){
       char car = list[i];
-      if (straighttoexit(p, car)){
+      if (straight2exit(p, car)){
          return car;
       }
       i++;
@@ -617,13 +616,14 @@ void clean(park* p){
    if (!p->next){
       return;
    }
-   park* end = p;
+   park* end = p->next;
    park* tmp;
-   while(end->next){
-      tmp = end->next->next;
-      free(end->next);
+   while (end){
+      tmp = end->next;
+      free(end);
       end = tmp;
    }
+
    p->next = NULL;
 }
 

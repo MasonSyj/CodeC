@@ -12,11 +12,12 @@
 #define SHOWFLAG "-show"
 #define CAPACITY 20
 #define TEMPSIZE 50
+#define CARSIZE 26
 
 typedef struct park{
    char a[CAPACITY][CAPACITY+1];
    struct park* next;
-   struct park* previous;
+   struct park* parent;
 }park;
 
 park* parkinit(int argc, char* argv[]);
@@ -43,6 +44,7 @@ bool oneplace(park* p, char car);
 bool straight(park* p, char car);
 // check all cars in a park are at least length 2
 bool eligiblelength(park* p, char car);
+void allparkcmp(park* p, park* new);
 bool solveable(park* p);
 bool isexistexit(park* p, char car);
 void show(park* p);
@@ -104,7 +106,7 @@ park* parkinit(int argc, char* argv[]){
    }
    assert(rowsize(p) == row);
    assert(colsize(p) == col);
-   p->previous = p;
+   p->parent = p;
 
    if (!rightshape(p)){
       fprintf(stderr, "carpark is not in right shape.");
@@ -234,20 +236,18 @@ void moveHorizont(int x1, int x2, int y, park* p){
    }
 }
 
-park* allparkcmp(park* p, park* new){
-   park* parent = p;
-   while (parent && parent->previous && parent->previous != parent){
-//      show(parent);
-      parent = parent->previous;
+void allparkcmp(park* p, park* new){
+   park* tmp = p;
+   while (tmp && tmp->parent && tmp->parent != tmp){
+      tmp = tmp->parent;
    }
-   while(parent->next){
-      if (samepark(parent, new) == false){
+   while(tmp->next){
+      if (samepark(tmp->next, new) == false){
          free(new);
-         return p;
+         return;
       }
-      parent = parent->next;
+      tmp = tmp->next;
    }
-   return parent;
 }
 
 void add2end(park* p, park* new){
@@ -255,40 +255,39 @@ void add2end(park* p, park* new){
       p->next = new;
       return;
    }
-   park* end = allparkcmp(p, new);
-   if (end != p){
-      end->next = new;
+
+   allparkcmp(p, new);
+
+   if (new){
+      park* tmp = p;
+      while(tmp->next){
+         tmp = tmp->next;
+      }
+      tmp->next = new;
    }
 }
 
 void add2next(park* p, park* new){
-   park* head = p;
-   while(head->previous != head){
-      head = head->previous;
+   allparkcmp(p, new);
+   if (new){
+      new->next = p->next;
+      p->next = new;
    }
-   while(head->next != NULL){
-      if (samepark(head, new) == false){
-        free(new);
-        return;
-      }
-      head = head->next;
-   }
-   new->next = p->next;
-   p->next = new;
+
 }
 
 park* newpark(park* p){
    park* new = (park*)malloc(sizeof(park));
    assert(new);
    memcpy(new, p, sizeof(park));
-   new->previous = p;
+   new->parent = p;
    new->next = NULL;
    return new;
 }
 
 bool samepark(park* p1, park* p2){
-   for (int j = 0; j < rowsize(p1); j++){
-      for (int i = 0; i < colsize(p1); i++){
+   for (int j = 0; j < rowsize(p2); j++){
+      for (int i = 0; i < colsize(p2); i++){
          if (p1->a[j][i] != p2->a[j][i]){
             return true;
          }
@@ -309,20 +308,21 @@ int rowsize(park* p){
       return 0;
    }
    
-   int i = 0;
-   while (p->a[i][0] == EMPTY || p->a[i][0] == FULL){
-      i++;
-      if (i == CAPACITY){
+   int j = 0;
+   while (p->a[j][0] == EMPTY || p->a[j][0] == FULL){
+      j++;
+      if (j == CAPACITY){
          return CAPACITY;
       }
+      printf("%d   ", j);
    }
-   return i;
+   return j;
 }
 
 char* carlist(park* p){
    int cnt = 0;
    bool temp[26] = {0};
-   char car[100];
+   char car[CARSIZE];
    for (int j = 1; j < rowsize(p) - 1; j++){
       for (int i = 1; i < colsize(p) - 1; i++){
          if (isalpha(p->a[j][i]) && temp[p->a[j][i] - A] == 0){
@@ -351,9 +351,9 @@ int carnum(park* p){
 int solve(park* p){
    int cnt = 0;
    if (carnum(p) == 0){
-      while(p->previous && p->previous != p){
+      while(p->parent && p->parent != p){
          cnt++;
-         p = p->previous;
+         p = p->parent;
       }
    }
    return cnt;
@@ -539,14 +539,14 @@ void up2exit(int y1, int y2, int x, park* p){
    park* pre = p;
    for (int cnt = 1; cnt < move; cnt++){
       park* this = upop(p, y1, y2, x, cnt);
-      this->previous = pre;
+      this->parent = pre;
       pre = this;
    }
    park* new = newpark(p);
    for (int j = y1; j <= y2; j++){
       new->a[j][x] = EMPTY;
    }
-   new->previous = pre;
+   new->parent = pre;
    add2next(p, new);
 }
 
@@ -555,14 +555,14 @@ void down2exit(int y1, int y2, int x, park* p){
    park* previous = p;
    for (int cnt = 1; cnt < move; cnt++){
       park* this = downop(p, y1, y2, x, cnt);
-      this->previous = previous;
+      this->parent = previous;
       previous = this;
    }
    park* new = newpark(p);
    for (int j = y1; j <= y2; j++){
       new->a[j][x] = EMPTY;
    }
-   new->previous = previous;
+   new->parent = previous;
    add2next(p, new);
 }
 
@@ -571,14 +571,14 @@ void left2exit(int x1, int x2, int y, park* p){
    park* previous = p;
    for (int cnt = 1; cnt < move; cnt++){
       park* this = leftop(p, x1, x2, y, cnt);
-      this->previous = previous;
+      this->parent = previous;
       previous = this;
    }
    park* new = newpark(p);
    for (int i = x1; i <= x2; i++){
       new->a[y][i] = EMPTY;
    }
-   new->previous = previous;
+   new->parent = previous;
    add2next(p, new);
 }
    
@@ -587,14 +587,14 @@ void right2exit(int x1, int x2, int y, park* p){
    park* previous = p;
    for (int cnt = 1; cnt < move; cnt++){
       park* this = rightop(p, x1, x2, y, cnt);
-      this->previous = previous;
+      this->parent = previous;
       previous = this;
    }
    park* new = newpark(p);
    for (int i = x1; i <= x2; i++){
       new->a[y][i] = EMPTY;
    }
-   new->previous = previous;
+   new->parent = previous;
    add2next(p, new);
    
 }
@@ -628,12 +628,12 @@ void clean(park* p){
 }
 
 void showchain(park* p){
-   if (p->previous == p){
+   if (p->parent == p){
       show(p);
       return;
    }
    
-   showchain(p->previous);
+   showchain(p->parent);
    show(p);
    
 }

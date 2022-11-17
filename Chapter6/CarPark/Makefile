@@ -80,6 +80,12 @@ wrongshape2_ex : extension.c
 prk26t_ex : extension.c
 	$(CC) extension.c -o prk26t_ex $(SANITIZE) $(LDLIBS)
 	
+prkself_ex: extension.c 11x20_26c_t.prk
+	$(CC) extension.c -o prkself_ex $(SANITIZE) $(LDLIBS)
+
+prkself2_ex: extension.c 20x20_26c_t.prk
+	$(CC) extension.c -o prkself2_ex $(SANITIZE) $(LDLIBS)
+	
 w1: wrongshape2
 	./wrongshape2 wrongshape2.prk
 w2: wrongshape

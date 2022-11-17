@@ -24,9 +24,9 @@ int carnum(park* p);
 char* carlist(park* p);
 void movectrl(park* p);
 void movecar(park* p, char car);
-bool carposition(park* p, char car);
-bool moveVertical(int y1, int y2, int x, park* p);
-bool moveHorizont(int x1, int x2, int y, park* p);
+void carposition(park* p, char car);
+void moveVertical(int y1, int y2, int x, park* p);
+void moveHorizont(int x1, int x2, int y, park* p);
 void add2next(park* p, park* new);
 void add2end(park* p, park* new);
 bool samepark(park* p1, park* p2);
@@ -45,10 +45,6 @@ bool eligiblelength(park* p, char car);
 bool solveable(park* p);
 bool isexistexit(park* p, char car);
 void show(park* p);
-bool isdown(int y, int x, park* p);
-bool isup(int y, int x, park* p);
-bool isleft(int y, int x, park* p);
-bool isright(int y, int x, park* p);
 void test();
 // check if the park is empty, if empty, then means solved
 bool empty(park* p); //
@@ -82,7 +78,7 @@ park* parkinit(int argc, char* argv[]){
    assert(p);
    puts(argv[0]);
    assert(argc == 2 || argc == 1);
-   FILE* fp = fopen("20x20_26c_305t.prk", "r");
+   FILE* fp = fopen("20x20_26c_t.prk", "r");
    int row, col;
    char x;
    assert(fscanf(fp, "%d%c%d", &row, &x, &col) == 3);
@@ -113,45 +109,13 @@ park* parkinit(int argc, char* argv[]){
    return p;
 }
 
-bool straighttoexit(park* p, char car){
-   int y1 = 0, x1 = 0, y2 = 0, x2 = 0;
-   carcoord(&y1, &y2, &x1, &x2, p, car);
-
-   if (y1 == y2){
-      return isleft(y1, x1, p) || isright(y1, x2, p);
-   }else{
-      return isup(y1, x1, p) || isdown(y2, x1, p);
-   }
-}
-
-char acecar(park* p){
+void movectrl(park* p){
    char* list = carlist(p);
    unsigned int i = 0;
    while (i < strlen(list)){
-      char car = list[i];
-      if (straighttoexit(p, car)){
-         return car;
-      }
+      carposition(p, list[i]);
       i++;
    }
-   return '1';
-}
-
-void movectrl(park* p){
-   char* list = carlist(p);
-//   unsigned i = 0;
-   char car = acecar(p);
-   assert(isalpha(car));
-   printf("%c\n", car);
-   carposition(p, car);
-/*
-   while (i < strlen(list)){
-      if (carposition(p, list[i])){
-         return;
-      }
-      i++;
-   }
-*/
    free(list);
 }
 
@@ -180,7 +144,7 @@ bool solveable(park* p){
    return true;
 }
    
-bool carposition(park* p, char car){
+void carposition(park* p, char car){
    int y1 = 0, x1 = 0;
    int y2 = 0, x2 = 0;
    for (int j = 1; j < rowsize(p); j++){
@@ -198,9 +162,9 @@ bool carposition(park* p, char car){
    }
    
    if (y1 == y2){
-      return moveHorizont(x1, x2, y1, p);
+      moveHorizont(x1, x2, y1, p);
    }else{
-      return moveVertical(y1, y2, x1, p);
+      moveVertical(y1, y2, x1, p);
    }
    
 }
@@ -363,12 +327,12 @@ void righttoexit(int x1, int x2, int y, park* p){
    
 }
 
-bool moveVertical(int y1, int y2, int x, park* p){
+void moveVertical(int y1, int y2, int x, park* p){
    //move up 
    if (p->a[y1 - 1][x] == '.'){
       if (isup(y1, x, p)){
-          uptoexit(y1, y2, x, p);
-          return 1;
+       uptoexit(y1, y2, x, p);
+
       }else{
          park* new = newpark(p);
          for (int j = y1 - 1; j < y2; j++){
@@ -376,14 +340,12 @@ bool moveVertical(int y1, int y2, int x, park* p){
          }
          new->a[y2][x] = '.';
          add2end(p, new);
-         return false;	
       }
    }
    //move down
    if (p->a[y2 + 1][x] == '.'){
        if (isdown(y2, x, p)){
           downtoexit(y1, y2, x, p);
-          return 1;
       }else{
          park* new = newpark(p);
          for (int j = y2 + 1; j > y1; j--){
@@ -391,20 +353,18 @@ bool moveVertical(int y1, int y2, int x, park* p){
          }
          new->a[y1][x] = '.';
          add2end(p, new);
-         return false;	
       }
    }
-   return false;
 }
 
 
 
-bool moveHorizont(int x1, int x2, int y, park* p){
+void moveHorizont(int x1, int x2, int y, park* p){
    //move left
    if (p->a[y][x1 - 1] == '.'){
       if (isleft(y, x1, p)){
          lefttoexit(x1, x2, y, p);
-         return true;
+         return;
       }else{
          park* new = newpark(p);
          for (int i = x1 - 1; i < x2; i++){
@@ -412,14 +372,13 @@ bool moveHorizont(int x1, int x2, int y, park* p){
          }
          new->a[y][x2] = '.';
          add2end(p, new);
-         return false;	
       }
    }
    //move right
       if (p->a[y][x2 + 1] == '.'){
          if (isright(y, x2, p)){
             righttoexit(x1, x2, y, p);
-            return true;
+            return;
       }else{
          park* new = newpark(p);
          for (int i = x2 + 1; i > x1; i--){
@@ -427,10 +386,8 @@ bool moveHorizont(int x1, int x2, int y, park* p){
          }
          new->a[y][x1] = '.';
          add2end(p, new);
-         return false;
      }
    }
-   return false;
 }
 
 park* allparkcmp(park* p, park* new){

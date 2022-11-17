@@ -119,7 +119,6 @@ run_ex : all_extension
 	./prk11t_ex 7x7_4c_11t.prk
 	./prk13t_ex 10x8_5c_13t.prk
 	./nocars_ex nocars.prk
-	./nonconsec_ex nonconsec.prk
 	./prk26t_ex 11x9_10c_26t.prk
 	./prkself_ex 11x20_26c_142t.prk
 	./prkself2_ex 20x20_26c_186t.prk
@@ -133,7 +132,6 @@ run_ex_show : all_extension
 	./prk11t_ex -show 7x7_4c_11t.prk
 	./prk13t_ex -show 10x8_5c_13t.prk
 	./nocars_ex -show nocars.prk
-	./nonconsec_ex -show nonconsec.prk
 	./prk26t_ex -show 11x9_10c_26t.prk
 	./prkself_ex -show 11x20_26c_142t.prk
 	./prkself2_ex -show 20x20_26c_186t.prk

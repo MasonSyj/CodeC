@@ -37,10 +37,10 @@ wrongshape: main.c
 	$(CC) main.c -o wrongshape $(SANITIZE) $(LDLIBS)
 	
 wrongshape2: main.c
-	$(CC) main2.c -o wrongshape2 $(SANITIZE) $(LDLIBS)
+	$(CC) main.c -o wrongshape2 $(SANITIZE) $(LDLIBS)
 
 prk26t: main.c
-	$(CC) main2.c -o prk26t $(SANITIZE) $(LDLIBS)
+	$(CC) main.c -o prk26t $(SANITIZE) $(LDLIBS)
 	
 prk26: prk26t
 	./prk26t 11x9_10c_26t.prk

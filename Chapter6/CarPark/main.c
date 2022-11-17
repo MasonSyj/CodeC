@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <time.h>
 
 #define N 100000
 #define EMPTY '.'
@@ -39,21 +40,21 @@ void moveHorizont(int x1, int x2, int y, list* state, int index);
 // add the new park to the list
 void add2list(list* state, park* new);
 // when one carpark is solved, count its moves by its parentindex
-int solvemovescnt(list* state, int index);  //
+int solvemovescnt(list* state, int index);  
 // make a copy of the park
 park parkchild(park* p, int index);
 // count the number of cars in a carpark
-int carnum(list* state, int index); //
+int carnum(park* p); //
 // get the list of cars in a carpark
-void carlist(list* state, int index, char* list); //
+void carlist(park* p, char* listofcar);
 // check if two carparks are same, true if same
-bool samepark(park* p1, park* p2, list* state); //
+bool samepark(park* p1, park* p2); 
 // show the park
 void show(park* p);
 // check if one car moves vertically reach boundary
-bool reachVerticalboundary(int y, list* state); //
+bool reachVerticalboundary(int y, int rowsize); 
 // check if one car moves horizontally reach boundary
-bool reachHorizontboundary(int x, list* state); //
+bool reachHorizontboundary(int x, int colsize); 
 // for a car moves vertically reach exit, remove it from the park
 // render y1 < y2, so y1 will compare to 0, y2 compare to rowsize
 void carVerticalexit(int y1, int y2, int x, park* p);
@@ -69,17 +70,17 @@ void moveleft(int x1, int x2, int y, park* p);
 // for a car, move right if it can
 void moveright(int x1, int x2, int y, park* p);
 // see what the up square  is, if not bollard, prepare for move up
-char upsquare(int y, int x, list* state, int index);
+char upsquare(int y, int x, park* p);
 // see what the down square  is, if not bollard, prepare for move up
-char downsquare(int y, int x, list* state, int index);
+char downsquare(int y, int x, park* p);
 // see what the left square is, if not bollard, prepare for move up
-char leftsquare(int y, int x, list* state, int index);
+char leftsquare(int y, int x, park* p);
 // see what the right square is, if not bollard, prepare for move up
-char rightsquare(int y, int x, list* state, int index);
+char rightsquare(int y, int x, park* p);
 // convert a park into a 1D array for testing
 void tostring(park* p, int row, int col, char* str);
 // check if the park is in right shape which all cars are straight in one place and length at least 2
-bool rightshape(list* state, int index);
+bool rightshape(park* p);
 // given a car, no other place should apper except its head and tail and between.
 bool oneplace(park* p, char car);
 // given a car, locate its head and tail, and between all chars are same sign
@@ -91,7 +92,7 @@ bool consec(park* p);
 // check all cars in a park are at least length 2
 bool eligiblelength(park* p, char car);
 // check if the park is empty, if empty, then means solved
-bool empty(list* state, int index); //
+bool empty(park* p); 
 // show how the carpark is solved in a recursion way.
 void showchain(list* state, int index);
 // based on the car in a carpark, get its head and tail(two [y][x] naturally)
@@ -106,17 +107,22 @@ void test2();
 int main(int argc, char* argv[]){
    test1();
    test2();
-
+   clock_t start_t, end_t;
+   double total_t;
+   start_t = clock();
    static list state;
    parkinit(&state, argc, argv);
    int i = 0;
    while(i <= state.end){
-      if (empty(&state, i)){
+      if (empty(&state.p[i])){
          int movecnt = solvemovescnt(&state, i);
          if (strcmp(argv[1], SHOWFLAG) == 0){
            showchain(&state, i);
          }
          printf("%d moves\n", movecnt);
+         end_t = clock();
+         total_t = (double)(end_t - start_t) / CLOCKS_PER_SEC;
+         printf("CPU 占用的总时间：%f\n", total_t);
          exit(EXIT_SUCCESS);
       }
       movectrl(&state, i);
@@ -144,7 +150,7 @@ void parkinit(list* state, int argc, char* argv[]){
       strncpy(state->p[0].a[j], temp, col);
    }
    
-   if (!rightshape(state, 0)){
+   if (!rightshape(&state->p[0])){
       fprintf(stderr, "carpark is not in right shape.");
       exit(EXIT_FAILURE);
    }
@@ -158,7 +164,7 @@ void parkinit(list* state, int argc, char* argv[]){
    
 void movectrl(list* state, int index){
    char listofcar[CARSIZE];
-   carlist(state, index, listofcar);
+   carlist(&state->p[index], listofcar);
    unsigned int i = 0;
    while (i < strlen(listofcar)){
       carposition(state, index, listofcar[i]);
@@ -179,9 +185,9 @@ void carposition(list* state, int index, char car){
    
 void moveVertical(int y1, int y2, int x, list* state, int index){
    //move up
-   if (upsquare(y1, x, state, index) == EMPTY){
+   if (upsquare(y1, x, &state->p[index]) == EMPTY){
       park new = parkchild(&state->p[index], index);
-      if (reachVerticalboundary(y1, state)){
+      if (reachVerticalboundary(y1, state->rowsize)){
          carVerticalexit(y1, y2, x, &new);
          add2list(state, &new);
       }else{
@@ -190,9 +196,9 @@ void moveVertical(int y1, int y2, int x, list* state, int index){
       }
    }
    //move down
-   if (downsquare(y2, x, state, index) == EMPTY){
+   if (downsquare(y2, x, &state->p[index]) == EMPTY){
       park new = parkchild(&state->p[index], index);
-      if (reachVerticalboundary(y2, state)){
+      if (reachVerticalboundary(y2, state->rowsize)){
          carVerticalexit(y1, y2, x, &new);
          add2list(state, &new);
       }else{
@@ -204,9 +210,9 @@ void moveVertical(int y1, int y2, int x, list* state, int index){
    
 void moveHorizont(int x1, int x2, int y, list* state, int index){
    //move left
-   if (leftsquare(y, x1, state, index) == EMPTY){
+   if (leftsquare(y, x1, &state->p[index]) == EMPTY){
       park new = parkchild(&state->p[index], index);
-      if (reachHorizontboundary(x1, state)){
+      if (reachHorizontboundary(x1, state->colsize)){
          carHorizontexit(x1, x2, y, &new);
       }else{
          moveleft(x1, x2, y, &new);
@@ -214,9 +220,9 @@ void moveHorizont(int x1, int x2, int y, list* state, int index){
       add2list(state, &new);
    }
    //move right
-   if (rightsquare(y, x2, state, index) == EMPTY){
+   if (rightsquare(y, x2, &state->p[index]) == EMPTY){
       park new = parkchild(&state->p[index], index);
-      if (reachHorizontboundary(x2, state)){
+      if (reachHorizontboundary(x2, state->colsize)){
          carHorizontexit(x1, x2, y, &new);
       }else{
          moveright(x1, x2, y, &new);
@@ -240,7 +246,7 @@ park parkchild(park* p, int index){
    
 void add2list(list* state, park* new){
    for (int i = 0; i <= state->end; i++){
-      if (samepark(&state->p[i], new, state)){
+      if (samepark(&state->p[i], new)){
          return;
       }
    }
@@ -248,9 +254,17 @@ void add2list(list* state, park* new){
    return;
 }
    
-bool samepark(park* p1, park* p2, list* state){
-   for (int j = 0; j < state->rowsize; j++){
-      for (int i = 0; i < state->colsize; i++){
+bool samepark(park* p1, park* p2){
+   if (rowsize(p1) != rowsize(p2)){
+      return false;
+   }
+   if (colsize(p1) != colsize(p2)){
+      return false;
+   }
+   int row = rowsize(p1);
+   int col = colsize(p1);
+   for (int j = 0; j < row; j++){
+      for (int i = 0; i < col; i++){
          if (p1->a[j][i] != p2->a[j][i]){
             return false;
          }
@@ -259,27 +273,31 @@ bool samepark(park* p1, park* p2, list* state){
    return true;
 }
    
-void carlist(list* state, int index, char* list){
-   strcpy(list, "");
+void carlist(park* p, char* listofcar){
+   strcpy(listofcar, "");
    int cnt = 0;
    bool temp[CARSIZE] = {0};
    char car[CARSIZE];
-   for (int j = 1; j < state->rowsize - 1; j++){
-      for (int i = 1; i < state->colsize - 1; i++){
-         if (isalpha(state->p[index].a[j][i]) && temp[state->p[index].a[j][i] - A] == 0){
-            temp[state->p[index].a[j][i] - A] = 1;
-            car[cnt++] = state->p[index].a[j][i];
+   int row = rowsize(p);
+   int col = colsize(p);
+   for (int j = 1; j < row - 1; j++){
+      for (int i = 1; i < col - 1; i++){
+         if (isalpha(p->a[j][i]) && temp[p->a[j][i] - A] == 0){
+            temp[p->a[j][i] - A] = 1;
+            car[cnt++] = p->a[j][i];
          }
        }
    }
    car[cnt++] = '\0';
-   strncpy(list, car, cnt);
+   strncpy(listofcar, car, cnt);
 }
    
 void carcoord(int* y1, int* y2, int* x1, int* x2, park* p, char car){
    *y1 = 0;
-   for (int j = 1; j < rowsize(p); j++){
-      for (int i = 1; i < colsize(p); i++){
+   int row = rowsize(p);
+   int col = colsize(p);
+   for (int j = 1; j < row; j++){
+      for (int i = 1; i < col; i++){
          if (p->a[j][i] == car){
             if (*y1 == 0){
                *y1 = j;
@@ -293,17 +311,18 @@ void carcoord(int* y1, int* y2, int* x1, int* x2, park* p, char car){
    }
 }
    
-int carnum(list* state, int index){
-   char list[CARSIZE];
-   carlist(state, index, list);
-   return strlen(list);
+int carnum(park* p){
+   char listofcar[CARSIZE];
+   carlist(p, listofcar);
+   return strlen(listofcar);
 }
-bool empty(list* state, int index){
-   return carnum(state, index) == 0;
+
+bool empty(park* p){
+   return carnum(p) == 0;
 }
    
 int solvemovescnt(list* state, int index){
-   if (carnum(state, index) > 0){
+   if (carnum(&state->p[index]) > 0){
       return 0;
    }
 
@@ -348,8 +367,10 @@ bool oneplace(park* p, char car){
    }
 
    int cnt = 0;
-   for (int j = 1; j < rowsize(p) - 1; j++){
-      for (int i = 1; i < colsize(p) - 1; i++){
+   int row = rowsize(p);
+   int col = colsize(p);
+   for (int j = 1; j < row; j++){
+      for (int i = 1; i < col; i++){
          if (p->a[j][i] == car){
             cnt++;
          }
@@ -394,23 +415,26 @@ bool consec(park* p){
          }
       }
    }
+   if (cnt == 0){
+      return true;
+   }
    return biggestcar - A + 1 == cnt;
 }
 
-bool rightshape(list* state, int index){
-   if (!uppercase(&state->p[index]) || !consec(&state->p[index])){
+bool rightshape(park* p){
+   if (!uppercase(p) || !consec(p)){
       return false;
    }
    
-   char list[CARSIZE];
-   carlist(state, index, list);
-   int len = strlen(list);
+   char listofcar[CARSIZE];
+   carlist(p, listofcar);
+   int len = strlen(listofcar);
    int i = 0;
    while (i < len){
-      char car = list[i];
-      if (!straight(&state->p[index], car)
-       || !oneplace(&state->p[index], car)
-       || !eligiblelength(&state->p[index], car)){
+      char car = listofcar[i];
+      if (!straight(p, car)
+       || !oneplace(p, car)
+       || !eligiblelength(p, car)){
          return false;
       }
       i++;
@@ -418,12 +442,12 @@ bool rightshape(list* state, int index){
    return true;
 }
    
-bool reachVerticalboundary(int y, list* state){
-   return y == 1 || y == state->rowsize - 2;
+bool reachVerticalboundary(int y, int rowsize){
+   return y == 1 || y == rowsize - 2;
 }
 
-bool reachHorizontboundary(int x, list* state){
-   return x == 1 || x == state->colsize - 2;
+bool reachHorizontboundary(int x, int colsize){
+   return x == 1 || x == colsize - 2;
 }
 
 void carVerticalexit(int y1, int y2, int x, park* p){
@@ -438,33 +462,33 @@ void carHorizontexit(int x1, int x2, int y, park* p){
    }
 }
    
-char upsquare(int y, int x, list* state, int index){
+char upsquare(int y, int x, park* p){
    if (y - 1 >= 0){
-      return state->p[index].a[y - 1][x];
+      return p->a[y - 1][x];
    }else{
       return FULL;
    }
 }
    
-char downsquare(int y, int x, list* state, int index){
-   if (y + 1 < state->rowsize){
-      return state->p[index].a[y + 1][x];
+char downsquare(int y, int x, park* p){
+   if (y + 1 < rowsize(p)){
+      return p->a[y + 1][x];
    }else{
       return FULL;
    }
 }
 
-char leftsquare(int y, int x, list* state, int index){
+char leftsquare(int y, int x, park* p){
    if (x - 1 >= 0){
-      return state->p[index].a[y][x - 1];
+      return p->a[y][x - 1];
    }else{
       return FULL;
    }
 }
 
-char rightsquare(int y, int x, list* state, int index){
-   if (x + 1 < state->rowsize){
-      return state->p[index].a[y][x + 1];
+char rightsquare(int y, int x, park* p){
+   if (x + 1 < colsize(p)){
+      return p->a[y][x + 1];
    }else{
       return FULL;
    }
@@ -559,17 +583,17 @@ void test1(){
    strcpy(state.p[0].a[5], "#..DDC#");
    strcpy(state.p[0].a[6], "#######");
    assert(state.end == 0);
-   assert(carnum(&state, 0) == 4);
-   carlist(&state, 0, str1);
+   assert(carnum(&state.p[0]) == 4);
+   carlist(&state.p[0], str1);
    assert(strcmp(str1, "BACD") == 0);
 
-   assert(upsquare(1, 1, &state, 0) == EMPTY);
-   assert(upsquare(3, 5, &state, 0) == EMPTY);
-   assert(downsquare(1, 4, &state, 0) == EMPTY);
-   assert(downsquare(5, 5, &state, 0) == FULL);
-   assert(leftsquare(5, 3, &state, 0) == EMPTY);
-   assert(rightsquare(5, 5, &state, 0) == FULL);
-   assert(rightsquare(1, 3, &state, 0) == EMPTY);
+   assert(upsquare(1, 1, &state.p[0]) == EMPTY);
+   assert(upsquare(3, 5, &state.p[0]) == EMPTY);
+   assert(downsquare(1, 4, &state.p[0]) == EMPTY);
+   assert(downsquare(5, 5, &state.p[0]) == FULL);
+   assert(leftsquare(5, 3, &state.p[0]) == EMPTY);
+   assert(rightsquare(5, 5, &state.p[0]) == FULL);
+   assert(rightsquare(1, 3, &state.p[0]) == EMPTY);
 
 
    tostring(&state.p[0], 7, 7, str1);
@@ -602,7 +626,7 @@ void test1(){
    moveright(0, 2, 1, &state.p[0]);
    tostring(&state.p[0], 7, 7, str1);
    assert(strcmp(str1, "#.#####.BBB..##....C##A...C##A...C##ADD..########") == 0);
-   assert(!empty(&state, 0));
+   assert(!empty(&state.p[0]));
 
    park closedp;
    strcpy(closedp.a[0], "#######");
@@ -614,8 +638,8 @@ void test1(){
    strcpy(closedp.a[6], "#######");
    add2list(&state, &closedp);
    assert(state.end == 1);
-   assert(carnum(&state, 1) == 4);
-   assert(rightshape(&state, 1));
+   assert(carnum(&state.p[1]) == 4);
+   assert(rightshape(&state.p[1]));
 
    park emptyp;
    strcpy(emptyp.a[0], "#######");
@@ -627,8 +651,8 @@ void test1(){
    strcpy(emptyp.a[6], "#######");
    add2list(&state, &emptyp);
    assert(state.end == 2);
-   assert(empty(&state, 2));
-   assert(carnum(&state, 2) == 0);
+   assert(empty(&state.p[2]));
+   assert(carnum(&state.p[2]) == 0);
 
    park exitp;
 
@@ -641,13 +665,13 @@ void test1(){
    strcpy(exitp.a[6], "###.#.#");
    add2list(&state, &exitp);
    assert(state.end == 3);
-   assert(!empty(&state, 3));
-   assert(carnum(&state, 3) == 5);
-   carlist(&state, 3, str1);
+   assert(!empty(&state.p[3]));
+   assert(carnum(&state.p[3]) == 5);
+   carlist(&state.p[3], str1);
    assert(strncmp(str1, "ACFEB", 5) == 0);
    assert(uppercase(&state.p[3]));
    assert(!consec(&state.p[3]));
-   assert(!rightshape(&state, 3));
+   assert(!rightshape(&state.p[3]));
 
    park copy = parkchild(&state.p[3], 3);
    tostring(&copy, 7, 7, str1);
@@ -657,12 +681,12 @@ void test1(){
    add2list(&state, &copy);
    assert(state.end == 3);
 
-   assert(reachVerticalboundary(1, &state));
-   assert(reachVerticalboundary(5, &state));
-   assert(!reachVerticalboundary(3, &state));
-   assert(reachHorizontboundary(1, &state));
-   assert(!reachHorizontboundary(4, &state));
-   assert(!reachHorizontboundary(2, &state));
+   assert(reachVerticalboundary(1, state.rowsize));
+   assert(reachVerticalboundary(5, state.rowsize));
+   assert(!reachVerticalboundary(3, state.rowsize));
+   assert(reachHorizontboundary(1, state.colsize));
+   assert(!reachHorizontboundary(4, state.colsize));
+   assert(!reachHorizontboundary(2, state.colsize));
    tostring(&exitp, 7, 7, str1);
    carVerticalexit(0, 2, 4, &exitp);
    assert(strcmp(str1, "####.##.AA.C.##...C.#.FFF...#..E.B##..E.B####.#.#") == 0);
@@ -673,9 +697,9 @@ void test1(){
    carVerticalexit(4, 6, 5, &exitp);
    assert(strcmp(str1, "####.##.AA.C.##...C.#.FFF...#..E.B##..E.B####.#.#") == 0);
 
-   assert(!samepark(&state.p[0], &state.p[1], &state));
-   assert(!samepark(&state.p[1], &state.p[2], &state));
-   assert(samepark(&state.p[1], &state.p[1], &state));
+   assert(!samepark(&state.p[0], &state.p[1]));
+   assert(!samepark(&state.p[1], &state.p[2]));
+   assert(samepark(&state.p[1], &state.p[1]));
 
    park wrongshape;
 
@@ -696,7 +720,7 @@ void test1(){
    assert(!oneplace(&wrongshape, 'E'));
    assert(!oneplace(&wrongshape, 'C'));
    assert(oneplace(&wrongshape, 'B'));
-   assert(!rightshape(&state, 4));
+   assert(!rightshape(&state.p[4]));
    assert(!consec(&state.p[4]));
 }
 

@@ -7,7 +7,7 @@ PRODUCTION= $(COMMON) -O3
 LDLIBS = -lm
 
 all : prk16t prknonet1 prk1t prk3t prk11t prk13t nocars
-all_extension : prk16t_ex prknonet1_ex prk1t_ex prk3t_ex prk11t_ex prk13t_ex nocars_ex nonconsec_ex prk26t_ex prkself_ex prkself2_ex
+all_extension : prk16t_ex prknonet1_ex prk1t_ex prk3t_ex prk11t_ex prk13t_ex nocars_ex nonconsec_ex prk26t_ex prkself_ex prkself2_ex prkself3_ex
 
 prk16t : main.c
 	$(CC) main.c -o prk16t $(SANITIZE) $(LDLIBS)
@@ -85,6 +85,9 @@ prkself_ex: extension.c
 prkself2_ex: extension.c 
 	$(CC) extension.c -o prkself2_ex $(SANITIZE) $(LDLIBS)
 	
+prkself3_ex: extension.c 
+	$(CC) extension.c -o prkself3_ex $(SANITIZE) $(LDLIBS)
+	
 w1: wrongshape2
 	./wrongshape2 wrongshape2.prk
 w2: wrongshape
@@ -120,6 +123,7 @@ run_ex : all_extension
 	./prk26t_ex 11x9_10c_26t.prk
 	./prkself_ex 11x20_26c_142t.prk
 	./prkself2_ex 20x20_26c_186t.prk
+	./prkself3_ex 20x20_26c_240t.prk
 	
 run_ex_show : all_extension
 	./prk16t_ex -show 10x7_8c_16t.prk
@@ -133,7 +137,7 @@ run_ex_show : all_extension
 	./prk26t_ex -show 11x9_10c_26t.prk
 	./prkself_ex -show 11x20_26c_142t.prk
 	./prkself2_ex -show 20x20_26c_186t.prk
-
+	./prkself3_ex -show 20x20_26c_240t.prk
 	
 
 clean:

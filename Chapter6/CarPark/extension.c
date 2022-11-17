@@ -44,7 +44,7 @@ bool oneplace(park* p, char car);
 bool straight(park* p, char car);
 // check all cars in a park are at least length 2
 bool eligiblelength(park* p, char car);
-void allparkcmp(park* p, park* new);
+park* allparkcmp(park* p, park* new);
 bool solveable(park* p);
 bool isexistexit(park* p, char car);
 void show(park* p);
@@ -235,19 +235,20 @@ void moveHorizont(int x1, int x2, int y, park* p){
      }
    }
 }
-
-void allparkcmp(park* p, park* new){
+park* allparkcmp(park* p, park* new){
    park* tmp = p;
    while (tmp && tmp->parent && tmp->parent != tmp){
+//      show(parent);
       tmp = tmp->parent;
    }
    while(tmp->next){
-      if (samepark(tmp->next, new) == false){
+      if (samepark(tmp, new)){
          free(new);
-         return;
+         return p;
       }
       tmp = tmp->next;
    }
+   return tmp;
 }
 
 void add2end(park* p, park* new){
@@ -255,27 +256,17 @@ void add2end(park* p, park* new){
       p->next = new;
       return;
    }
-
-   allparkcmp(p, new);
-
-   if (new){
-      park* tmp = p;
-      while(tmp->next){
-         tmp = tmp->next;
-      }
-      tmp->next = new;
+   park* end = allparkcmp(p, new);
+   if (end != p){
+      end->next = new;
    }
 }
 
 void add2next(park* p, park* new){
-   allparkcmp(p, new);
-   if (new){
-      new->next = p->next;
-      p->next = new;
-   }
-
+   new->next = p->next;
+   p->next = new;
 }
-
+   
 park* newpark(park* p){
    park* new = (park*)malloc(sizeof(park));
    assert(new);
@@ -286,14 +277,14 @@ park* newpark(park* p){
 }
 
 bool samepark(park* p1, park* p2){
-   for (int j = 0; j < rowsize(p2); j++){
-      for (int i = 0; i < colsize(p2); i++){
+   for (int j = 1; j < rowsize(p2) - 1; j++){
+      for (int i = 1; i < colsize(p2) - 1; i++){
          if (p1->a[j][i] != p2->a[j][i]){
-            return true;
+            return false;
          }
       }
    }
-   return false;
+   return true;
 }
    
 int colsize(park* p){
@@ -314,7 +305,6 @@ int rowsize(park* p){
       if (j == CAPACITY){
          return CAPACITY;
       }
-      printf("%d   ", j);
    }
    return j;
 }

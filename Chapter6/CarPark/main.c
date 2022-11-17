@@ -14,6 +14,7 @@
 #define A 'A'
 #define STRSIZE 401
 #define SHOWFLAG "-show"
+#define ZERO '0'
 
 typedef struct park{
    char a[CAPACITY][CAPACITY+1];
@@ -29,9 +30,9 @@ typedef struct list{
 
 // read from a file initiate the list and the first carpark
 void parkinit(list* state, int argc, char* argv[]);
-// main control function to process one carpark's all possible moves
+// main control function to process one carpark's all possible moves of all cars
 void movectrl(list* state, int index);
-// based on the car, find out the its [y][x] in the 2D array
+// locate car's position to choose move vertically or horizontally 
 void carposition(list* state, int index, char car);
 // for vertical direction car, do the up and down move, render y1 < y2
 void moveVertical(int y1, int y2, int x, list* state, int index);
@@ -51,10 +52,10 @@ void carlist(park* p, char* listofcar);
 bool samepark(park* p1, park* p2); 
 // show the park
 void show(park* p);
-// check if one car moves vertically reach boundary
-bool reachVerticalboundary(int y, int rowsize); 
-// check if one car moves horizontally reach boundary
-bool reachHorizontboundary(int x, int colsize); 
+// check if one car moves vertically reach exit
+bool reachVerticalexit(int y, int rowsize); 
+// check if one car moves horizontally reach exit
+bool reachHorizontexit(int x, int colsize); 
 // for a car moves vertically reach exit, remove it from the park
 // render y1 < y2, so y1 will compare to 0, y2 compare to rowsize
 void carVerticalexit(int y1, int y2, int x, park* p);
@@ -95,34 +96,31 @@ bool eligiblelength(park* p, char car);
 bool empty(park* p); 
 // show how the carpark is solved in a recursion way.
 void showchain(list* state, int index);
-// based on the car in a carpark, get its head and tail(two [y][x] naturally)
+// based on the car in a carpark, get its head and tail(two [y][x])
 void carcoord(int* y1, int* y2, int* x1, int* x2, park* p, char car);
 // return one park's rowsize
 int rowsize(park* p);
 // return one park's colsize
 int colsize(park* p);
+// clean one park's 2d array to all '0's
+void clean(park* p);
 void test1();
 void test2();
 
 int main(int argc, char* argv[]){
    test1();
    test2();
-   clock_t start_t, end_t;
-   double total_t;
-   start_t = clock();
    static list state;
    parkinit(&state, argc, argv);
    int i = 0;
+   // end the loop when all park are addressed.
    while(i <= state.end){
       if (empty(&state.p[i])){
-         int movecnt = solvemovescnt(&state, i);
+         int movescnt = solvemovescnt(&state, i);
          if (strcmp(argv[1], SHOWFLAG) == 0){
            showchain(&state, i);
          }
-         printf("%d moves\n", movecnt);
-         end_t = clock();
-         total_t = (double)(end_t - start_t) / CLOCKS_PER_SEC;
-         printf("CPU 占用的总时间：%f\n", total_t);
+         printf("%d moves\n", movescnt);
          exit(EXIT_SUCCESS);
       }
       movectrl(&state, i);
@@ -143,6 +141,7 @@ void parkinit(list* state, int argc, char* argv[]){
    fgets(temp, CAPACITY, fp);
    state->rowsize = row;
    state->colsize = col;
+   clean(&state->p[0]);
 
    for (int j = 0; j < row; j++){
       fgets(temp, CAPACITY, fp);
@@ -166,6 +165,7 @@ void movectrl(list* state, int index){
    char listofcar[CARSIZE];
    carlist(&state->p[index], listofcar);
    unsigned int i = 0;
+   // iterate all cars in the park and seek possible moves
    while (i < strlen(listofcar)){
       carposition(state, index, listofcar[i]);
       i++;
@@ -184,45 +184,46 @@ void carposition(list* state, int index, char car){
 } 
    
 void moveVertical(int y1, int y2, int x, list* state, int index){
-   //move up
+   //if upsquare is empty, then move up
    if (upsquare(y1, x, &state->p[index]) == EMPTY){
       park new = parkchild(&state->p[index], index);
-      if (reachVerticalboundary(y1, state->rowsize)){
+      // when move up, see if reach exit or not, things differ
+      if (reachVerticalexit(y1, state->rowsize)){
          carVerticalexit(y1, y2, x, &new);
-         add2list(state, &new);
       }else{
          moveup(y1, y2, x, &new);
-         add2list(state, &new);
+         
       }
+      add2list(state, &new);
    }
-   //move down
+   //move down, similar to move up
    if (downsquare(y2, x, &state->p[index]) == EMPTY){
       park new = parkchild(&state->p[index], index);
-      if (reachVerticalboundary(y2, state->rowsize)){
+      if (reachVerticalexit(y2, state->rowsize)){
          carVerticalexit(y1, y2, x, &new);
-         add2list(state, &new);
       }else{
          movedown(y1, y2, x, &new);
-         add2list(state, &new);
       }
+      add2list(state, &new);
    }
 }
    
 void moveHorizont(int x1, int x2, int y, list* state, int index){
-   //move left
+   //if leftsquare is emtpy , then move left
    if (leftsquare(y, x1, &state->p[index]) == EMPTY){
       park new = parkchild(&state->p[index], index);
-      if (reachHorizontboundary(x1, state->colsize)){
+      // when move left, see if reach exit or not, things differ
+      if (reachHorizontexit(x1, state->colsize)){
          carHorizontexit(x1, x2, y, &new);
       }else{
          moveleft(x1, x2, y, &new);
       }
       add2list(state, &new);
    }
-   //move right
+   //move right, similar to move left
    if (rightsquare(y, x2, &state->p[index]) == EMPTY){
       park new = parkchild(&state->p[index], index);
-      if (reachHorizontboundary(x2, state->colsize)){
+      if (reachHorizontexit(x2, state->colsize)){
          carHorizontexit(x1, x2, y, &new);
       }else{
          moveright(x1, x2, y, &new);
@@ -235,22 +236,35 @@ park parkchild(park* p, int index){
    park child;
    int row = rowsize(p);
    int col = colsize(p);
-   for (int j = 0; j < row; j++){
+   for (int j = 0; j <= row; j++){
       for (int i = 0; i <= col; i++){
          child.a[j][i] = p->a[j][i];
       }
    }
+   // child's parentindex is *p's index.
    child.parentindex = index;
    return child;
 }
    
 void add2list(list* state, park* new){
    for (int i = 0; i <= state->end; i++){
+      // the park new is from variable from function, 
+      // 
       if (samepark(&state->p[i], new)){
          return;
       }
    }
-   state->p[++state->end] = *new;
+
+   state->end = state->end + 1;
+   int row = rowsize(new);
+   int col = colsize(new);
+   for (int j = 0; j <= row; j++){
+      for (int i = 0; i <= col; i++){
+         state->p[state->end].a[j][i] = new->a[j][i];
+      }
+   }
+   state->p[state->end].parentindex = new->parentindex;
+
    return;
 }
    
@@ -275,7 +289,9 @@ bool samepark(park* p1, park* p2){
    
 void carlist(park* p, char* listofcar){
    strcpy(listofcar, "");
-   int cnt = 0;
+   int cnt = 0;//count the num of cars
+   // make a bool array to record car appearances.
+   // A be temp[0], B be temp[1], C be temp[2] and so on
    bool temp[CARSIZE] = {0};
    char car[CARSIZE];
    int row = rowsize(p);
@@ -283,7 +299,7 @@ void carlist(park* p, char* listofcar){
    for (int j = 1; j < row - 1; j++){
       for (int i = 1; i < col - 1; i++){
          if (isalpha(p->a[j][i]) && temp[p->a[j][i] - A] == 0){
-            temp[p->a[j][i] - A] = 1;
+            temp[p->a[j][i] - A] = true;
             car[cnt++] = p->a[j][i];
          }
        }
@@ -299,9 +315,11 @@ void carcoord(int* y1, int* y2, int* x1, int* x2, park* p, char car){
    for (int j = 1; j < row; j++){
       for (int i = 1; i < col; i++){
          if (p->a[j][i] == car){
+            // scan the 2D, y1 and x1 will be marked the first time(need set *y1 = 0)
             if (*y1 == 0){
                *y1 = j;
                *x1 = i;
+            // y2 and x2 will be marked rest of times, leads to last time assigned.
             }else{
                *y2 = j;
                *x2 = i;
@@ -314,7 +332,8 @@ void carcoord(int* y1, int* y2, int* x1, int* x2, park* p, char car){
 int carnum(park* p){
    char listofcar[CARSIZE];
    carlist(p, listofcar);
-   return strlen(listofcar);
+   // if listofcar is "ACBD", then number of car is 4(use strlen).
+   return strlen(listofcar); 
 }
 
 bool empty(park* p){
@@ -337,7 +356,7 @@ int solvemovescnt(list* state, int index){
 bool straight(park* p, char car){
    int y1 = 0, x1 = 0, y2 = 0, x2 = 0;
    carcoord(&y1, &y2, &x1, &x2, p, car);
-   
+   // make sure between head and tail are connected.
    if (y1 == y2){
       for (int i = x1; i <= x2; i++){
          if (p->a[y1][i] != car){
@@ -359,7 +378,7 @@ bool oneplace(park* p, char car){
    int len = 0;
 
    carcoord(&y1, &y2, &x1, &x2, p, car);
-
+   // count the length of car
    if (y1 == y2){
       len = x2 - x1;
    }else{
@@ -369,6 +388,7 @@ bool oneplace(park* p, char car){
    int cnt = 0;
    int row = rowsize(p);
    int col = colsize(p);
+   // count the number of sign appearance for a car
    for (int j = 1; j < row; j++){
       for (int i = 1; i < col; i++){
          if (p->a[j][i] == car){
@@ -376,13 +396,14 @@ bool oneplace(park* p, char car){
          }
       }
    }
+   // if not equal, means other place appear the sign.
    return ++len == cnt;
 }
 
 bool eligiblelength(park* p, char car){
    int y1 = 0, x1 = 0, y2 = 0, x2 = 0;
    carcoord(&y1, &y2, &x1, &x2, p, car);
-
+   // if length is 1, x2 and y2 will stay defaulted value 0.
    if (x2 == 0 && y2 == 0){
       return false;
    }else{
@@ -403,22 +424,22 @@ bool uppercase(park* p){
 }
 // assert cars are in alphabetaically order.
 bool consec(park* p){
-   bool carappear[CARSIZE] = {0};
-   int cnt = 0;
+   int numofcar = carnum(p);
+
+   if (numofcar == 0){
+      return true;
+   }   
+
    char biggestcar = 'A';
    for (int j = 1; j < rowsize(p) - 1; j++){
       for (int i = 1; i < colsize(p) - 1; i++){
-         if (isalpha(p->a[j][i]) && carappear[p->a[j][i] - A] == false){
-            carappear[p->a[j][i] - A] = true;
-            cnt++; 
+         if (isalpha(p->a[j][i])){
             biggestcar = biggestcar>p->a[j][i]?biggestcar:p->a[j][i];
          }
       }
    }
-   if (cnt == 0){
-      return true;
-   }
-   return biggestcar - A + 1 == cnt;
+
+   return biggestcar - A + 1 == numofcar;
 }
 
 bool rightshape(park* p){
@@ -442,11 +463,11 @@ bool rightshape(park* p){
    return true;
 }
    
-bool reachVerticalboundary(int y, int rowsize){
+bool reachVerticalexit(int y, int rowsize){
    return y == 1 || y == rowsize - 2;
 }
 
-bool reachHorizontboundary(int x, int colsize){
+bool reachHorizontexit(int x, int colsize){
    return x == 1 || x == colsize - 2;
 }
 
@@ -461,7 +482,8 @@ void carHorizontexit(int x1, int x2, int y, park* p){
       p->a[y][i] = EMPTY;
    }
 }
-   
+
+//if out of range, return FULL (sensible)    
 char upsquare(int y, int x, park* p){
    if (y - 1 >= 0){
       return p->a[y - 1][x];
@@ -526,6 +548,10 @@ int rowsize(park* p){
    int cnt = 0;
    while (p->a[cnt][0] == FULL || p->a[cnt][0] == EMPTY){
       cnt++;
+      // in case it's a 20x20 CARPARK
+      if (cnt == CAPACITY){
+         return CAPACITY;
+      }
    }
    return cnt;
 }
@@ -564,6 +590,14 @@ void tostring(park* p, int row, int col, char* str){
    }
    *head = '\0';
    return;
+}
+
+void clean(park* p){
+   for (int j = 0; j < CAPACITY; j++){
+      for (int i = 0; i < CAPACITY; i++){
+         p->a[j][i] = ZERO;
+      }
+   }
 }
 
 
@@ -681,12 +715,12 @@ void test1(){
    add2list(&state, &copy);
    assert(state.end == 3);
 
-   assert(reachVerticalboundary(1, state.rowsize));
-   assert(reachVerticalboundary(5, state.rowsize));
-   assert(!reachVerticalboundary(3, state.rowsize));
-   assert(reachHorizontboundary(1, state.colsize));
-   assert(!reachHorizontboundary(4, state.colsize));
-   assert(!reachHorizontboundary(2, state.colsize));
+   assert(reachVerticalexit(1, state.rowsize));
+   assert(reachVerticalexit(5, state.rowsize));
+   assert(!reachVerticalexit(3, state.rowsize));
+   assert(reachHorizontexit(1, state.colsize));
+   assert(!reachHorizontexit(4, state.colsize));
+   assert(!reachHorizontexit(2, state.colsize));
    tostring(&exitp, 7, 7, str1);
    carVerticalexit(0, 2, 4, &exitp);
    assert(strcmp(str1, "####.##.AA.C.##...C.#.FFF...#..E.B##..E.B####.#.#") == 0);

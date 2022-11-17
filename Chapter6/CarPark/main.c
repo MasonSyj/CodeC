@@ -677,7 +677,7 @@ void test1(){
    tostring(&copy, 7, 7, str1);
    tostring(&state.p[3], 7, 7, str2);
    assert(strcmp(str1, str2) == 0);
-   // add a same one to the list, assert same one won't add and will be freed.
+   // add a same one to the list, assert same one won't add
    add2list(&state, &copy);
    assert(state.end == 3);
 

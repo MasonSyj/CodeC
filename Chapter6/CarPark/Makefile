@@ -122,7 +122,7 @@ run_ex : all_extension
 	./prk26t_ex 11x9_10c_26t.prk
 	./prkself_ex 11x20_26c_142t.prk
 	./prkself2_ex 20x20_26c_186t.prk
-	./prkself3_ex 20x20_26c_240t.prk
+	./prkself3_ex 20x20_26c_244t.prk
 	
 run_ex_show : all_extension
 	./prk16t_ex -show 10x7_8c_16t.prk
@@ -135,8 +135,8 @@ run_ex_show : all_extension
 	./prk26t_ex -show 11x9_10c_26t.prk
 	./prkself_ex -show 11x20_26c_142t.prk
 	./prkself2_ex -show 20x20_26c_186t.prk
-	./prkself3_ex -show 20x20_26c_240t.prk
+	./prkself3_ex -show 20x20_26c_244t.prk
 	
 
 clean:
-	rm -fr prk16t prknonet1 prk1t prk3t prk11t prk13t nocars nonconsec wrongshape wrongshape2 prk26t prk16t_ex prknonet1_ex prk1t_ex prk3t_ex prk11t_ex prk13t_ex nocars_ex nonconsec_ex wrongshape_ex wrongshape2_ex prk26t_ex prkself2_ex prkself_ex
+	rm -fr prk16t prknonet1 prk1t prk3t prk11t prk13t nocars nonconsec wrongshape wrongshape2 prk26t prk16t_ex prknonet1_ex prk1t_ex prk3t_ex prk11t_ex prk13t_ex nocars_ex nonconsec_ex wrongshape_ex wrongshape2_ex prk26t_ex prkself2_ex prkself_ex prkself3_ex

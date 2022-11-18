@@ -102,8 +102,8 @@ void carcoord(int* y1, int* y2, int* x1, int* x2, park* p, char car);
 int rowsize(park* p);
 // return one park's colsize
 int colsize(park* p);
-// clean one park's 2d array to all '0's
-void clean(park* p);
+// set one park's 2d array to all '0's, like using calloc
+void set2zero(park* p);
 void test1();
 void test2();
 
@@ -126,7 +126,7 @@ int main(int argc, char* argv[]){
       movectrl(&state, i);
       i++;
    }
-   printf("No solution.\n");
+   printf("No solution?\n");
    return 0;
 }
 
@@ -141,12 +141,12 @@ void parkinit(list* state, int argc, char* argv[]){
    fgets(temp, CAPACITY, fp);
    state->rowsize = row;
    state->colsize = col;
-   clean(&state->p[0]);
+   set2zero(&state->p[0]);
 
    for (int j = 0; j < row; j++){
       fgets(temp, CAPACITY, fp);
       temp[col] = '\0';
-      strncpy(state->p[0].a[j], temp, col);
+      strncpy(state->p[0].a[j], temp, col + 1);
    }
    
    if (!rightshape(&state->p[0])){
@@ -248,8 +248,6 @@ park parkchild(park* p, int index){
    
 void add2list(list* state, park* new){
    for (int i = 0; i <= state->end; i++){
-      // the park new is from variable from function, 
-      // 
       if (samepark(&state->p[i], new)){
          return;
       }
@@ -299,7 +297,7 @@ void carlist(park* p, char* listofcar){
    for (int j = 1; j < row - 1; j++){
       for (int i = 1; i < col - 1; i++){
          if (isalpha(p->a[j][i]) && temp[p->a[j][i] - A] == 0){
-            temp[p->a[j][i] - A] = true;
+            temp[p->a[j][i] - A] = true; //avoid add two 'A' to listofcar
             car[cnt++] = p->a[j][i];
          }
        }
@@ -592,7 +590,7 @@ void tostring(park* p, int row, int col, char* str){
    return;
 }
 
-void clean(park* p){
+void set2zero(park* p){
    for (int j = 0; j < CAPACITY; j++){
       for (int i = 0; i < CAPACITY; i++){
          p->a[j][i] = ZERO;
@@ -828,3 +826,4 @@ void test2(){
    tostring(&state2.p[++i], 7, 7, str);
    assert(strcmp(str, "#.######......#.....##.....##.....#....DD#####.##") == 0);
 }
+

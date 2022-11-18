@@ -4,7 +4,6 @@
 #include <string.h>
 #include <stdbool.h>
 #include <ctype.h>
-#include <time.h>
 
 #define EMPTY '.'
 #define FULL '#'
@@ -13,6 +12,8 @@
 #define CAPACITY 20
 #define TEMPSIZE 50
 #define CARSIZE 26
+#define NOACECAR '0'
+#define STRSIZE 401
 
 typedef struct park{
    char a[CAPACITY][CAPACITY+1];
@@ -88,7 +89,7 @@ park* rightop(park* p, int x1, int x2, int y, int updegree);
 // a car in park which can straightly go to exit
 char acecar(park* p);
 // find a car in park which can straightly go to exit
-// can be all directions.
+// can be all directions return true if the parameter car can do the stuff
 bool straight2exit(park* p, char car);
 // clean useless and reduntant carparks.
 void clean(park* p);
@@ -97,9 +98,10 @@ void test();
 bool empty(park* p); //
 // show how the carpark is solved in a recursion way.
 void showchain(park* p);
+void tostring(park* p, int row, int col, char* str);
    
 int main(int argc, char* argv[]){
-   clock_t begin = clock();
+   test();
    park* p = parkinit(argc, argv);
    park* this = p;
    while(this){
@@ -109,9 +111,6 @@ int main(int argc, char* argv[]){
          }
          int movescnt = solvemovescnt(this);
          printf("%d moves\n", movescnt);
-         clock_t end = clock();
-         double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-         printf("Time Spent: %f\n", time_spent);
          exit(EXIT_SUCCESS);
       }
       movectrl(this);
@@ -147,7 +146,7 @@ park* parkinit(int argc, char* argv[]){
    }
 
    if (!solveable(p)){
-      printf("No solution\n");
+      printf("No solution?\n");
       exit(EXIT_SUCCESS);	
    }
    
@@ -168,6 +167,7 @@ bool straight2exit(park* p, char car){
    
 void movectrl(park* p){
    char car = acecar(p);
+   // is no acecar, return a sensible no alpha char to avoid further operation.
    if(isalpha(car)){
       clean(p);
       carposition(p, car);
@@ -198,7 +198,8 @@ void carposition(park* p, char car){
          }
       }
    }
-   
+   // when deciding which car to work on, find out its head and tail
+   // head and tail will decide the move horizontally or vertically
    if (y1 == y2){
       moveHorizont(x1, x2, y1, p);
    }else{
@@ -208,22 +209,24 @@ void carposition(park* p, char car){
 }
    
 void moveVertical(int y1, int y2, int x, park* p){
-   //move up 
-   if (p->a[y1 - 1][x] == '.'){
+   //first square needs to be EMPTY, then consider two different situations.
+   if (p->a[y1 - 1][x] == EMPTY){
+      // see if can go up straight to exit.
       if (canup2exit(y1, x, p)){
           up2exit(y1, y2, x, p);
           return;
+      // if not, just move up one square
       }else{
          park* new = newpark(p);
          for (int j = y1 - 1; j < y2; j++){
             new->a[j][x] = new->a[j+1][x];
          }
-         new->a[y2][x] = '.';
+         new->a[y2][x] = EMPTY;
          add2end(p, new);
       }
    }
    //move down
-   if (p->a[y2 + 1][x] == '.'){
+   if (p->a[y2 + 1][x] == EMPTY){
        if (candown2exit(y2, x, p)){
           down2exit(y1, y2, x, p);
           return;
@@ -232,7 +235,7 @@ void moveVertical(int y1, int y2, int x, park* p){
          for (int j = y2 + 1; j > y1; j--){
             new->a[j][x] = new->a[j-1][x];
          }
-         new->a[y1][x] = '.';
+         new->a[y1][x] = EMPTY;
          add2end(p, new);
       }
    }
@@ -240,7 +243,7 @@ void moveVertical(int y1, int y2, int x, park* p){
    
 void moveHorizont(int x1, int x2, int y, park* p){
    //move left
-   if (p->a[y][x1 - 1] == '.'){
+   if (p->a[y][x1 - 1] == EMPTY){
       if (canleft2exit(y, x1, p)){
          left2exit(x1, x2, y, p);
          return;
@@ -249,12 +252,12 @@ void moveHorizont(int x1, int x2, int y, park* p){
          for (int i = x1 - 1; i < x2; i++){
             new->a[y][i] = new->a[y][i+1];
          }
-         new->a[y][x2] = '.';
+         new->a[y][x2] = EMPTY;
          add2end(p, new);
       }
    }
    //move right
-      if (p->a[y][x2 + 1] == '.'){
+      if (p->a[y][x2 + 1] == EMPTY){
          if (canright2exit(y, x2, p)){
             right2exit(x1, x2, y, p);
             return;
@@ -263,7 +266,7 @@ void moveHorizont(int x1, int x2, int y, park* p){
          for (int i = x2 + 1; i > x1; i--){
             new->a[y][i] = new->a[y][i-1];
          }
-         new->a[y][x1] = '.';
+         new->a[y][x1] = EMPTY;
          add2end(p, new);
      }
    }
@@ -296,11 +299,13 @@ void add2end(park* p, park* new){
    }
 }
 
+// only when a new car is gone, then I use this function to make records.
+// so doesn't need to same the linked list if exist same carpark
 void add2next(park* p, park* new){
    new->next = p->next;
    p->next = new;
 }
-   
+
 park* newpark(park* p){
    park* new = (park*)malloc(sizeof(park));
    assert(new);
@@ -387,7 +392,6 @@ bool rightshape(park* p){
    if (!uppercase(p) || !consec(p)){
       return false;
    }
-   printf("here");
    char* listofcar = carlist(p);
    int len = strlen(listofcar);
    int i = 0;
@@ -457,7 +461,6 @@ bool eligiblelength(park* p, char car){
    }
 }
 
-// assert all cars are in uppercase, false if not
 bool uppercase(park* p){
    for (int j = 1; j < rowsize(p) - 1; j++){
       for (int i = 1; i < colsize(p) - 1; i++){
@@ -468,7 +471,7 @@ bool uppercase(park* p){
    }
    return true;
 }
-// assert cars are in alphabetaically order.
+
 bool consec(park* p){
    int numofcar = carnum(p);
 
@@ -543,6 +546,9 @@ bool canright2exit(int y, int x, park* p){
    return true;
 }
 
+// actually the following two functions can be merged to one,
+// but I still use two to make it more readable
+// also functions are called by other functions which are also separated 
 park* upop(park* p, int y1, int y2, int x, int updegree){
    char car = p->a[y1][x];
    park* new = newpark(p);
@@ -568,6 +574,7 @@ park* downop(park* p, int y1, int y2, int x, int downdegree){
    return new;
 }
 
+// same idea
 park* leftop(park* p, int x1, int x2, int y, int leftdegree){
    char car = p->a[y][x1];
    park* new = newpark(p);
@@ -593,6 +600,9 @@ park* rightop(park* p, int x1, int x2, int y, int rightdegree){
    return new;
 }
 
+// between the car and exit, there are (move - 1) moves
+// each move needs to appear on a new carpark, but not become part of the linked list
+// the parent and child relationship(link of pointers) remains when needs to trace back.
 void up2exit(int y1, int y2, int x, park* p){
    int move = y1 - 0;
    park* pre = p;
@@ -657,18 +667,18 @@ void right2exit(int x1, int x2, int y, park* p){
    add2next(p, new);
    
 }
-   
+
 char acecar(park* p){
    char* listofcar = carlist(p);
    unsigned int i = 0;
    while (i < strlen(listofcar)){
       char car = listofcar[i];
       if (straight2exit(p, car)){
-         return car;
+         return car; // as long as I find one acecar, I return this car.
       }
       i++;
    }
-   return '1';
+   return NOACECAR; 
 }
    
 void clean(park* p){
@@ -724,3 +734,107 @@ bool solveable(park* p){
    free(list);
    return true;
 }
+
+void tostring(park* p, int row, int col, char* str){
+   strcpy(str, "");
+   char* head = str;
+   for (int j = 0; j < row; j++){
+      for (int i = 0; i < col; i++){
+         *head++ = p->a[j][i];
+      }
+   }
+   *head = '\0';
+   return;
+}
+
+void test(){
+
+   park testp1;
+   strcpy(testp1.a[0], "#.#####");
+   strcpy(testp1.a[1], "#......");
+   strcpy(testp1.a[2], "#A....#");
+   strcpy(testp1.a[3], "#A....#");
+   strcpy(testp1.a[4], "#A....#");
+   strcpy(testp1.a[5], "...DD.#");
+   strcpy(testp1.a[6], "####.##");
+   strcpy(testp1.a[7], "");
+
+
+   park testp2;
+   strcpy(testp2.a[0], "########");
+   strcpy(testp2.a[1], "#DBBBE..");
+   strcpy(testp2.a[2], "#D.A.E.#");
+   strcpy(testp2.a[3], "#D.A.E.#");
+   strcpy(testp2.a[4], "#D.A.E.#");
+   strcpy(testp2.a[5], "#D.A.E.#");
+   strcpy(testp2.a[6], ".DCCCE.#");
+   strcpy(testp2.a[7], "#D...E.#");
+   strcpy(testp2.a[8], "#......#");
+   strcpy(testp2.a[9], "#.#.#.##");
+   strcpy(testp2.a[10], "");
+
+   park wrongshapep;
+   strcpy(wrongshapep.a[0], "#####");
+   strcpy(wrongshapep.a[1], "#DBB.");
+   strcpy(wrongshapep.a[2], "#D.A#");
+   strcpy(wrongshapep.a[3], "#D.A#");
+   strcpy(wrongshapep.a[4], "###.#");
+   strcpy(wrongshapep.a[5], "");
+
+   assert(solveable(&testp1));
+   assert(solveable(&testp2));
+   assert(!solveable(&wrongshapep));
+
+   assert(hasexit(&testp1, 'D'));
+   assert(hasexit(&testp2, 'B'));
+   assert(!hasexit(&wrongshapep, 'D'));
+ 
+   assert(candown2exit(7, 5, &testp2));
+   assert(!candown2exit(3, 1, &wrongshapep));
+   assert(canup2exit(2, 1, &testp1));
+   assert(!canup2exit(1, 5, &testp2));
+   assert(canleft2exit(5, 3, &testp1));
+   assert(!canleft2exit(1, 2, &testp2));
+   assert(canright2exit(1, 3, &wrongshapep));
+
+   assert(acecar(&testp1) == 'A');
+   assert(acecar(&testp2) == 'D');
+   assert(straight2exit(&testp1, 'A'));
+   assert(straight2exit(&testp1, 'D'));
+   assert(!straight2exit(&testp2, 'C'));
+
+   char teststr[STRSIZE];
+   down2exit(1, 7, 5, &testp2);
+   tostring(&testp2, 10, 8, teststr);
+   assert(strcmp(teststr, "#########DBBBE..#D.A.E.##D.A.E.##D.A.E.##D.A.E.#.DCCCE.##D...E.##......##.#.#.##") == 0);
+   tostring(testp2.next, 10, 8, teststr);
+   assert(strcmp(teststr, "#########DBBB...#D.A...##D.A...##D.A...##D.A...#.DCCC..##D.....##......##.#.#.##") == 0);
+   tostring(testp2.next->parent, 10, 8, teststr);
+   assert(strcmp(teststr, "#########DBBB...#D.A.E.##D.A.E.##D.A.E.##D.A.E.#.DCCCE.##D...E.##....E.##.#.#.##") == 0);
+
+
+   left2exit(3, 4, 5, &testp1);
+   tostring(&testp1, 7, 7, teststr);
+   assert(strcmp(teststr, "#.######......#A....##A....##A....#...DD.#####.##") == 0);
+   tostring(testp2.next, 7, 7, teststr);
+   assert(strcmp(teststr, "########DBBB..#D.A...#D.A...#D.A...#D.A....DCCC..") == 0);
+   tostring(testp2.next->parent, 7, 7, teststr);
+   assert(strcmp(teststr, "########DBBB..#D.A.E.#D.A.E.#D.A.E.#D.A.E..DCCCE.") == 0);
+
+   right2exit(2, 3, 1, &wrongshapep);
+   tostring(&wrongshapep, 5, 5, teststr);
+   assert(strcmp(teststr, "######DBB.#D.A##D.A####.#") == 0);
+   tostring(wrongshapep.next, 5, 5, teststr);
+   assert(strcmp(teststr, "######D...#D.A##D.A####.#") == 0);
+
+   tostring(upop(&testp1, 2, 4, 1, 1), 7, 7, teststr);
+   assert(strcmp(teststr, "#.######A.....#A....##A....##.....#...DD.#####.##") == 0);
+   tostring(leftop(&testp1, 3, 4, 5, 2), 7, 7, teststr);
+   assert(strcmp(teststr, "#.######......#A....##A....##A....#.DD...#####.##") == 0);
+   // invalid carpark actually, but to assert function works as expected.
+   tostring(downop(&testp2, 1, 7, 1, 1), 10, 8, teststr);
+   assert(strcmp(teststr, "#########.BBBE..#D.A.E.##D.A.E.##D.A.E.##D.A.E.#.DCCCE.##D...E.##D.....##.#.#.##") == 0);
+   tostring(downop(&testp2, 2, 8, 1, 1), 10, 8, teststr);
+   assert(strcmp(teststr, "#########DBBBE..#..A.E.##D.A.E.##D.A.E.##D.A.E.#.DCCCE.##D...E.##D.....##D#.#.##") == 0);
+}
+

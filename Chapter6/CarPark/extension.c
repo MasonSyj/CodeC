@@ -98,6 +98,8 @@ void test();
 bool empty(park* p); //
 // show how the carpark is solved in a recursion way.
 void showchain(park* p);
+// free all alloced memory space before program end.
+void freealloced(park* p);
 void tostring(park* p, int row, int col, char* str);
    
 int main(int argc, char* argv[]){
@@ -111,6 +113,7 @@ int main(int argc, char* argv[]){
          }
          int movescnt = solvemovescnt(this);
          printf("%d moves\n", movescnt);
+         freealloced(this);
          exit(EXIT_SUCCESS);
       }
       movectrl(this);
@@ -271,11 +274,10 @@ void moveHorizont(int x1, int x2, int y, park* p){
      }
    }
 }
-
+   
 park* allparkcmp(park* p, park* new){
    park* tmp = p;
    while (tmp && tmp->parent && tmp->parent != tmp){
-//      show(parent);
       tmp = tmp->parent;
    }
    while(tmp->next){
@@ -287,7 +289,7 @@ park* allparkcmp(park* p, park* new){
    }
    return tmp;
 }
-
+   
 void add2end(park* p, park* new){
    if (!p->next){
       p->next = new;
@@ -314,7 +316,7 @@ park* newpark(park* p){
    new->next = NULL;
    return new;
 }
-
+   
 bool samepark(park* p1, park* p2){
    for (int j = 1; j < rowsize(p2) - 1; j++){
       for (int i = 1; i < colsize(p2) - 1; i++){
@@ -332,7 +334,7 @@ int colsize(park* p){
    }
    return strlen(p->a[0]);
 }
-
+   
 int rowsize(park* p){
    if (!p){
       return 0;
@@ -347,7 +349,7 @@ int rowsize(park* p){
    }
    return j;
 }
-
+   
 char* carlist(park* p){
    int cnt = 0;
    bool temp[26] = {0};
@@ -365,18 +367,18 @@ char* carlist(park* p){
    	
    return listofcar;
 }
-
+   
 void show(park* p){
    for (int j = 0; j < rowsize(p); j++){
       puts(p->a[j]);
    }
    printf("\n");
 }
-
+   
 int carnum(park* p){
    return strlen(carlist(p));
 }
-
+   
 int solvemovescnt(park* p){
    int cnt = 0;
    if (carnum(p) == 0){
@@ -387,7 +389,7 @@ int solvemovescnt(park* p){
    }
    return cnt;
 }
-
+   
 bool rightshape(park* p){
    if (!uppercase(p) || !consec(p)){
       return false;
@@ -406,19 +408,19 @@ bool rightshape(park* p){
    }
    return true;
 }
-
+   
 bool oneplace(park* p, char car){
    int y1 = 0, x1 = 0, y2 = 0, x2 = 0;
    int len = 0;
-
+   
    carcoord(&y1, &y2, &x1, &x2, p, car);
-
+   
    if (y1 == y2){
       len = x2 - x1;
    }else{
       len = y2 - y1;
    }
-
+   
    int cnt = 0;
    for (int j = 1; j < rowsize(p) - 1; j++){
       for (int i = 1; i < colsize(p) - 1; i++){
@@ -429,11 +431,11 @@ bool oneplace(park* p, char car){
    }
    return ++len == cnt;
 }
-
+   
 bool straight(park* p, char car){
    int y1 = 0, x1 = 0, y2 = 0, x2 = 0;
    carcoord(&y1, &y2, &x1, &x2, p, car);
-
+   
    if (y1 == y2){
       for (int i = x1; i <= x2; i++){
          if (p->a[y1][i] != car){
@@ -449,7 +451,7 @@ bool straight(park* p, char car){
    }
    return true;
 }
-
+   
 bool eligiblelength(park* p, char car){
    int y1 = 0, x1 = 0, y2 = 0, x2 = 0;
    carcoord(&y1, &y2, &x1, &x2, p, car);
@@ -460,7 +462,7 @@ bool eligiblelength(park* p, char car){
       return true;
    }
 }
-
+   
 bool uppercase(park* p){
    for (int j = 1; j < rowsize(p) - 1; j++){
       for (int i = 1; i < colsize(p) - 1; i++){
@@ -471,14 +473,14 @@ bool uppercase(park* p){
    }
    return true;
 }
-
+   
 bool consec(park* p){
    int numofcar = carnum(p);
-
+   
    if (numofcar == 0){
       return true;
    }   
-
+   
    char biggestcar = 'A';
    for (int j = 1; j < rowsize(p) - 1; j++){
       for (int i = 1; i < colsize(p) - 1; i++){
@@ -487,10 +489,10 @@ bool consec(park* p){
          }
       }
    }
-
+   
    return biggestcar - A + 1 == numofcar;
 }
-
+   
 void carcoord(int* y1, int* y2, int* x1, int* x2, park* p, char car){
    *y1 = 0;
    for (int j = 1; j < rowsize(p); j++){
@@ -507,8 +509,7 @@ void carcoord(int* y1, int* y2, int* x1, int* x2, park* p, char car){
       }
    }
 }
-
-
+   
 bool candown2exit(int y, int x, park* p){
    for (int j = y + 1; j < rowsize(p); j++){
       if (p->a[j][x] != EMPTY){
@@ -517,7 +518,7 @@ bool candown2exit(int y, int x, park* p){
    }
    return true;
 }
-
+   
 bool canup2exit(int y, int x, park* p){
    for (int j = y - 1; j >= 0; j--){
       if (p->a[j][x] != EMPTY){
@@ -526,8 +527,7 @@ bool canup2exit(int y, int x, park* p){
    }
    return true;
 }
-
-
+   
 bool canleft2exit(int y, int x, park* p){
    for (int i = x - 1; i >= 0; i--){
       if (p->a[y][i] != EMPTY){
@@ -745,6 +745,15 @@ void tostring(park* p, int row, int col, char* str){
    }
    *head = '\0';
    return;
+}
+
+void freealloced(park* p){
+   while (p->parent != p){
+      park* tmp = p->parent;
+      free(p);
+      p = tmp;
+   }
+   free(p);
 }
 
 void test(){

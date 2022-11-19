@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <time.h>
+#include <stdbool.h>
 
 #define N 4
 #define BASE1 2
@@ -26,6 +27,7 @@ void scrollup(int board[][N]);
 void scrolldown(int board[][N]);
 void scrollleft(int board[][N]);
 void scrollright(int board[][N]);
+void newelement(int board[][N]);
 
 int main(void){
    test();
@@ -38,18 +40,19 @@ int main(void){
 
 void userinteract(int board[][N]){
    char c = getchar();
-//   getchar();
+   show(board);
    do{
       getchar();
-      show(board);
       switch(c){
          case 'w': scrollup(board);break;
          case 's': scrolldown(board);break;
          case 'a': scrollleft(board);break;
          case 'd': scrollright(board);break;
       }
-     
+      newelement(board);
+      show(board);
    }while((c = getchar()) != 'q');
+
 }
 
 void scrollup(int board[][N]){
@@ -120,15 +123,24 @@ void init(int board[][N]){
    
 void shuffle(int line[]){
    for (int i = 0; i < N - 1; i++){
-      if (line[i] == line[i + 1]){
+      if (line[i] == line[i + 1] && line[i] != 0){
          line[i] *= SCALEFACTOR;
          for (int j = i + 1; j < N - 1; j++){
             line[j] = line[j+1];
          }
          line[N - 1] = 0;
       }else if (line[i] == 0){
-         for (int j = i + 1; j < N - 1; j++){
-            line[j] = line[j+1];
+         bool firstnon0 = false;
+         int firstnonzero = 0;
+         for (int j = i + 1; j < N; j++){
+            if (line[j] != 0 && firstnon0 == false){
+               firstnon0 = true;
+               firstnonzero = j - i;
+            }
+         }
+         for (int j = i; j + firstnonzero < N; j++){
+            line[j] = line[j + firstnonzero];
+            line[j + firstnonzero] = 0;
          }
       }
    }
@@ -162,18 +174,27 @@ int* readcolup2down(int board[][N], int colindex){
 }
 
 int* readcoldown2up(int board[][N], int colindex){
-   int* line = (int*)calloc(4, sizeof(int));
+   int* line = (int*)calloc(N, sizeof(int));
    assert(line);
    for (int i = 0; i < N; i++){
       line[i] = board[N - 1 - i][colindex];
    }
    return line;
 }
-
+   
+void newelement(int board[][N]){
+   int j, i;
+   do{
+      j = rand() % N;
+      i = rand() % N;
+   }while(board[j][i] != 0);
+   
+   board[j][i] = BASE1;
+}
    
 void lineshow(int line[N]){
    for (int i = 0; i < N; i++){
-      printf("%-3d", line[i]);
+      printf("%-6d", line[i]);
    }
    printf("\n------------------------\n");
 }
@@ -183,7 +204,7 @@ void show(int board[][N]){
       for (int i = 0; i < N; i++){
          printf("%-3d", board[j][i]);
       }
-      printf("\n");
+      printf("\n\n");
    }
    printf("------------------------\n");
 }
@@ -222,4 +243,17 @@ void test(){
    int* readline4 = readcoldown2up(testboard, 3);
    lineshow(readline3);
    lineshow(readline4);
+   show(testboard);
+   scrollright(testboard);
+   show(testboard);
+   scrollleft(testboard);
+   show(testboard);
+   scrollleft(testboard);
+   show(testboard);
+
+   newelement(testboard);
+   show(testboard);
+   newelement(testboard);
+   show(testboard);
+   printf("above content are all testing.\n");
 }

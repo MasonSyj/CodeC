@@ -19,7 +19,7 @@ typedef struct bst{
 arr* arr_init(void);
 
 void arr_insert(arr* bst, datatype data);
-void insert(node* n, datatype data);
+node* insert(node* n, datatype data);
 bool arr_isexist(arr* bst, datatype data);
 bool isexist(node* n, datatype data);
 
@@ -67,23 +67,25 @@ void arr_insert(arr* bst, datatype data){
    insert(n, data);
 }
 
-void insert(node* n, datatype data){
+node* insert(node* n, datatype data){
    if (!n){
       n = (node*)calloc(1, sizeof(node));
       assert(n);
       n->data = data;
       printf("insert %d\n", data);
-      return;
+      return n;
    }
 
    if(n->data == data){
       printf("Duplicate data, return.\n");
-      return;
+      return n;
    }else if (n->data < data){
-      insert(n->right, data);
+      n->right = insert(n->right, data);
    }else{
-      insert(n->left, data);
+      n->left = insert(n->left, data);
    }
+   
+   return n;
 }
 
 bool arr_isexist(arr* bst, datatype data){
@@ -93,6 +95,9 @@ bool arr_isexist(arr* bst, datatype data){
    }
    
    node* n = bst->root;
+   if(!n){
+      return false;
+   }
    return isexist(n, data);
 }
 
@@ -103,32 +108,15 @@ bool isexist(node* n, datatype data){
    }
 
    if (n->data == data){
-      printf("Data exist in the ADT. Return True.\n");
+      printf("Data %d exist in the ADT. Return True.\n",data);
       return true;
    }
 
-   if (n->data < data){
-      printf("go to right.\n");
+   if (n->data < data && n->right){
       return isexist(n->right, data);
-   }else{
-      printf("go to left.\n");
+   }else if (n->data > data && n->left){
       return isexist(n->left, data);
+   }else{
+      return false;
    }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

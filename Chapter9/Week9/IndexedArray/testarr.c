@@ -32,5 +32,19 @@ int main(void)
    assert(a==NULL);
    printf("Basic Array Tests ... Stop\n");
 
+   arr* test = arr_init();
+   assert(test);
+   arr_set(test, 50, 20);
+   arr_set(test, 99, 40);
+   assert(arr_get(test, 50) == 20);
+   assert(arr_get(test, 99) == 40);
+
+   arr_set(test, 200, 80);
+   assert(arr_get(test, 50) == 20);
+   assert(arr_get(test, 99) == 40);
+   assert(arr_get(test, 200) == 80);
+
+   arr_free(&test);
+   assert(test == NULL);
    return 0;
 }

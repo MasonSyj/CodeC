@@ -31,7 +31,7 @@ int arr_get(arr *l, int n);
 void arr_free(arr **l);
 */
 
-
+/*
 int main(void){
    arr* test = arr_init();
    assert(test);
@@ -48,6 +48,7 @@ int main(void){
    arr_free(&test);
    assert(test == NULL);
 }
+*/
 
 arr* arr_init(void){
    arr* start = (arr*)calloc(1, sizeof(arr));
@@ -85,6 +86,7 @@ int arr_get(arr *l, int n){
 void arr_free(arr **l){
    free((*l)->data);
    free(*l);
+   *l = NULL;
    return;
 }
 

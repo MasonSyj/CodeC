@@ -9,23 +9,25 @@ LDLIBS =
 
 all: testrealloc_s testrealloc_v testrealloc
 
-testrealloc : arr.h Realloc/specific.h Realloc/realloc.c testarr.c $(GENPATH)/general.h $(GENPATH)/general.c
-	$(CC) testarr.c Realloc/realloc.c $(GENPATH)/general.c -o testrealloc -I./Realloc -I$(GENPATH) $(PRODUCTION) $(LDLIBS)
+testrealloc : arr.h Realloc.c testarr.c 
+	$(CC) testarr.c Realloc.c  -o testrealloc $(PRODUCTION) $(LDLIBS)
 
-testrealloc_s : arr.h Realloc/specific.h Realloc/realloc.c testarr.c $(GENPATH)/general.h $(GENPATH)/general.c
-	$(CC) testarr.c Realloc/realloc.c $(GENPATH)/general.c -o testrealloc_s -I./Realloc -I$(GENPATH) $(SANITIZE) $(LDLIBS)
-
-testrealloc_v : arr.h Realloc/specific.h Realloc/realloc.c testarr.c $(GENPATH)/general.h $(GENPATH)/general.c
-	$(CC) testarr.c Realloc/realloc.c $(GENPATH)/general.c -o testrealloc_v -I./Realloc -I$(GENPATH) $(VALGRIND) $(LDLIBS)
+testrealloc_s : arr.h Realloc.c testarr.c 
+	$(CC) testarr.c Realloc.c  -o testrealloc_s $(SANITIZE) $(LDLIBS)
+	
+testrealloc_v : arr.h Realloc.c testarr.c 
+	$(CC) testarr.c Realloc.c  -o testrealloc_v $(VALGRIND) $(LDLIBS)
 
 
 clean:
 	rm -f testrealloc_s testrealloc_v testrealloc
 
 run: testrealloc
-	./testrealloc
+	testrealloc_s
+	testrealloc_v
+	
 
 runall: all
 	./testrealloc
 	./testrealloc_s
-	valgrind ./testrealloc_v
+	./testrealloc_v

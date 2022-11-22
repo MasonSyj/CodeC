@@ -1,14 +1,16 @@
+CC = clang
 CFLAGS = -Wall -Wextra -Werror -Wfloat-equal -pedantic -std=c99 -Wvla -O3
 ARRPATH = ../IndexedArray/Realloc
 GENPATH = ../../../../Git/ADTs/General
+SANITIZE= $(COMMON) -fsanitize=undefined -fsanitize=address $(DEBUG)
 TARGET = testset
 INCS = -I$(ARRPATH)/.. -I$(GENPATH)/
 
 
 all: $(TARGET)
 
-testset: testset.c Realloc/realloc.c set.h $(ARRPATH)/realloc.c $(ARRPATH)/../arr.h $(GENPATH)/general.h $(GENPATH)/general.c
-	$(CC) -g testset.c Realloc/realloc.c $(GENPATH)/general.c $(ARRPATH)/realloc.c $(INCS) -o $@ $(CFLAGS)
+testset: testset.c set.c set.h 
+	$(CC) testset.c set.c -o set $(CFLAGS) $(SANITIZE)
 
 clean:
 	rm -fr $(TARGET)

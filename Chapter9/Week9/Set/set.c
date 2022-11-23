@@ -2,6 +2,7 @@
 #include <string.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #define N 1000
 #define SCALEFACTOR 2
@@ -136,13 +137,16 @@ set* set_union(set* s1, set* s2){
       while (s1->end + s2->end > capacity){
          capacity *= SCALEFACTOR;
       }
+      printf("both.\n");
       end = s1->end + s2->end;
    }else{
       if(s1){
          capacity = s1->capacity;
+         printf("s1 here.\n");
          end = s1->end;
       }else if (s2){
          capacity = s2->capacity;
+         printf("s2 here.\n");
          end = s2->end;
       }else{
          capacity = 0;

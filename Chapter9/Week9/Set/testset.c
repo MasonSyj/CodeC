@@ -40,10 +40,8 @@ int main(void)
    set_free(&sb);
    set_free(&sc);
    sa = set_fromarray(ab,4);
-   printf("this?\n");
    printf("%d\n", set_size(sa));
    sc = set_union(NULL,sa);
-   printf("above pass.\n");
    printf("%d\n", set_size(sc));
    assert(set_size(sc)==4);
    sb = set_union(sa,NULL);

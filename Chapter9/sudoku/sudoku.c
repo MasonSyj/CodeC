@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <assert.h>
 
 #define N 9
 #define TRYTIMES 100
@@ -10,14 +11,14 @@ typedef struct cell{
    int this;
 }cell;
 
-void rowfillctrl(cell board[][N]);
-void rowfill(cell board[][N], int row);
-void colfillctrl(cell board[][N]);
-void colfill(cell board[][N], int col);
+int rowfillctrl(cell board[][N]);
+int rowfill(cell board[][N], int row);
+int colfillctrl(cell board[][N]);
+int colfill(cell board[][N], int col);
 void unitselect(int rowmark, int colmark, int* left, int* right, int* up, int* down);
-void unitfillctrl(cell board[][N]);
-void unitfill(cell board[][N], int row, int col);
-void areafill(cell board[][N]);
+int unitfillctrl(cell board[][N]);
+int unitfill(cell board[][N], int row, int col);
+int areafill(cell board[][N]);
 int sumofbool(cell board[][N], int j, int i);
 void setallzero(cell board[][N]);
 void rowscan(cell board[][N], int j, int i);
@@ -26,9 +27,12 @@ void unitscan(cell board[][N], int j, int i);
 void boardprint(cell board[][N]);
 void areascan(cell board[][N]);
 void unitboundaryset(int j, int i, int* left, int* right, int* up, int* down);
+void cellstatusprint(cell board[][N]);
+void boolnumprint(cell onecell);
+void oneguess(cell board[][N]);
 
 int main(void){
-   FILE* fp = fopen("grid2.sud", "r");
+   FILE* fp = fopen("9x9-online.sud", "r");
    if (!fp){
       fprintf(stderr, "cannot open file.\n");
       exit(EXIT_FAILURE);
@@ -42,6 +46,9 @@ int main(void){
       }
       // every 9 numbers followed by a newline which needs to be addressed.
       int newline = fgetc(fp);
+      assert(newline == '\n');
+//      int null = fgetc(fp);
+//      assert(null == '\0');
    }
    setallzero(board);
    
@@ -50,7 +57,7 @@ int main(void){
    }
    printf("\n--------------------\n");
    
-   
+/*   
    // pick a cell to test;
    int testj, testi;
    testj = 0;
@@ -82,7 +89,7 @@ int main(void){
    
  //  boardprint(board);
    printf("--------------------\n");
-   /*areafill
+   //areafill
    for (int i = 0; i < TRYTIMES; i++){
       areafill(board);
    }
@@ -90,25 +97,59 @@ int main(void){
    
    boardprint(board);
    printf("--------------------\n");
-   for (int i = 0; i < 100000; i++){
-      areafill(board);
-      unitfillctrl(board);
-      rowfillctrl(board);
-      colfillctrl(board);
+   int newchange = 1;
+   while (newchange > 0){
+      newchange = 0;
+      newchange += areafill(board);
+      newchange += unitfillctrl(board);
+      newchange += rowfillctrl(board);
+      newchange += colfillctrl(board);
    }
    
    //boardprint
    boardprint(board);
-}
-
-
-void rowfillctrl(cell board[][N]){
-   for (int row = 0; row < N; row++){
-      rowfill(board, row);
+//   cellstatusprint(board);
+   oneguess(board);
+   newchange = 0;
+   while (newchange > 0){
+      newchange = 0;
+      newchange += areafill(board);
+      newchange += unitfillctrl(board);
+      newchange += rowfillctrl(board);
+      newchange += colfillctrl(board);
    }
+   printf("\n--------------------\n");
+   boardprint(board);
+   cellstatusprint(board);   
 }
 
-void rowfill(cell board[][N], int row){
+void oneguess(cell board[][N]){
+   for (int j = 0; j < N; j++){
+      for (int i = 0; i < N; i++){
+         if (sumofbool(board,j,i) == 7){
+            for (int cnt = 0; cnt < N; cnt++){
+               if (board[j][i].num[cnt] == 0){
+                  board[j][i].this = cnt + 1;
+                  board[j][i].num[cnt] = 1;
+                  return;
+               }
+            }
+         }
+      }
+   }   
+}
+
+
+int rowfillctrl(cell board[][N]){
+   int changes = 0;
+   for (int row = 0; row < N; row++){
+      changes += rowfill(board, row);
+   }
+   return changes;
+}
+
+int rowfill(cell board[][N], int row){
+   int changes = 0;
    int unitnum[N] = {0};
    bool unitexist[N] = {0};
    int blanknums = 0;
@@ -129,19 +170,24 @@ void rowfill(cell board[][N], int row){
             if (board[row][col].this == 0 && board[row][col].num[cnt] == false){
                board[row][col].this = cnt + 1;
                board[row][col].num[cnt] = true;
+               changes++;
             }
          }
       }
    }
+   return changes;
 }
 
-void colfillctrl(cell board[][N]){
+int colfillctrl(cell board[][N]){
+   int changes = 0;
    for (int col = 0; col < N; col++){
-      colfill(board, col);
+      changes += colfill(board, col);
    }
+   return changes;
 }
 
-void colfill(cell board[][N], int col){
+int colfill(cell board[][N], int col){
+   int changes = 0;
    int unitnum[N] = {0};
    bool unitexist[N] = {0};
    int blanknums = 0;
@@ -162,10 +208,12 @@ void colfill(cell board[][N], int col){
             if (board[row][col].this == 0 && board[row][col].num[cnt] == false){
                board[row][col].this = cnt + 1;
                board[row][col].num[cnt] = true;
+               changes++;
             }
          }
       }
    }
+   return changes;
 }
 
 void unitselect(int rowmark, int colmark, int* left, int* right, int* up, int* down){
@@ -192,15 +240,18 @@ void unitselect(int rowmark, int colmark, int* left, int* right, int* up, int* d
    }
 }
 
-void unitfillctrl(cell board[][N]){
+int unitfillctrl(cell board[][N]){
+   int changes = 0;
    for (int j = 0; j < 2; j++){
       for (int i = 0; i < 2; i++){
-         unitfill(board, j, i);
+         changes += unitfill(board, j, i);
       }
    }
+   return changes;
 }
 
-void unitfill(cell board[][N], int row, int col){
+int unitfill(cell board[][N], int row, int col){
+   int changes = 0;
    int left, right, up, down;
    unitselect(row, col, &left, &right, &up, &down);
    int unitnum[N] = {0};
@@ -225,12 +276,13 @@ void unitfill(cell board[][N], int row, int col){
                if (board[j][i].this == 0 && board[j][i].num[cnt] == false){
                   board[j][i].this = cnt + 1;
                   board[j][i].num[cnt] = true;
+                  changes++;
                }
             }
          }   
       }
    }
-   
+   return changes;
 }
 
 int sumofbool(cell board[][N], int j, int i){
@@ -241,15 +293,17 @@ int sumofbool(cell board[][N], int j, int i){
    return sum;
 }
 
-void areafill(cell board[][N]){
+int areafill(cell board[][N]){
+   int changes = 0;
    areascan(board);
    for (int j = 0; j < N; j++){
       for (int i = 0; i < N; i++){
-         if (sumofbool(board, j, i) == 8){
+         if (sumofbool(board, j, i) == 8 && board[j][i].this != 0){
 //            printf("cell [%d] [%d] got 8 of sumofbool\n", j , i);
             int fillnumber;
             for (int boolcnt = 0; boolcnt < N; boolcnt++){
                if (board[j][i].num[boolcnt] == false && board[j][i].this == 0){
+                  changes++;
                   fillnumber = boolcnt + 1;
                   board[j][i].this = fillnumber;
                   board[j][i].num[boolcnt] = true;
@@ -258,6 +312,7 @@ void areafill(cell board[][N]){
          }
       }
    }
+   return changes;
 }
 
 
@@ -347,5 +402,21 @@ void unitboundaryset(int j, int i, int* left, int* right, int* up, int* down){
    }else{
       *down = 6;
       *up = 8;
+   }
+}
+
+void cellstatusprint(cell board[][N]){
+   for (int j = 0; j < N; j++){
+      for (int i = 0; i < N; i++){
+         printf("row: %d, col: %d |", j, i);
+         boolnumprint(board[j][i]);
+         printf("|,sumofbool: %d\n", sumofbool(board, j, i));
+      }
+   }
+}
+
+void boolnumprint(cell onecell){
+   for (int i = 0; i < N; i++){
+      printf("%d ", onecell.num[i]);
    }
 }

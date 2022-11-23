@@ -40,9 +40,7 @@ int main(void)
    set_free(&sb);
    set_free(&sc);
    sa = set_fromarray(ab,4);
-   printf("%d\n", set_size(sa));
    sc = set_union(NULL,sa);
-   printf("%d\n", set_size(sc));
    assert(set_size(sc)==4);
    sb = set_union(sa,NULL);
    assert(set_size(sb)==4);

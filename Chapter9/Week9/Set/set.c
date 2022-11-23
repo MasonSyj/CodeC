@@ -32,27 +32,8 @@ set* set_copy(set* s){
    assert(new->data);
    memcpy(new->data, s->data, sizeof(datatype) * s->capacity);
    new->capacity = s->capacity;
+   new->end = s->end; 
    return new;
-}
-/* Create new set, copied from an array of length n*/
-set* set_fromarray(int* a, int n){
-   set* s = (set*)calloc(1, sizeof(set));
-   assert(s);
-   int capacity = N;
-   
-   while (capacity < n){
-      capacity = capacity << 1;
-   }
-   
-   s->data = (datatype*)calloc(capacity, sizeof(datatype));
-   assert(s->data);
-   for (int i = 0; i < n; i++){
-      s->data[i] = a[i];
-   }
-   
-   s->end = n;
-   s->capacity = capacity;
-   return s;
 }
 
 /* Returns true if l is in the array, false elsewise */
@@ -88,6 +69,27 @@ void set_insert(set* s, int l){
       return;
    }
 }
+
+/* Create new set, copied from an array of length n*/
+set* set_fromarray(int* a, int n){
+   set* s = (set*)calloc(1, sizeof(set));
+   assert(s);
+   int capacity = N;
+   
+   while (capacity < n){
+      capacity = capacity << 1;
+   }
+   s->capacity = capacity;
+   s->data = (datatype*)calloc(capacity, sizeof(datatype));
+   assert(s->data);
+   for (int i = 0; i < n; i++){
+      set_insert(s,a[i]);
+   }
+   
+   
+   return s;
+}
+
 
 /* Return size of the set */
 int set_size(set* s){
@@ -132,30 +134,21 @@ set* set_union(set* s1, set* s2){
    assert(s);
    
    int capacity = N;
-   int end;
    if (s1 && s2){
       while (s1->end + s2->end > capacity){
          capacity *= SCALEFACTOR;
       }
-      printf("both.\n");
-      end = s1->end + s2->end;
    }else{
       if(s1){
          capacity = s1->capacity;
-         printf("s1 here.\n");
-         end = s1->end;
       }else if (s2){
          capacity = s2->capacity;
-         printf("s2 here.\n");
-         end = s2->end;
       }else{
          capacity = 0;
-         end = 0;
       }
    }
    s->data = (datatype*)calloc(capacity, sizeof(datatype));
    s->capacity = capacity;
-   s->end = end;
    
    if(s1){
       for (int i = 0; i < s1->end; i++){

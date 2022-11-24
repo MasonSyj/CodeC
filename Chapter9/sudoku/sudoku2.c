@@ -229,7 +229,7 @@ bool guess(coll* c){
    int cnt = 0;
    bool result = false;
    while (cnt < c->end){
-      while (init >= 3){
+      while (init >= 2){
          for (int j = 0; j < N; j++){
             for (int i = 0; i < N; i++){
                if (sumofbool(c->state[cnt].board,j,i) >= init && sumofbool(c->state[cnt].board, j, i) < 8){

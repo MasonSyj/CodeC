@@ -1,89 +1,94 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <assert.h>
-
-#define S 10
-
-bool insert(int* a, int num);
-/* mark -1 as deleted */
-bool delete(int* a, int num);
-int search(int* a, int num);
-int hash(int num);
-int has2h(int num);
-void show(int* a);
+#include <math.h>
+#include <string.h>
 
 
-int main(void) {
-   int a[10] = {0};
-   int num1 = 50;
-   int num2 = 70;
-   int num3 = 76;
-   int num4 = 93;
-   int num5 = 90;
-   int num6 = 20;
-   insert(a, num1);
-   insert(a, num2);
-   insert(a, num3);
-   insert(a, num4);
-   insert(a, num5);
-   insert(a, num6);
-   
-   for (int i = 1; i < 6; i++){
-      insert(a, i);
-   }
-   
-   printf("%d  %d\n", search(a, 70), search(a, 93));
-   
-   delete(a, 14);
-   show(a);
-   
+int hash1(char* s, int sz);
+int hash2(char* s, int sz);
+void doublehash(char* s, int sz, char** a);
+int firstprimeaftern(int n);
+int firstprimebeforen(int n);
+bool isprime(int n);
+void test();
+
+int main(void){
+   test();
+
+
 }
 
-bool insert(int* a, int num){
+void test(){
+   assert(isprime(3));
+   assert(!isprime(4));
+   assert(isprime(5));
+   assert(!isprime(6));
+   assert(isprime(7));
+   assert(firstprimeaftern(6) == 7);
+   assert(firstprimeaftern(7) == 11);
+   assert(firstprimebeforen(7) == 5);
+   assert(firstprimebeforen(9) == 7);
+   int size = firstprimeaftern(3000);
+   char** a = (char**)calloc(size, sizeof(char));
+   assert(a);
+
+   assert(hash1("cba", size) == 2081);
+}
+
+int hash1(char* s, int sz){
+   unsigned long sum = 0;
+   while (*s != '\0'){
+      sum = sum * 26 + (*s - 'a' + 1);
+      s++; 
+   }
+
+   return (int)(sum % sz);
+}
+
+int hash2(char* s, int sz){
+   int prime = firstprimebeforen(sz);
+   return prime - (hash1(s, sz) % prime);
+}
+
+void doublehash(char* s, int sz, char** a){
    int i = 0;
-   while (a[(hash(num) + i) % S] != 0 && a[(hash(num) + i) % S] != -1){
+   while (a[hash1(s, sz) + i * hash2(s, sz)]){
       i++;
-      if (a[(hash(num) + i) % S] == a[hash(num)]){
+   }
+   a[hash1(s, sz) + i * hash2(s, sz)] = s;
+}
+
+int firstprimebeforen(int n){
+   if (n <= 3){
+      return 3;
+   }
+
+   int i = n - 1;
+   while (!isprime(i)){
+      i--;
+   }
+   return i;   
+}
+
+int firstprimeaftern(int n){
+   int i = n + 1;
+   while (!isprime(i)){
+      i++;
+   }
+   return i;
+}
+
+bool isprime(int n){
+   for (int i = 2; i <= (int)sqrt(n); i++){
+      if (n % i == 0){
          return false;
       }
    }
-   a[(hash(num) + i) % S] = num;
    return true;
 }
 
-bool delete(int* a, int num){
-   int i = 0;
-   while (a[(hash(num) + i) % S] != num){
-      i++;
-      if (a[(hash(num) + i) % S] == a[hash(num)]){
-         return false;
-      }
-   }
-   a[(hash(num) + i) % S] = -1;
-   return true;
-}
-   
-int search(int* a, int num){
-   int i = 0;
-   while (a[(hash(num) + i) % S] != num){
-      i++;
-      if (a[(hash(num) + i) % S] == a[hash(num)]){
-         return -1;
-      }
-   }
-   return (hash(num) + i) % S;
-}
-   
-int hash(int num){
-   return num % S;
-}
 
-int has2h(int num){
-   return num % (S - 2);
-}
-   
-void show(int* a){
-   for (int i = 0; i < 10; i++){
-      printf("%d: %d\n", i, a[i]);
-   }
-}
+
+

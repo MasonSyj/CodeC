@@ -41,12 +41,13 @@ void areascan(cell board[][N]);
 void unitboundaryset(int j, int i, int* left, int* right, int* up, int* down);
 void cellstatusprint(cell board[][N]);
 void boolnumprint(cell onecell);
-void oneguess(cell board[][N]);
+bool oneguess(coll* c, cell board[][N]);
 void solve(cell board[][N]);
 coll* coll_init();
 void coll_insert(coll* c, oneboard board);
 oneboard twod2oneboard(cell board[][N]);
 void cellclone(cell board[][N], cell board2[][N]);
+void guess(coll* c, cell board[][N]);
 
 
 int main(void){
@@ -71,17 +72,26 @@ int main(void){
    setallzero(board);
    solve(board);
 //   boardprint(board);
-   cellstatusprint(board);
+//   cellstatusprint(board);
 
    coll* c = coll_init();
    oneboard this = twod2oneboard(board);
    coll_insert(c, this);
+/*
    oneguess(board);
    this = twod2oneboard(board);
-   coll_insert(c, this);   
+   coll_insert(c, this); 
 
    boardprint(c->state[0].board);
    boardprint(c->state[1].board);
+*/
+   guess(c, board);
+   printf("%d\n", c->end);
+
+   for (int i = 0; i < c->end; i++){
+      solve(c->state[i].board);
+      boardprint(c->state[i].board);
+   }
 
 }
 
@@ -138,29 +148,39 @@ void cellclone(cell board[][N], cell board2[][N]){
 }
 
 void guess(coll* c, cell board[][N]){
+   bool result = 1;
+   while (result == 1){
+      result = oneguess(c, board);
+//      coll_insert(c, twod2oneboard(board));
+   }
+/*
    for (int j = 0; j < N; j++){
       for (int i = 0; i < N; i++){
          if (sumofbool(board,j,i) >= 5){
             for (int cnt = 0; cnt < N; cnt++){
                if (board[j][i].num[cnt] == 0){
                   cell board2[N][N];
-   
+*/
 }
 
-void oneguess(cell board[][N]){
+bool oneguess(coll* c, cell board[][N]){
+   bool result = false;
    for (int j = 0; j < N; j++){
       for (int i = 0; i < N; i++){
-         if (sumofbool(board,j,i) == 7){
+         if (sumofbool(board,j,i) >= 5){
             for (int cnt = 0; cnt < N; cnt++){
                if (board[j][i].num[cnt] == 0){
                   board[j][i].this = cnt + 1;
                   board[j][i].num[cnt] = 1;
-                  return;
+                  coll_insert(c, twod2oneboard(board));
+                  board[j][i].this = 0;
+                  result = true;
                }
             }
          }
       }
-   }   
+   }
+   return result;
 }
 
 

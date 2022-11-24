@@ -51,6 +51,7 @@ int main(void){
 //      assert(null == '\0');
    }
    setallzero(board);
+
    
    for (int numcnt = 0; numcnt < N; numcnt++){
       printf("%d ", board[0][0].num[numcnt]);
@@ -96,6 +97,7 @@ int main(void){
    **/
    
    boardprint(board);
+
    printf("--------------------\n");
    int newchange = 1;
    while (newchange > 0){
@@ -105,7 +107,7 @@ int main(void){
       newchange += rowfillctrl(board);
       newchange += colfillctrl(board);
    }
-   
+   cellstatusprint(board);
    //boardprint
    boardprint(board);
 //   cellstatusprint(board);
@@ -120,7 +122,7 @@ int main(void){
    }
    printf("\n--------------------\n");
    boardprint(board);
-   cellstatusprint(board);   
+  
 }
 
 void oneguess(cell board[][N]){

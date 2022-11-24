@@ -46,6 +46,7 @@ void solve(cell board[][N]);
 coll* coll_init();
 void coll_insert(coll* c, oneboard board);
 oneboard twod2oneboard(cell board[][N]);
+void cellclone(cell board[][N], cell board2[][N]);
 
 
 int main(void){
@@ -68,15 +69,14 @@ int main(void){
 //      assert(null == '\0');
    }
    setallzero(board);
-
+   solve(board);
 //   boardprint(board);
-//   cellstatusprint(board);
+   cellstatusprint(board);
 
    coll* c = coll_init();
    oneboard this = twod2oneboard(board);
    coll_insert(c, this);
    oneguess(board);
-   boardprint(board);
    this = twod2oneboard(board);
    coll_insert(c, this);   
 
@@ -124,6 +124,27 @@ void solve(cell board[][N]){
       newchange += rowfillctrl(board);
       newchange += colfillctrl(board);
    }  
+}
+
+void cellclone(cell board[][N], cell board2[][N]){
+   for (int j = 0; j < N; j++){
+      for (int i = 0; i < N; i++){
+         board[j][i].this = board2[j][i].this;
+         for (int cnt = 0; cnt < N; cnt++){
+            board[j][i].num[cnt] = board2[j][i].num[cnt];
+         }
+      }
+   }   
+}
+
+void guess(coll* c, cell board[][N]){
+   for (int j = 0; j < N; j++){
+      for (int i = 0; i < N; i++){
+         if (sumofbool(board,j,i) >= 5){
+            for (int cnt = 0; cnt < N; cnt++){
+               if (board[j][i].num[cnt] == 0){
+                  cell board2[N][N];
+   
 }
 
 void oneguess(cell board[][N]){
@@ -430,3 +451,4 @@ void boolnumprint(cell onecell){
       printf("%d ", onecell.num[i]);
    }
 }
+

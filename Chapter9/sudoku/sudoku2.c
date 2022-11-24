@@ -41,13 +41,13 @@ void areascan(cell board[][N]);
 void unitboundaryset(int j, int i, int* left, int* right, int* up, int* down);
 void cellstatusprint(cell board[][N]);
 void boolnumprint(cell onecell);
-bool oneguess(coll* c, cell board[][N]);
+bool guess(coll* c);
 void solve(cell board[][N]);
 coll* coll_init();
 void coll_insert(coll* c, oneboard board);
 oneboard twod2oneboard(cell board[][N]);
 void cellclone(cell board[][N], cell board2[][N]);
-void guess(coll* c, cell board[][N]);
+bool nozero(cell board[][N]);
 
 
 int main(void){
@@ -85,14 +85,28 @@ int main(void){
    boardprint(c->state[0].board);
    boardprint(c->state[1].board);
 */
-   guess(c, board);
+   guess(c);
    printf("%d\n", c->end);
 
    for (int i = 0; i < c->end; i++){
       solve(c->state[i].board);
-      boardprint(c->state[i].board);
-   }
 
+      if (nozero(c->state[i].board)){
+         boardprint(c->state[i].board);
+      }
+
+   }
+}
+
+bool nozero(cell board[][N]){
+   for (int j = 0; j < N; j++){
+      for (int i = 0; i < N; i++){
+         if (board[j][i].this == 0){
+            return false;
+         }
+      }
+   }
+   return true;
 }
 
 coll* coll_init(){
@@ -147,38 +161,37 @@ void cellclone(cell board[][N], cell board2[][N]){
    }   
 }
 
-void guess(coll* c, cell board[][N]){
-   bool result = 1;
-   while (result == 1){
-      result = oneguess(c, board);
-//      coll_insert(c, twod2oneboard(board));
-   }
-/*
-   for (int j = 0; j < N; j++){
-      for (int i = 0; i < N; i++){
-         if (sumofbool(board,j,i) >= 5){
-            for (int cnt = 0; cnt < N; cnt++){
-               if (board[j][i].num[cnt] == 0){
-                  cell board2[N][N];
-*/
-}
-
-bool oneguess(coll* c, cell board[][N]){
+bool guess(coll* c){
+   int init = 7;
+   int cnt = 0;
    bool result = false;
-   for (int j = 0; j < N; j++){
-      for (int i = 0; i < N; i++){
-         if (sumofbool(board,j,i) >= 5){
-            for (int cnt = 0; cnt < N; cnt++){
-               if (board[j][i].num[cnt] == 0){
-                  board[j][i].this = cnt + 1;
-                  board[j][i].num[cnt] = 1;
-                  coll_insert(c, twod2oneboard(board));
-                  board[j][i].this = 0;
-                  result = true;
+   while (cnt < c->end){
+      while (init >= 2){
+         for (int j = 0; j < N; j++){
+            for (int i = 0; i < N; i++){
+               if (sumofbool(c->state[cnt].board,j,i) >= init && sumofbool(c->state[cnt].board, j, i) < 8){
+                  for (int numcnt = 0; numcnt < N; numcnt++){
+                     if (c->state[cnt].board[j][i].num[numcnt] == 0){
+                        c->state[cnt].board[j][i].this = numcnt + 1;
+                        c->state[cnt].board[j][i].num[numcnt] = 1;
+                        coll_insert(c, twod2oneboard(c->state[cnt].board));
+                        c->state[cnt].board[j][i].this = 0;
+                        result = true;
+                     }
+                  }
                }
             }
          }
+         if (result == true){
+            init = 7;
+            result = false;
+            cnt++;
+            continue;
+         }else{
+            init--;
+         }
       }
+      cnt++;
    }
    return result;
 }

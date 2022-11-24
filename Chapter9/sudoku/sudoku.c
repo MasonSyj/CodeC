@@ -32,7 +32,7 @@ void boolnumprint(cell onecell);
 void oneguess(cell board[][N]);
 
 int main(void){
-   FILE* fp = fopen("9x9-online.sud", "r");
+   FILE* fp = fopen("self.sud", "r");
    if (!fp){
       fprintf(stderr, "cannot open file.\n");
       exit(EXIT_FAILURE);

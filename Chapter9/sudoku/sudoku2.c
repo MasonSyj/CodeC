@@ -48,11 +48,67 @@ void coll_insert(coll* c, oneboard board);
 oneboard twod2oneboard(cell board[][N]);
 void cellclone(cell board[][N], cell board2[][N]);
 bool nozero(cell board[][N]);
+void boolcnt2zero(cell board[][N]);
+bool isvalid(cell board[][N]);
+bool uniqueinrow(cell board[][N]);
+bool uniqueincol(cell board[][N]);
+bool uniqueinunit(cell board[][N]);
+
+bool isvalid(cell board[][N]){
+   return uniqueinrow(board) && uniqueincol(board) && uniqueinunit(board);
+}
+
+bool uniqueinrow(cell board[][N]){
+   for (int j = 0; j < N; j++){
+      int sum = 0;
+      for (int i = 0; i < N; i++){
+          sum += board[j][i].this;
+      }
+      if (sum != 45){
+         return false;
+      }
+   }
+   return true;
+}
+
+bool uniqueincol(cell board[][N]){
+   for (int i = 0; i < N; i++){
+      int sum = 0;
+      for (int j = 0; j < N; j++){
+          sum += board[j][i].this;
+      }
+      if (sum != 45){
+         return false;
+      }
+   }
+   return true;
+}
+
+bool uniqueinunit(cell board[][N]){
+   for (int j = 1; j < 8; j += 3){
+      for (int i = 1; i < 8; i+= 3){
+         int left, right, up, down;
+         unitboundaryset(j, i ,&left, &right, &up, &down);
+         int sum = 0;
+         for (int row = left; row <= right; row++){
+            for (int col = down; col <= up; col++){
+              sum += board[row][col].this;
+            }
+         }
+         if (sum != 45){
+            return false;
+         }         
+      }
+   }
+   return true;
+}
 
 
-int main(void){
-   FILE* fp = fopen("9x9-online.sud", "r");
-   if (!fp){
+
+
+int main(int argc, char* argv[]){
+   FILE* fp = fopen(argv[1], "r");
+   if (!fp && argc != 2){
       fprintf(stderr, "cannot open file.\n");
       exit(EXIT_FAILURE);
    }
@@ -71,31 +127,26 @@ int main(void){
    }
    setallzero(board);
    solve(board);
-//   boardprint(board);
+   boardprint(board);
 //   cellstatusprint(board);
 
    coll* c = coll_init();
    oneboard this = twod2oneboard(board);
    coll_insert(c, this);
-/*
-   oneguess(board);
-   this = twod2oneboard(board);
-   coll_insert(c, this); 
 
-   boardprint(c->state[0].board);
-   boardprint(c->state[1].board);
-*/
+
    guess(c);
-   printf("%d\n", c->end);
+   printf("num of boards: %d\n", c->end);
 
    for (int i = 0; i < c->end; i++){
       solve(c->state[i].board);
 
-      if (nozero(c->state[i].board)){
+      if (isvalid(c->state[i].board)){
          boardprint(c->state[i].board);
       }
 
    }
+
 }
 
 bool nozero(cell board[][N]){
@@ -147,6 +198,7 @@ void solve(cell board[][N]){
       newchange += unitfillctrl(board);
       newchange += rowfillctrl(board);
       newchange += colfillctrl(board);
+      boolcnt2zero(board);
    }  
 }
 
@@ -161,12 +213,23 @@ void cellclone(cell board[][N], cell board2[][N]){
    }   
 }
 
+void boolcnt2zero(cell board[][N]){
+   for (int j = 0; j < N; j++){
+      for (int i = 0; i < N; i++){
+         if (board[j][i].this != 0)
+            for (int cnt = 0; cnt < N; cnt++){
+               board[j][i].num[cnt] = 0;
+            }
+      }
+   }
+}
+
 bool guess(coll* c){
    int init = 7;
    int cnt = 0;
    bool result = false;
    while (cnt < c->end){
-      while (init >= 2){
+      while (init >= 3){
          for (int j = 0; j < N; j++){
             for (int i = 0; i < N; i++){
                if (sumofbool(c->state[cnt].board,j,i) >= init && sumofbool(c->state[cnt].board, j, i) < 8){
@@ -355,7 +418,7 @@ int areafill(cell board[][N]){
    areascan(board);
    for (int j = 0; j < N; j++){
       for (int i = 0; i < N; i++){
-         if (sumofbool(board, j, i) == 8 && board[j][i].this != 0){
+         if (sumofbool(board, j, i) == 8){
 //            printf("cell [%d] [%d] got 8 of sumofbool\n", j , i);
             int fillnumber;
             for (int boolcnt = 0; boolcnt < N; boolcnt++){
@@ -442,7 +505,7 @@ void boardprint(cell board[][N]){
       }
       printf("\n");
    }
-   printf("\n--------------------\n");
+   printf("--------------------\n");
 }
 
 void unitboundaryset(int j, int i, int* left, int* right, int* up, int* down){

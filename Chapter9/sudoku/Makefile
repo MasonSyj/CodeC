@@ -13,18 +13,18 @@ SANIFLAGS= $(COREFLAGS) -fsanitize=address -fsanitize=undefined -g3
 # Don't think anyone will actually need the maths lib...
 LDLIBS= -lm
 
-all : conceal conceal_s inkblot inkblot_s
+all : sudoku sudoku sudoku_s sudoku_s
 
 # Standard Build: type "make conceal" or "make inkblot"
 sudoku : sudoku.c 
 	$(CC) sudoku.c  -o sudoku $(STANFLAGS) $(LDLIBS)
-sudoku : sudoku2.c 
+sudoku2 : sudoku2.c 
 	$(CC) sudoku2.c -o sudoku2 $(STANFLAGS) $(LDLIBS)
 
 # Sanitizer Code: type "make conceal_s" or "make inkblot_s"
 sudoku_s : sudoku.c 
 	$(CC) sudoku.c  -o sudoku_s $(SANIFLAGS) $(LDLIBS)
-sudoku_s : sudoku2.c 
+sudoku2_s : sudoku2.c 
 	$(CC) sudoku2.c -o sudoku2_s $(SANIFLAGS) $(LDLIBS)
 
 

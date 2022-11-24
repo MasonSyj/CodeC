@@ -30,10 +30,11 @@ void unitboundaryset(int j, int i, int* left, int* right, int* up, int* down);
 void cellstatusprint(cell board[][N]);
 void boolnumprint(cell onecell);
 void oneguess(cell board[][N]);
+void solve(cell board[][N]);
 
-int main(void){
-   FILE* fp = fopen("self.sud", "r");
-   if (!fp){
+int main(int argc, char* argv[]){
+   FILE* fp = fopen(argv[1], "r");
+   if (!fp && argc != 2){
       fprintf(stderr, "cannot open file.\n");
       exit(EXIT_FAILURE);
    }
@@ -52,76 +53,9 @@ int main(void){
    }
    setallzero(board);
 
-   
-   for (int numcnt = 0; numcnt < N; numcnt++){
-      printf("%d ", board[0][0].num[numcnt]);
-   }
-   printf("\n--------------------\n");
-   
-/*   
-   // pick a cell to test;
-   int testj, testi;
-   testj = 0;
-   testi = 7;
-   //rowscan test
-   rowscan(board, testj, testi);
-   for (int numcnt = 0; numcnt < N; numcnt++){
-      printf("%d ", board[testj][testi].num[numcnt]);
-   }
-   printf("\n--------------------\n");
-   
-   //colscan test
-   colscan(board, testj, testi);
-   for (int numcnt = 0; numcnt < N; numcnt++){
-      printf("%d ", board[testj][testi].num[numcnt]);
-   }
-   printf("\n--------------------\n");
-   
-   //unitscan test
-   unitscan(board, testj, testi);
-   for (int numcnt = 0; numcnt < N; numcnt++){
-      printf("%d ", board[testj][testi].num[numcnt]);
-   }
-   printf("\n--------------------\n");
-   
-   //sumofbool test
-   printf("sumofbool for cell row:%d, col: %d: %d\n",
-   testj, testi, sumofbool(board, testj, testi));
-   
- //  boardprint(board);
-   printf("--------------------\n");
-   //areafill
-   for (int i = 0; i < TRYTIMES; i++){
-      areafill(board);
-   }
-   **/
-   
+   solve(board);
    boardprint(board);
-
-   printf("--------------------\n");
-   int newchange = 1;
-   while (newchange > 0){
-      newchange = 0;
-      newchange += areafill(board);
-      newchange += unitfillctrl(board);
-      newchange += rowfillctrl(board);
-      newchange += colfillctrl(board);
-   }
    cellstatusprint(board);
-   //boardprint
-   boardprint(board);
-//   cellstatusprint(board);
-   oneguess(board);
-   newchange = 0;
-   while (newchange > 0){
-      newchange = 0;
-      newchange += areafill(board);
-      newchange += unitfillctrl(board);
-      newchange += rowfillctrl(board);
-      newchange += colfillctrl(board);
-   }
-   printf("\n--------------------\n");
-   boardprint(board);
   
 }
 
@@ -139,6 +73,17 @@ void oneguess(cell board[][N]){
          }
       }
    }   
+}
+
+void solve(cell board[][N]){
+   int newchange = 1;
+   while (newchange > 0){
+      newchange = 0;
+      newchange += areafill(board);
+      newchange += unitfillctrl(board);
+      newchange += rowfillctrl(board);
+      newchange += colfillctrl(board);
+   }  
 }
 
 
@@ -300,7 +245,7 @@ int areafill(cell board[][N]){
    areascan(board);
    for (int j = 0; j < N; j++){
       for (int i = 0; i < N; i++){
-         if (sumofbool(board, j, i) == 8 && board[j][i].this != 0){
+         if (sumofbool(board, j, i) == 8){
 //            printf("cell [%d] [%d] got 8 of sumofbool\n", j , i);
             int fillnumber;
             for (int boolcnt = 0; boolcnt < N; boolcnt++){

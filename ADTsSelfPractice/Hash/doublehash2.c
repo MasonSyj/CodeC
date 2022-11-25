@@ -5,7 +5,7 @@
 #include <math.h>
 #include <string.h>
 
-#define SCALEFACTOR 4
+#define SCALEFACTOR 5
 #define SZ 10
 #define STRSIZE 25
 
@@ -16,8 +16,8 @@ int firstprimeaftern(int n);
 int firstprimebeforen(int n);
 bool isprime(int n);
 void test();
-char** insert(char* s, int* sz, char** a, bool increment);
-char** resize(char** a, int* sz);
+char** insert(char* s, int* sz, char** a, bool increment, int* collison);
+char** resize(char** a, int* sz, int* collison);
 
 int main(){
 //   test();
@@ -28,16 +28,18 @@ int main(){
    FILE* fp = fopen("34words.txt", "r");
    assert(fp);
    char temp[STRSIZE];
+   int collison = 0;
    while (fgets(temp, STRSIZE, fp)){
       temp[strlen(temp) - 1] = '\0';
-      a = insert(temp, &size, a, 1);
+      a = insert(temp, &size, a, 1, &collison);
    }
+   printf("MAXIMUM collison: %d", collison);
 }
 
 int hash1(char* s, int sz){
    unsigned long sum = 0;
    while (*s != '\0'){
-      sum = sum * 26 + (*s - 'a' + 1);
+      sum = sum * 26 + (*s - 'a');
       s++; 
    }
 
@@ -49,12 +51,13 @@ int hash2(char* s, int sz){
    return prime - (hash1(s, sz) % prime);
 }
 
-char** insert(char* s, int* sz, char** a, bool increment){
+char** insert(char* s, int* sz, char** a, bool increment, int* collison){
    static int inserttimes = 0;
    int i = 0;
    while (a[doublehash(s, *sz, i)]){
       i++;
    }
+   *collison = i > *collison ? i : *collison;
    a[doublehash(s, *sz, i)] = s;
    if (increment == true){
       inserttimes++;
@@ -62,23 +65,23 @@ char** insert(char* s, int* sz, char** a, bool increment){
 
    if ((double)inserttimes / (double)*sz >= 0.7){
       printf("current size: %d  ", *sz);
-      a = resize(a, sz);
+      a = resize(a, sz, collison);
       printf("new size: %d when add %dth number\n", *sz, inserttimes);
    }
    return a;
 }
 
-char** resize(char** a, int* sz){
+char** resize(char** a, int* sz, int* collison){
    int newsz = firstprimeaftern(*sz * SCALEFACTOR);
    char** newa = (char**)calloc(newsz, sizeof(char*));
    assert(newa);
    for (int i = 0; i < *sz; i++){
       if (a[i]){
-         insert(a[i], &newsz, newa, 0);
+         insert(a[i], &newsz, newa, 0, collison);
       }
    }
    *sz = newsz;
-
+   free(a);
    return newa;
 }
 
@@ -141,15 +144,16 @@ void test(){
    printf("%d\n", doublehash("bristol", size, 0));
    printf("%d\n", doublehash("shanghai", size, 0));
 */
-   a = insert("cba", &size, a, true);
-   a = insert("apple", &size, a, true);
-   a = insert("bristol", &size, a, true);
-   a = insert("shanghai", &size, a, true);
-   a = insert("computer", &size, a, true);
-   a = insert("science", &size, a, true);
+   int collison = 0;
+   a = insert("cba", &size, a, true, &collison);
+   a = insert("apple", &size, a, true, &collison);
+   a = insert("bristol", &size, a, true, &collison);
+   a = insert("shanghai", &size, a, true, &collison);
+   a = insert("computer", &size, a, true, &collison);
+   a = insert("science", &size, a, true, &collison);
    printf("%p\n", (void*)a);
    puts(a[2]);
-   a = insert("england", &size, a, true);
+   a = insert("england", &size, a, true, &collison);
    puts(a[2]);
    printf("%p\n", (void*)a);
 

@@ -29,6 +29,9 @@ void preorder(Node* t);
 void inorder(Node* t);
 void afterorder(Node* t);
 void test();
+void displaytree(Node* t, int  cnt);
+void displaylefttree(Node* t);
+void displayrighttree(Node* t);
 
 int main(void){
    srand((unsigned)time(NULL));
@@ -112,6 +115,57 @@ char* printtree(Node* t){
    snprintf(str, STRSIZE, "%d(%s)(%s)", t->x, printtree(t->left), printtree(t->right));
    return str;
 }
+
+void displaytree(Node* t, int cnt){
+   
+   if (t == NULL){
+      return;
+   }
+   
+// printf("%d", t->x);
+   if (t->right){
+      printf("-----%d", t->right->x);
+   }
+   displaytree(t->right, ++cnt);
+   
+   printf("\n");
+   for (int i = 0; i < cnt; i++){
+      printf("        ");
+   }
+   printf("|\n");
+   for (int i = 0; i < cnt; i++){
+      printf("        ");
+   }
+   if (t->left){
+      printf("%d", t->left->x);
+   }
+
+   displaytree(t->left, 0);
+
+}
+
+void displaylefttree(Node* t){
+   
+   if (!t){
+      return;
+   }
+
+   displayrighttree(t->right);
+   displaylefttree(t->left);
+   printf("\n|\n%d", t->x);
+}
+
+void displayrighttree(Node* t){
+   if (!t){
+      return;
+   }
+   printf("-----%d", t->x);
+   displayrighttree(t->right);
+   displaylefttree(t->left);
+
+}
+
+
 
 int depth(Node* t){
    if (!t->left && !t->right){
@@ -334,4 +388,7 @@ void test(){
    inorder(head3);
    printf("\nafterorder:");
    afterorder(head3);
+   printf("\n--------------\n");
+   printf("2047");
+   displaytree(head3, 0);
 }

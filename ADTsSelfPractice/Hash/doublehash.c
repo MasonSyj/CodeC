@@ -5,8 +5,9 @@
 #include <math.h>
 #include <string.h>
 
-#define SCALEFACTOR 3
+#define SCALEFACTOR 4
 #define SZ 10
+#define STRSIZE 25
 
 
 int hash1(char* s, int sz);
@@ -16,13 +17,28 @@ int firstprimeaftern(int n);
 int firstprimebeforen(int n);
 bool isprime(int n);
 void test();
-int insert(char* s, int sz, char** a);
-int resize(char** a, int sz);
+char** insert(char* s, int* sz, char** a);
+char** resize(char** a, int* sz);
 
-int main(void){
-   test();
+int main(){
+//   test();
+/*
+*/
+   int size = firstprimeaftern(SZ);
+   char** a = (char**)calloc(size, sizeof(char*));
+   assert(a);
+   FILE* fp = fopen("34words.txt", "r");
+   assert(fp);
+   char temp[STRSIZE];
+   while (fgets(temp, STRSIZE, fp)){
+      temp[strlen(temp) - 1] = '\0';
+      a = insert(temp, &size, a);
+      printf("size: %d\n", size);
+   }
 
 }
+
+
 
 void test(){
    assert(isprime(3));
@@ -38,6 +54,7 @@ void test(){
    char** a = (char**)calloc(size, sizeof(char*));
    assert(a);
 
+
 /*
    assert(hash1("cba", size) == 2081);
    printf("%d\n", hash2("cba", size));
@@ -49,14 +66,20 @@ void test(){
    printf("%d\n", doublehash("bristol", size, 0));
    printf("%d\n", doublehash("shanghai", size, 0));
 */
-   int x1 = insert("cba", size, a);
-   int x2 = insert("apple", size, a);
-   int x3 = insert("bristol", size, a);
-   int x4 = insert("shanghai", size, a);
-   int x5 = insert("computer", size, a);
-   int x6 = insert("science", size, a);
-   int x7 = insert("england", size, a);
-   printf("%d %d %d %d %d %d %d", x1, x2, x3, x4, x5, x6, x7);
+   a = insert("cba", &size, a);
+   a = insert("apple", &size, a);
+   a = insert("bristol", &size, a);
+   a = insert("shanghai", &size, a);
+   a = insert("computer", &size, a);
+   a = insert("science", &size, a);
+   printf("%p\n", (void*)a);
+   puts(a[2]);
+   a = insert("england", &size, a);
+   puts(a[2]);
+   printf("%p\n", (void*)a);
+//   int x9 = insert("naruto", x8, a);
+
+
 }
 
 int hash1(char* s, int sz){
@@ -74,25 +97,27 @@ int hash2(char* s, int sz){
    return prime - (hash1(s, sz) % prime);
 }
 
-int insert(char* s, int sz, char** a){
+char** insert(char* s, int* sz, char** a){
    static int inserttimes = 0;
    int i = 0;
-   while (a[doublehash(s, sz, i)] != NULL){
+   while (a[doublehash(s, *sz, i)]){
       i++;
    }
-   a[doublehash(s, sz, i)] = s;
+   a[doublehash(s, *sz, i)] = s;
    inserttimes++;
 
-   if ((double)inserttimes / (double)sz >= 0.6){
-      sz = resize(a, sz);
+   if ((double)inserttimes / (double)*sz >= 0.6){
+      a = resize(a, sz);
    }
-   return sz;
+   return a;
 }
 
-int resize(char** a, int sz){
-   int newsz = firstprimeaftern(sz * SCALEFACTOR);
+char** resize(char** a, int* sz){
+   int newsz = firstprimeaftern(*sz * SCALEFACTOR);
    a = (char**)realloc(a, sizeof(char*) * newsz);
-   return newsz;
+   *sz = newsz;
+   assert(a);
+   return a;
 }
 
 int doublehash(char* s, int sz, int i){

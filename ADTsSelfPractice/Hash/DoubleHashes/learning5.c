@@ -33,29 +33,41 @@ int main(){
       temp[strlen(temp) - 1] = '\0';
       a = insert(temp, &size, a, 1, &collison);
    }
-   printf("MAXIMUM collison: %d", collison);
-/*
+   printf("MAXIMUM collison: %d\n", collison);
+
    for (int i = 0; i < size; i++){
-      if (strcmp(a[i], "scar") == 0){
-         printf("There's a scar.\n");
+      if (a[i]){
+         for (int j = i + 1; j < size; j++){
+            if (a[j]){
+               if (hash1(a[i], size) == hash1(a[j], size)){
+                  printf("%s and %s are equal in hash1.\n", a[i], a[j]);
+                  if (hash2(a[i], size) == hash2(a[j], size)){
+                     printf("also equal in hash2\n-----------------\n"); 
+                  }
+               }
+            }
+         }
       }
    }
-*/
 }
 
-int hash1(char* s, int sz){
+unsigned long sum(char* s){
    unsigned long sum = 0;
    while (*s != '\0'){
       sum = sum * 26 + (*s - 'a');
       s++; 
    }
+   return sum;
+}
 
-   return (int)(sum % sz);
+int hash1(char* s, int sz){
+
+   return (int)(sum(s) % sz);
 }
 
 int hash2(char* s, int sz){
    int prime = firstprimebeforen(sz);
-   return prime - (hash1(s, sz) % prime);
+   return prime - (sum(s) % prime);
 }
 
 char** insert(char* s, int* sz, char** a, bool increment, int* collison){

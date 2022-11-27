@@ -4,9 +4,10 @@
 #include <stdbool.h>
 #include <assert.h>
 #include <math.h>
+#include <time.h>
 
 #define STRSIZE 50
-#define SIZE 100
+#define SIZE 1000
 #define SCALEFACTOR 4
 
 typedef struct unit{
@@ -24,6 +25,7 @@ typedef struct hash{
 typedef struct coll{
    unit* postcode;
    int end;
+   int capacity;
 }coll;
 
 bool isprime(int n);
@@ -38,8 +40,12 @@ void coll_insert(coll* c, unit* onepostcode);
 unit* coll_peek(coll* c, int i);
 void hash_insert(hash* h, unit* onepostcode);
 bool exist(char* s, hash* h);
+bool coll_exist(char* s, coll* c);
+void userinteract(hash* h);
 
 int main(void){
+   clock_t start1, end1;
+
    hash* h1 = (hash*)calloc(1, sizeof(hash));
    assert(h1);
    assert(h1->usage == 0);
@@ -48,8 +54,7 @@ int main(void){
    h1->postcode = (unit*)calloc(size, sizeof(unit));
    assert(h1->postcode);
    h1->size = size;
-//"orig_postcodes.csv"
-   FILE* fp = fopen("exper.txt", "r");
+   FILE* fp = fopen("orig_postcodes.csv", "r");
    char str[50];
    fgets(str, 50, fp);
    assert(strncmp(str, "id,postcode,latitude,longitude", 30) == 0);
@@ -84,36 +89,53 @@ int main(void){
       tmp->loti = atof(temp4);
       hash_insert(h1, tmp);
    }
-
+   start1 = clock();
    assert(exist("AB11 6UL", h1));
    assert(exist("YO8 9LX", h1));
    assert(exist("YO8 9PS", h1));
-   assert(!exist("BS1 5UL", h1));
+   assert(exist("BS1 5UL", h1));
+   assert(exist("ZE2 9FW", h1));
+   assert(exist("ZE2 9FW", h1));
+   assert(exist("YO62 5FH", h1));
+   assert(exist("WS7 0AP", h1));
+   assert(exist("WF1 4GQ", h1));
    assert(!exist("abc", h1));
    assert(!exist("def", h1));
    assert(!exist("ggg", h1));
    assert(!exist("hhh", h1));
-
+   end1 = clock();
+   double hashtime = (double)(end1 - start1)  / CLOCKS_PER_SEC;
+   printf("Total time when use hashing: %f\n", hashtime);
+   userinteract(h1);
    fclose(fp);
    free(tmp);
    free(h1->postcode);
    free(h1);
+
    return 0;
 }
 
 bool exist(char* s, hash* h){
    int i = 0;
-   while (fabs(h->postcode[doublehash(s, h->size, i)].lati - 0.0) > 0.0001){
-      if (strcmp(h->postcode[doublehash(s, h->size, i)].str, s) == 0){
+   int index;
+   do {
+      index = doublehash(s, h->size, i);
+      if (strcmp(h->postcode[index].str, s) == 0){
+         printf("%s %f %f\n", h->postcode[index].str, h->postcode[index].lati, h->postcode[index].loti);
          return true;
       }
       i++;
-   }
+   } while (fabs(h->postcode[index].lati - 0.0) > 0.0001);
    return false;
 }
 
 void coll_insert(coll* c, unit* onepostcode){
    memcpy(&c->postcode[c->end++], onepostcode, sizeof(unit));
+   if (c->end == c->capacity){
+      c->postcode = (unit*)realloc(c->postcode, c->capacity * SCALEFACTOR * sizeof(unit));
+      c->capacity *= SCALEFACTOR;
+      assert(c->postcode);
+   }
 }
 
 unit* coll_peek(coll* c, int i){
@@ -210,4 +232,35 @@ bool isprime(int n){
       }
    }
    return true;
+}
+
+
+void userinteract(hash* h){
+   bool exit = false;
+   char str[STRSIZE];
+   while (exit == false){
+      fgets(str, STRSIZE, stdin);
+      int i = 0;
+      while(str[i] != '\n'){
+         i++;
+      }
+      str[i] = '\0';
+      if (exist(str, h)){
+         printf("%s exist\n", str);
+      }else{
+         printf("%s doesn't exist\n", str);
+      }
+      if (strcmp(str, "apple") == 0){
+        exit = true;
+      }
+   }
+}
+
+bool coll_exist(char* s, coll* c){
+   for (int i = 0; i < c->end; i++){
+      if (strcmp(s, c->postcode[i].str) == 0){
+         return true;
+      }
+   }
+   return false;
 }

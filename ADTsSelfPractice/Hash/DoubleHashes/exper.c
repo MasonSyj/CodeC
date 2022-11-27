@@ -4,7 +4,13 @@
 #include <stdbool.h>
 #include <assert.h>
 
+void test();
+
 int main(void) {
+   printf("%ld", sizeof(int));
+}
+
+void test(){
    FILE* fp = fopen("exper.txt", "r");
    int first;
    char code[20];

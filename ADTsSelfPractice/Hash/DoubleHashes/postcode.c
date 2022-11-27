@@ -50,18 +50,14 @@ int main(void){
    h1->size = size;
    
    FILE* fp = fopen("orig_postcodes.csv", "r");
-   char code[20];
-   double second;
-   double third;
    char str[50];
-   char temp1[20];
-   char temp2[20];
-   char temp3[20];
-   char temp4[20];
    fgets(str, 50, fp);
    assert(strncmp(str, "id,postcode,latitude,longitude", 30) == 0);
    unit* tmp = (unit*)calloc(1, sizeof(unit));
    while(fgets(str, 50, fp)){
+      char temp2[20];
+      char temp3[20];
+      char temp4[20];
       char* temp = str;
       int i = 0;
       int commacnt = 0;
@@ -73,12 +69,14 @@ int main(void){
             commacnt++;
          }
          if (commacnt == 1 && one == false){
-            strncpy(temp1, temp + head, i - head);
             head = i + 1;
             one = true;
          }
          if (commacnt == 2 && two == false){
+            strcpy(temp2, "");
             strncpy(temp2, temp + head, i - head);
+            temp2[i - head] = '\0';
+            puts(temp2);
             head = i + 1;
             two = true;
          }
@@ -91,25 +89,32 @@ int main(void){
          i++;
       }
       strncpy(temp4, temp + head, i - head);
-      strcpy(code, temp2);
-      second = atof(temp3);
-      third = atof(temp4);
-      strcpy(tmp->str, code);
-      strcat(tmp->str, "\0");
-      tmp->lati = second;
-      tmp->loti = third;
+      strcpy(tmp->str, temp2);
+      tmp->lati = atof(temp3);
+      tmp->loti = atof(temp4);
       hash_insert(h1, tmp);
    }
    
-   assert(exist("PO33 3LW", h1));
-   assert(exist("PO33 3RJ", h1));
-   assert(exist("PO33 2LZ", h1));
-   assert(exist("PO33 2RA", h1));
+   int cnti = 0;
+   for (int i = 0; i < h1->size; i++){
+      if (fabs(h1->postcode[i].lati - 0.0) > 0.00001){
+         puts(h1->postcode[i].str);
+         printf("%f   | %f  \n", h1->postcode[i].lati, h1->postcode[i].loti);
+         cnti++;
+      }
+   }
+   printf("--%d--\n", cnti);
+
+   assert(exist("AB11 6UL", h1));
+   assert(exist("YO8 9LX", h1));
+   assert(exist("YO8 9PS", h1));
+   assert(exist("BS1 5UL", h1));
    assert(!exist("abc", h1));
    assert(!exist("def", h1));
    assert(!exist("ggg", h1));
    assert(!exist("hhh", h1));
-   
+/*
+*/   
    
    fclose(fp);
    free(tmp);
@@ -147,6 +152,7 @@ void resize(hash* h){
       }
    }
    
+   int tempsz = h->size;
    int newsz = firstprimeaftern(h->size * SCALEFACTOR);
    printf("old size: %d, new size: %d, usage: %d\n", h->size, newsz, h->usage);
    h->size = newsz;
@@ -155,11 +161,13 @@ void resize(hash* h){
    h->postcode = newpostcode;
    free(tmp);
    int tmpusage = h->usage;
-   for (int i = 0; i < h->size; i++){
-      if (fabs(h->postcode[i].lati - 0.0) > 0.000001){
-         hash_insert(h, &presentdata->postcode[i]); 
-      }
+   
+   int cnt = 0;
+   for (int i = 0; i < tempsz; i++){
+      hash_insert(h, &presentdata->postcode[i]); 
+      cnt++;
    }
+   printf("insert %d times\n", cnt);
    h->usage = tmpusage;
    printf("resize finished.\n");
    free(presentdata->postcode);
@@ -176,8 +184,11 @@ void hash_insert(hash* h, unit* onepostcode){
       i++;
    }while(fabs(h->postcode[index].lati - 0.0) > 0.000001);
    h->usage++;
-   printf("usgae increase to: %d\n", h->usage);
-   memcpy(&h->postcode[index], onepostcode, sizeof(unit));
+//   printf("usgae increase to: %d\n", h->usage);
+//   memcpy(&h->postcode[index], onepostcode, sizeof(unit));
+   h->postcode[index].lati = onepostcode->lati;
+   h->postcode[index].loti = onepostcode->loti;
+   strcpy(h->postcode[index].str, onepostcode->str);
 
    if ((double)h->usage / (double)h->size >= 0.7){
       resize(h);

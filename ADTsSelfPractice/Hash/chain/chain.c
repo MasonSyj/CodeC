@@ -68,6 +68,8 @@ int main(void) {
       tmp->next = NULL;
       insert(chain1, tmp);
    }
+
+/*
    search("AB11 6UL", chain1);
    search("YO8 9LX", chain1);
    search("YO8 9PS", chain1);
@@ -81,16 +83,24 @@ int main(void) {
    search("def", chain1);
    search("ggg", chain1);
    search("hhh", chain1);
+*/
 /*
+   cell* temp = &chain1->arr[50];
+   while (temp){
+      printf("%s\n", temp->str);
+      temp = temp->next;      
+   }
+*/
    for (int i = 0; i < chain1->size; i++){
       cell* temp = &chain1->arr[i];
+
       while(temp){
-         printf("%s ", temp->str);
+         printf(" |%s| ", temp->str);
          temp = temp->next;
       }
       printf("\n----------------------------------\n");
    }
-*/
+
 }
 
 void search(char* str, chain* list){
@@ -111,6 +121,11 @@ void search(char* str, chain* list){
 void insert(chain* list, cell* c){
    int index = 0;
    index = hash(c->str, list->size);
+   if (fabs(list->arr[index].lati - 0.0) < 0.00001){
+      memcpy(&list->arr[index], c, sizeof(cell));
+      return;
+   }
+
    cell* temp = &list->arr[index];
    cell* previous;
    while (temp){

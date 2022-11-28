@@ -40,8 +40,10 @@ void coll_insert(coll* c, unit* onepostcode);
 unit* coll_peek(coll* c, int i);
 void hash_insert(hash* h, unit* onepostcode);
 bool exist(char* s, hash* h);
+int search(char* s, hash* h);
 bool coll_exist(char* s, coll* c);
 void userinteract(hash* h);
+void strformat(char* str);
 
 int main(void){
    clock_t start1, end1;
@@ -89,6 +91,8 @@ int main(void){
       tmp->loti = atof(temp4);
       hash_insert(h1, tmp);
    }
+   fclose(fp);
+   free(tmp);
    start1 = clock();
    assert(exist("AB11 6UL", h1));
    assert(exist("YO8 9LX", h1));
@@ -107,11 +111,23 @@ int main(void){
    double hashtime = (double)(end1 - start1)  / CLOCKS_PER_SEC;
    printf("Total time when use hashing: %f\n", hashtime);
    userinteract(h1);
-   fclose(fp);
-   free(tmp);
+
+   FILE* fp2 = fopen("postcodes250.txt", "r");
+   assert(fp2);
+   strcpy(str, "");
+   double sum = 0;
+   int cnt = 0;
+   while(fgets(str, STRSIZE, fp2)){
+      strformat(str);
+      int i = search(str, h1);
+      printf("i: %d\n", i);
+      sum += i;
+      cnt++;
+   }
+   printf("sum: %f, cnt: %d, average: %f", sum, cnt, sum / cnt);
+   fclose(fp2);
    free(h1->postcode);
    free(h1);
-
    return 0;
 }
 
@@ -121,13 +137,27 @@ bool exist(char* s, hash* h){
    do {
       index = doublehash(s, h->size, i);
       if (strcmp(h->postcode[index].str, s) == 0){
-         printf("%s %f %f\n", h->postcode[index].str, h->postcode[index].lati, h->postcode[index].loti);
          return true;
       }
       i++;
    } while (fabs(h->postcode[index].lati - 0.0) > 0.0001);
    return false;
 }
+
+int search(char* s, hash* h){
+   int i = 0;
+   int index;
+   do {
+      index = doublehash(s, h->size, i);
+      if (strcmp(h->postcode[index].str, s) == 0){
+         printf("%s %f %f\n", h->postcode[index].str, h->postcode[index].lati, h->postcode[index].loti);
+         return i+1;
+      }
+      i++;
+   } while (fabs(h->postcode[index].lati - 0.0) > 0.0001);
+   return 0;
+}
+
 
 void coll_insert(coll* c, unit* onepostcode){
    memcpy(&c->postcode[c->end++], onepostcode, sizeof(unit));
@@ -264,3 +294,14 @@ bool coll_exist(char* s, coll* c){
    }
    return false;
 }
+
+
+void strformat(char* str){
+   for (int i = 0; i < STRSIZE; i++){
+      if (str[i] == '\n'){
+         str[i] = '\0';
+         return;
+      }
+   }
+}
+

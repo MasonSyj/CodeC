@@ -22,6 +22,7 @@ typedef struct chain{
 unsigned long sum(char* s);
 int hash(char* s, int sz);
 void insert(chain* list, cell* c);
+void search(char* str, chain* list);
 
 int main(void) {
    chain* chain1 = (chain*)calloc(1, sizeof(chain));
@@ -67,6 +68,20 @@ int main(void) {
       tmp->next = NULL;
       insert(chain1, tmp);
    }
+   search("AB11 6UL", chain1);
+   search("YO8 9LX", chain1);
+   search("YO8 9PS", chain1);
+   search("BS1 5UL", chain1);
+   search("ZE2 9FW", chain1);
+   search("ZE2 9FW", chain1);
+   search("YO62 5FH", chain1);
+   search("WS7 0AP", chain1);
+   search("WF1 4GQ", chain1);
+   search("abc", chain1);
+   search("def", chain1);
+   search("ggg", chain1);
+   search("hhh", chain1);
+/*
    for (int i = 0; i < chain1->size; i++){
       cell* temp = &chain1->arr[i];
       while(temp){
@@ -75,6 +90,22 @@ int main(void) {
       }
       printf("\n----------------------------------\n");
    }
+*/
+}
+
+void search(char* str, chain* list){
+   int index = 0;
+   index = hash(str, list->size);
+   cell* temp = &list->arr[index];
+   while(temp){
+      if(strcmp(str, temp->str) == 0){
+         printf("%s %f %f\n",str, temp->lati, temp->loti);
+         return;
+      }
+      temp = temp->next;
+   }
+   printf("Not found.\n");
+   return;
 }
 
 void insert(chain* list, cell* c){

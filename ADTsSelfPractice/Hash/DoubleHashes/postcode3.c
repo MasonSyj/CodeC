@@ -29,13 +29,13 @@ typedef struct coll{
 }coll;
 
 bool isprime(int n);
-unsigned long sum(char* s);
+unsigned long key(char* s);
 int hash1(char* s, int sz);
 int hash2(char* s, int sz);
 int doublehash(char* s, int sz, int i);
 int firstprimeaftern(int n);
 int firstprimebeforen(int n);
-void resize(hash* h);
+void rehash(hash* h);
 void coll_insert(coll* c, unit* onepostcode);
 unit* coll_peek(coll* c, int i);
 void hash_insert(hash* h, unit* onepostcode);
@@ -172,7 +172,7 @@ unit* coll_peek(coll* c, int i){
    return &c->postcode[i];
 }
 
-void resize(hash* h){
+void rehash(hash* h){
    coll* presentdata = (coll*)calloc(1, sizeof(coll));
    assert(presentdata);
    presentdata->postcode = (unit*)calloc(h->size, sizeof(unit));
@@ -207,7 +207,7 @@ void hash_insert(hash* h, unit* onepostcode){
 
 
    if ((double)h->usage / (double)h->size >= 0.7){
-      resize(h);
+      rehash(h);
    }
    
 }
@@ -217,21 +217,21 @@ int doublehash(char* s, int sz, int i){
 }
 
 int hash1(char* s, int sz){
-   return sum(s) % sz;
+   return key(s) % sz;
 }
 
 int hash2(char* s, int sz){
    int prime = firstprimebeforen(sz);
-   return prime - (sum(s) % prime);
+   return prime - (key(s) % prime);
 }
    
-unsigned long sum(char* s){
-   unsigned long sum = 0;
+unsigned long key(char* s){
+   unsigned long key = 0;
    while (*s != '\0'){
-      sum = sum * 26 + (*s - 'a');
+      key = key * 26 + (*s - 'a');
       s++; 
    }
-   return sum;
+   return key;
 }
 
 

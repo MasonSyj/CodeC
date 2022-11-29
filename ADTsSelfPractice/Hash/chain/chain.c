@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#define ARRSIZE 101
+#define ARRSIZE 11
 #define STRSIZE 50
 //when a chain have elements more than 5, then rehash
 #define THRESHOLD 5
@@ -21,7 +21,14 @@ typedef struct cell{
 typedef struct chain{
    cell* arr;
    int size;
+   int cellcnt;
 }chain;
+
+typedef struct coll{
+   cell* arr;
+   int cellcnt;
+   int end;
+}coll;
 
 unsigned long sum(char* s);
 int hash(char* s, int sz);
@@ -31,6 +38,8 @@ void rehash(chain* list);
 void hash_free(chain* list);
 bool isprime(int n);
 int firstprimeaftern(int n);
+coll* coll_init(int size);
+void coll_insert(coll* collection, cell* c);
 
 int main(void) {
    chain* chain1 = (chain*)calloc(1, sizeof(chain));
@@ -76,7 +85,8 @@ int main(void) {
       tmp->next = NULL;
       insert(chain1, tmp);
    }
-
+   printf("%d\n", chain1->cellcnt);
+/*
    int cnt = 0;
    for (int i = 0; i < chain1->size; i++){
       cell* temp = &chain1->arr[i];
@@ -89,7 +99,7 @@ int main(void) {
       printf("\n----------------------------------\n");
    }
    printf("TOTAL %d CELLS", cnt);
-
+*/
 }
 
 void search(char* str, chain* list){
@@ -107,12 +117,33 @@ void search(char* str, chain* list){
    return;
 }
 
+coll* coll_init(int size){
+   coll* collection = (coll*)calloc(1, sizeof(coll));
+   assert(collection);
+   collection->arr = (cell*)calloc(size * 2, sizeof(cell));
+   assert(collection->arr);
+   collection->cellcnt = size * 2;
+   return collection;
+}
+
+void coll_insert(coll* collection, cell* c){
+   collection->arr[collection->end++] = *c;
+}
+
+void coll_free(coll** c){
+   coll* this = *c;
+   free(this->arr);
+   free(this);
+   return;
+}
+
 void insert(chain* list, cell* c){
    int index = 0;
    index = hash(c->str, list->size);
    if (fabs(list->arr[index].lati - 0.0) < 0.00001){
       memcpy(&list->arr[index], c, sizeof(cell));
       (&list->arr[index])->next = NULL;
+      list->cellcnt++;
       return;
    }
 
@@ -121,16 +152,17 @@ void insert(chain* list, cell* c){
    cell* previous = temp;
    while (temp){
       previous = temp;
-      assert(temp != temp->next);
       temp = temp->next;
-      assert(previous != temp);
       i++;
    }
    temp = (cell*)calloc(1, sizeof(cell));
    previous->next = temp;
    memcpy(temp, c, sizeof(cell));
+   temp->next = NULL;
+   list->cellcnt++;
 
-   if (i > 5){
+   if (i >= 5){
+      printf("this hash table got %d elements\n", list->cellcnt);
       rehash(list);
    }
 
@@ -138,49 +170,28 @@ void insert(chain* list, cell* c){
 }
 
 void rehash(chain* list){
-   cell* special;
-   chain* copy = (chain*)calloc(1, sizeof(chain));
-   assert(copy);
-   copy->size = list->size;
-   copy->arr = (cell*)calloc(copy->size, sizeof(cell));
-   assert(copy->arr);
-
-   
+   coll* collection = coll_init(list->cellcnt);
+   assert(collection);
    for (int i = 0; i < list->size; i++){
-      int cnt = 0;
       cell* temp = &list->arr[i];
-      while(temp && cnt <= 5){
-         insert(copy, temp);
-         puts(temp->str);
+      while(temp){
+         coll_insert(collection, temp);
          temp = temp->next;
-         cnt++;
-         printf("%d \n", cnt);
-      }
-      if (cnt > 6){
-         special = temp->next;
       }
    }
    
+   printf("coll now has %d elements.\n", collection->end);
+   free(list->arr);
    int newsize = firstprimeaftern(list->size * SCALEFACTOR);
-   list->arr = (cell*)realloc(list->arr, newsize * sizeof(cell));
+   list->arr = (cell*)calloc(newsize, sizeof(cell));
    assert(list->arr);
    list->size = newsize;
-
-   for (int i = 0; i < copy->size; i++){
-      cell* temp = &copy->arr[i];
-      int cnt = 0;
-      while(temp && cnt <= 5){
-         puts(temp->str);
-         insert(list, temp);
-         temp = temp->next;
-         cnt++;
-      }
-      if (cnt > 6){
-         special = temp->next;
-      }
+   list->cellcnt = 0; 
+   
+   for (int i = 0; i < list->cellcnt; i++){
+      insert(list, &collection->arr[i]);
    }
-   insert(list, special);
-   hash_free(copy);
+   coll_free(&collection);
 }
 
 int hash(char* s, int sz){

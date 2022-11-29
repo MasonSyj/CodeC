@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#define ARRSIZE 11
+#define ARRSIZE 5
 #define STRSIZE 50
 //when a chain have elements more than 5, then rehash
 #define THRESHOLD 5
@@ -40,6 +40,22 @@ bool isprime(int n);
 int firstprimeaftern(int n);
 coll* coll_init(int size);
 void coll_insert(coll* collection, cell* c);
+void show(chain* list);
+
+void show(chain* list){
+   for (int i = 0; i < list->size; i++){
+      if (fabs(list->arr[i].lati - 0.0) > 0.00001){
+         printf(" |first: %s| ", list->arr[i].str);
+      }
+      cell* temp = list->arr[i].next;
+      while (temp){
+         printf(" |%s| ", temp->str);
+         temp = temp->next;
+      }
+      printf("\n-----------\n");
+   }
+   printf("\n");
+}
 
 int main(void) {
    chain* chain1 = (chain*)calloc(1, sizeof(chain));
@@ -161,7 +177,8 @@ void insert(chain* list, cell* c){
    temp->next = NULL;
    list->cellcnt++;
 
-   if (i >= 5){
+   if (i == 5){
+      show(list);
       printf("this hash table got %d elements\n", list->cellcnt);
       rehash(list);
    }
@@ -173,7 +190,10 @@ void rehash(chain* list){
    coll* collection = coll_init(list->cellcnt);
    assert(collection);
    for (int i = 0; i < list->size; i++){
-      cell* temp = &list->arr[i];
+      if (fabs(list->arr[i].lati - 0.0) > 0.0){
+         coll_insert(collection, &list->arr[i]);
+      }
+      cell* temp = (&list->arr[i])->next;
       while(temp){
          coll_insert(collection, temp);
          temp = temp->next;
@@ -188,7 +208,7 @@ void rehash(chain* list){
    list->size = newsize;
    list->cellcnt = 0; 
    
-   for (int i = 0; i < list->cellcnt; i++){
+   for (int i = 0; i < collection->end; i++){
       insert(list, &collection->arr[i]);
    }
    coll_free(&collection);

@@ -30,12 +30,12 @@ typedef struct coll{
    int end;
 }coll;
 
-unsigned long sum(char* s);
+unsigned long key(char* s);
 int hash(char* s, int sz);
 void insert(chain* list, cell* c);
 void search(char* str, chain* list);
 void rehash(chain* list);
-void hash_free(chain* list);
+void hash_free(chain** list);
 bool isprime(int n);
 int firstprimeaftern(int n);
 coll* coll_init(int size);
@@ -102,22 +102,10 @@ int main(void) {
       insert(chain1, tmp);
    }
    free(tmp);
-   printf("%d\n", chain1->cellcnt);
-   hash_free(chain1);   
-   /*
-   int cnt = 0;
-   for (int i = 0; i < chain1->size; i++){
-      cell* temp = &chain1->arr[i];
+   tmp = NULL;
+   hash_free(&chain1);
 
-      while(temp){
-         printf(" |%s| ", temp->str);
-         temp = temp->next;
-         cnt++;
-      }
-      printf("\n----------------------------------\n");
-   }
-   printf("TOTAL %d CELLS", cnt);
-*/
+   return 0;
 }
 
 void search(char* str, chain* list){
@@ -152,6 +140,7 @@ void coll_free(coll** c){
    coll* this = *c;
    free(this->arr);
    free(this);
+   this = NULL;
    return;
 }
 
@@ -201,8 +190,6 @@ void rehash(chain* list){
          temp = temp->next;
       }
    }
-   
-   printf("coll now has %d elements.\n", collection->end);
    free(list->arr);
    int newsize = firstprimeaftern(list->size * SCALEFACTOR);
    list->arr = (cell*)calloc(newsize, sizeof(cell));
@@ -217,31 +204,32 @@ void rehash(chain* list){
 }
 
 int hash(char* s, int sz){
-   return sum(s) % sz;
+   return key(s) % sz;
 }
 
-unsigned long sum(char* s){
-   unsigned long sum = 0;
+unsigned long key(char* s){
+   unsigned long key = 0;
    while (*s != '\0'){
-      sum = sum * 26 + (*s - 'a');
+      key = key * 26 + (*s - 'a');
       s++; 
    }
-   return sum;
+   return key;
 }
 
-void hash_free(chain* list){
-   for (int i = 0; i < list->size; i++){
-      cell* temp = list->arr[i].next;
+void hash_free(chain** list){
+   chain* this = *list;
+   for (int i = 0; i < this->size; i++){
+      cell* temp = this->arr[i].next;
       cell* previous;
       while(temp){
          previous = temp;
          temp = temp->next;
          free(previous);
       }
-//      free(&list->arr[i]);
    }
-   free(list->arr);
-   free(list);
+   free(this->arr);
+   free(this);
+   this = NULL;
 }
 
 bool isprime(int n){

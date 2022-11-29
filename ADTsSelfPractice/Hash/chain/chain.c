@@ -101,8 +101,10 @@ int main(void) {
       tmp->next = NULL;
       insert(chain1, tmp);
    }
+   free(tmp);
    printf("%d\n", chain1->cellcnt);
-/*
+   hash_free(chain1);   
+   /*
    int cnt = 0;
    for (int i = 0; i < chain1->size; i++){
       cell* temp = &chain1->arr[i];
@@ -229,7 +231,7 @@ unsigned long sum(char* s){
 
 void hash_free(chain* list){
    for (int i = 0; i < list->size; i++){
-      cell* temp = &list->arr[i];
+      cell* temp = list->arr[i].next;
       cell* previous;
       while(temp){
          previous = temp;

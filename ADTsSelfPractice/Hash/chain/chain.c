@@ -3,9 +3,13 @@
 #include <assert.h>
 #include <math.h>
 #include <string.h>
+#include <stdbool.h>
 
-#define ARRSIZE 100
+#define ARRSIZE 101
 #define STRSIZE 50
+//when a chain have elements more than 5, then rehash
+#define THRESHOLD 5
+#define SCALEFACTOR 4
 
 typedef struct cell{
    char str[STRSIZE];
@@ -23,6 +27,10 @@ unsigned long sum(char* s);
 int hash(char* s, int sz);
 void insert(chain* list, cell* c);
 void search(char* str, chain* list);
+void rehash(chain* list);
+void hash_free(chain* list);
+bool isprime(int n);
+int firstprimeaftern(int n);
 
 int main(void) {
    chain* chain1 = (chain*)calloc(1, sizeof(chain));
@@ -69,37 +77,18 @@ int main(void) {
       insert(chain1, tmp);
    }
 
-/*
-   search("AB11 6UL", chain1);
-   search("YO8 9LX", chain1);
-   search("YO8 9PS", chain1);
-   search("BS1 5UL", chain1);
-   search("ZE2 9FW", chain1);
-   search("ZE2 9FW", chain1);
-   search("YO62 5FH", chain1);
-   search("WS7 0AP", chain1);
-   search("WF1 4GQ", chain1);
-   search("abc", chain1);
-   search("def", chain1);
-   search("ggg", chain1);
-   search("hhh", chain1);
-*/
-/*
-   cell* temp = &chain1->arr[50];
-   while (temp){
-      printf("%s\n", temp->str);
-      temp = temp->next;      
-   }
-*/
+   int cnt = 0;
    for (int i = 0; i < chain1->size; i++){
       cell* temp = &chain1->arr[i];
 
       while(temp){
          printf(" |%s| ", temp->str);
          temp = temp->next;
+         cnt++;
       }
       printf("\n----------------------------------\n");
    }
+   printf("TOTAL %d CELLS", cnt);
 
 }
 
@@ -123,18 +112,75 @@ void insert(chain* list, cell* c){
    index = hash(c->str, list->size);
    if (fabs(list->arr[index].lati - 0.0) < 0.00001){
       memcpy(&list->arr[index], c, sizeof(cell));
+      (&list->arr[index])->next = NULL;
       return;
    }
 
+   int i = 0;
    cell* temp = &list->arr[index];
-   cell* previous;
+   cell* previous = temp;
    while (temp){
       previous = temp;
+      assert(temp != temp->next);
       temp = temp->next;
+      assert(previous != temp);
+      i++;
    }
-   previous->next = (cell*)calloc(1, sizeof(cell));
-   memcpy(previous->next, c, sizeof(cell));
+   temp = (cell*)calloc(1, sizeof(cell));
+   previous->next = temp;
+   memcpy(temp, c, sizeof(cell));
+
+   if (i > 5){
+      rehash(list);
+   }
+
    return;
+}
+
+void rehash(chain* list){
+   cell* special;
+   chain* copy = (chain*)calloc(1, sizeof(chain));
+   assert(copy);
+   copy->size = list->size;
+   copy->arr = (cell*)calloc(copy->size, sizeof(cell));
+   assert(copy->arr);
+
+   
+   for (int i = 0; i < list->size; i++){
+      int cnt = 0;
+      cell* temp = &list->arr[i];
+      while(temp && cnt <= 5){
+         insert(copy, temp);
+         puts(temp->str);
+         temp = temp->next;
+         cnt++;
+         printf("%d \n", cnt);
+      }
+      if (cnt > 6){
+         special = temp->next;
+      }
+   }
+   
+   int newsize = firstprimeaftern(list->size * SCALEFACTOR);
+   list->arr = (cell*)realloc(list->arr, newsize * sizeof(cell));
+   assert(list->arr);
+   list->size = newsize;
+
+   for (int i = 0; i < copy->size; i++){
+      cell* temp = &copy->arr[i];
+      int cnt = 0;
+      while(temp && cnt <= 5){
+         puts(temp->str);
+         insert(list, temp);
+         temp = temp->next;
+         cnt++;
+      }
+      if (cnt > 6){
+         special = temp->next;
+      }
+   }
+   insert(list, special);
+   hash_free(copy);
 }
 
 int hash(char* s, int sz){
@@ -149,3 +195,59 @@ unsigned long sum(char* s){
    }
    return sum;
 }
+
+void hash_free(chain* list){
+   for (int i = 0; i < list->size; i++){
+      cell* temp = &list->arr[i];
+      cell* previous;
+      while(temp){
+         previous = temp;
+         temp = temp->next;
+         free(previous);
+      }
+//      free(&list->arr[i]);
+   }
+   free(list->arr);
+   free(list);
+}
+
+bool isprime(int n){
+   for (int i = 2; i <= (int)sqrt(n); i++){
+      if (n % i == 0){
+         return false;
+      }
+   }
+   return true;
+}
+
+int firstprimeaftern(int n){
+   int i = n + 1;
+   while (!isprime(i)){
+      i++;
+   }
+   return i;
+}
+
+/*
+   search("AB11 6UL", chain1);
+   search("YO8 9LX", chain1);
+   search("YO8 9PS", chain1);
+   search("BS1 5UL", chain1);
+   search("ZE2 9FW", chain1);
+   search("ZE2 9FW", chain1);
+   search("YO62 5FH", chain1);
+   search("WS7 0AP", chain1);
+   search("WF1 4GQ", chain1);
+   search("abc", chain1);
+   search("def", chain1);
+   search("ggg", chain1);
+   search("hhh", chain1);
+*/
+/*
+   cell* temp = &chain1->arr[50];
+   while (temp){
+      printf("%s\n", temp->str);
+      temp = temp->next;      
+   }
+*/
+

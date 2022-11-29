@@ -8,7 +8,6 @@
 
 typedef struct arr{
    void** a;
-   int end;
    int capacity;
    int elementsize;
 }arr;
@@ -63,6 +62,7 @@ void arr_free(arr **l){
          free((*l)->a[i]);
       }
    }
+   free((*l)->a);
    free(*l);
    *l = NULL;
    return;

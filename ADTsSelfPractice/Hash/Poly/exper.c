@@ -4,7 +4,11 @@
 unsigned long key(void* newelement, int looptimes);
 
 int main(void){
-
+   printf("%ld\n", sizeof(char*));
+   printf("%ld\n", sizeof(char**));
+   printf("%ld\n", sizeof(void*));
+   printf("%ld\n", sizeof(int*));
+   printf("%ld\n", sizeof(double*));
    char x = 'x';
    int h = 0;
    double j = 5.5;

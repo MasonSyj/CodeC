@@ -47,31 +47,31 @@ hash* hash_init(int elementsize){
 void hash_insert(hash* this, void* newelement){
    int index;
    int i = 0;
-
+   int looptimes = strlen((char*)newelement);
    do{
-     index = doublehash(newelement, this->size, i, this->elementsize);
+     index = doublehash(newelement, this->size, i, looptimes);
      i++;
-     
    }while (this->isfilled[index] == 1);
    this->isfilled[index] = 1;
-
-   void* temp = (char**)this->table + index * this->elementsize;
-   temp = (char*)calloc(STRSIZE, sizeof(char));
-   assert(temp);
-   strcpy(temp, (char*)newelement);
-   int x = strlen((char*)temp);
-   void* last = (char*)temp + x;
-   *(char*)last = '\0';
+   char* str = (char*)newelement;
+   puts(str);
+   puts((char*)newelement);
+   void* temp = (char*)this->table + index;
+   temp = (char*)newelement;
    puts((char*)temp);
 }
 
 bool hash_exist(hash* this, void* element){
    int index;
    int i = 0;
+   puts((char*)element);
+   int len = strlen((char*)element);
+//   printf()
    do{
-     index = doublehash(element, this->size, i, this->elementsize);
-     void* temp = (char**)this->table + index * this->elementsize; 
-     if (strcmp(temp, (char*)element) == 0){
+     index = doublehash(element, this->size, i, len);
+     void* temp = (char*)this->table + index;
+     puts((char*)temp);
+     if (strncmp((char*)temp, (char*)element, len) == 0){
         return true;
      }
      i++;
@@ -82,9 +82,10 @@ bool hash_exist(hash* this, void* element){
 
 int main(void){
    hash* tableofstr = hash_init(sizeof(char*));
-   const char* a[] = {"apple", "hello", "bristol", "china", "different", "computer", "xjx", "miyuki", "england", "mason"};
+   const char* a[] = {"applejfsal", "hello", "bristol", "china", "different", "computer", "xjx", "miyuki", "england", "mason"};
    for (int i = 0; i < 10; i++){
-      hash_insert(tableofstr, &a[i]);
+      puts(*(a + i));
+      hash_insert(tableofstr, (void*)(*(a + i)));
    }
 /*
    for (int i = 0; i < tableofstr->size; i++){
@@ -94,7 +95,7 @@ int main(void){
 */
    printf("\n----------------\n");
    for (int i = 0; i < 10; i++){
-      printf("%d\n", hash_exist(tableofstr, &a[i]));
+      printf("%d\n", hash_exist(tableofstr, (void*)(*(a + i))));
    }
 
 }

@@ -29,7 +29,7 @@ int doublehash(void* newelement, int sz, int i, int looptimes);
 int firstprimeaftern(int n);
 int firstprimebeforen(int n);
 hash* hash_init(int elementsize);
-void hash_insert(hash* this, void* newelement);
+void hash_insert(hash** pthis, void* newelement);
 bool hash_exist(hash* this, void* element);
 void hash_free(hash** point2hash);
 void hash_show(hash* this);
@@ -50,16 +50,18 @@ void hash_free(hash** pointofhash){
 hash* hash_init(int elementsize){
    hash* this = (hash*)calloc(1, sizeof(hash));
    assert(this);
-   this->table = (void**)calloc(FIRSTSIZE, elementsize);
+   this->table = (void*)calloc(FIRSTSIZE, sizeof(char*));
    assert(this->table);
    this->isfilled = (bool*)calloc(FIRSTSIZE, sizeof(bool));
    assert(this->isfilled);
    this->size = FIRSTSIZE;
    this->elementsize = elementsize;
+   hash_show(this);
    return this;
 }
 
-void hash_insert(hash* this, void* newelement){
+void hash_insert(hash** pthis, void* newelement){
+   hash* this = *pthis;
    int index;
    int i = 0;
    int looptimes = strlen((char*)newelement);
@@ -68,12 +70,18 @@ void hash_insert(hash* this, void* newelement){
      i++;
    }while (this->isfilled[index] == 1);
    this->isfilled[index] = 1;
+   printf("%d: ", index);
    puts((char*)newelement);
-   void* temp = (char*)this->table + index;
-   temp = newelement;
-   puts((char*)temp);
+/*
+   char* storage = (char*)calloc(1, looptimes + 1);
+   strcpy(storage, newelement);
+   puts(storage);
+*/
+   char* temp = (char*)this->table + index;
+   temp = (char*)calloc(looptimes + 1, sizeof(char));
+   printf("address of temp: %p\n", temp);
+   strncpy(temp, newelement, looptimes + 1);
    printf("above element inserted.\n");
-   hash_show(this);
 }
 
 bool hash_exist(hash* this, void* element){
@@ -96,7 +104,7 @@ bool hash_exist(hash* this, void* element){
 
 void hash_show(hash* this){
    for (int i = 0; i < this->size; i++){
-      printf("%d: %s\n", i, this->table[i]);
+      printf("%d: %s, address: %p\n", i, this->table[i], this->table[i]);
    }
    printf("-------------------\n");
 }
@@ -106,9 +114,11 @@ int main(void){
    hash* tableofstr = hash_init(sizeof(char*));
    char* a[] = {"applejfsal", "hello", "bristol", "china", "different", "computer", "xjx", "miyuki", "england", "mason"};
    for (int i = 0; i < 10; i++){
-      hash_insert(tableofstr, (void*)(*(a + i)));
+      hash_insert(&tableofstr, (void*)(*(a + i)));
    }
    printf("\n----------------\n");
+   hash_show(tableofstr);
+   printf("%p\n", tableofstr->table + 10);
 
    hash_free(&tableofstr);
    assert(tableofstr == NULL);

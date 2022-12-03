@@ -1,6 +1,6 @@
 #pragma once
 
-#include "general.h"
+// #include "general.h"
 
 typedef struct lisp lisp;
 
@@ -45,7 +45,7 @@ void lisp_tostring(const lisp* l, char* str);
 void lisp_free(lisp** l);
 
 /* ------------- Tougher Ones : Extensions ---------------*/
-
+/*
 // Builds a new list based on the string 'str'
 lisp* lisp_fromstring(const char* str);
 
@@ -60,3 +60,4 @@ lisp* lisp_list(const int n, ...);
 // The user-defined 'func' is passed a pointer to a cons,
 // and will maintain an accumulator of the result.
 atomtype lisp_reduce(atomtype(*func)(lisp* l), lisp* l);
+*/

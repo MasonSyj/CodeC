@@ -10,14 +10,14 @@ LDLIBS =
 
 all: testlinked_s testlinked_v testlinked
 
-testlinked_s: lisp.h Linked/specific.h Linked/linked.c testlisp.c $(GENERAL)/general.h $(GENERAL)/general.c
-	$(CC) testlisp.c Linked/linked.c $(GENERAL)/general.c -o testlinked_s -I./Linked -I./$(GENERAL) $(SANITIZE) $(LDLIBS)
+testlinked_s: specific.h linked.c testlisp.c $(GENERAL)/general.h $(GENERAL)/general.c
+	$(CC) testlisp.c linked.c $(GENERAL)/general.c -o testlinked_s -I./Linked -I./$(GENERAL) $(SANITIZE) $(LDLIBS)
 
-testlinked_v: lisp.h Linked/specific.h Linked/linked.c testlisp.c $(GENERAL)/general.h $(GENERAL)/general.c
-	$(CC) testlisp.c Linked/linked.c $(GENERAL)/general.c -o testlinked_v -I./Linked -I./$(GENERAL) $(VALGRIND) $(LDLIBS)
+testlinked_v: specific.h linked.c testlisp.c $(GENERAL)/general.h $(GENERAL)/general.c
+	$(CC) testlisp.c linked.c $(GENERAL)/general.c -o testlinked_v -I./Linked -I./$(GENERAL) $(VALGRIND) $(LDLIBS)
 
-testlinked: lisp.h Linked/specific.h Linked/linked.c testlisp.c $(GENERAL)/general.h $(GENERAL)/general.c
-	$(CC) testlisp.c Linked/linked.c $(GENERAL)/general.c -o testlinked -I./Linked -I./$(GENERAL) $(PRODUCTION) $(LDLIBS)
+testlinked: specific.h linked.c testlisp.c $(GENERAL)/general.h $(GENERAL)/general.c
+	$(CC) testlisp.c linked.c $(GENERAL)/general.c -o testlinked -I./Linked -I./$(GENERAL) $(PRODUCTION) $(LDLIBS)
 
 clean:
 	rm -f testlinked_s testlinked_v testlinked

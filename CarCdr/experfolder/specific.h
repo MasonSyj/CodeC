@@ -1,8 +1,10 @@
-struct lisp{
-   atomtype value;
-   struct lisp* car;
-   struct lisp* cdr;
-};
+#pragma once
+
+#include "general.h"
+
+typedef struct lisp lisp;
+
+typedef int atomtype;
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,31 +13,16 @@ struct lisp{
 
 // Returns element 'a' - this is not a list, and
 // by itelf would be printed as e.g. "3", and not "(3)"
-lisp* lisp_atom(const atomtype a){
-   lisp* this = (lisP*)calloc(1, sizeof(lisp));
-   assert(this);
-   this->value = a;
-   assert(!this->car);
-   assert(!this->cdr);
-   return this;
-}
+lisp* lisp_atom(const atomtype a);
 
 // Returns a list containing the car as 'l1'
 // and the cdr as 'l2'- data in 'l1' and 'l2' are reused,
 // and not copied. Either 'l1' and/or 'l2' can be NULL
-lisp* lisp_cons(const lisp* l1,  const lisp* l2){
-   lisp* this = (lisP*)calloc(1, sizeof(lisp));
-   assert(this);
-   this->car = l1;
-   this->cdr = l2;
-   return this;   
-}
+lisp* lisp_cons(const lisp* l1,  const lisp* l2);
 
 // Returns the car (1st) component of the list 'l'.
 // Does not copy any data.
-lisp* lisp_car(const lisp* l){
-   
-}
+lisp* lisp_car(const lisp* l);
 
 // Returns the cdr (all but the 1st) component of the list 'l'.
 // Does not copy any data.
@@ -58,7 +45,7 @@ void lisp_tostring(const lisp* l, char* str);
 void lisp_free(lisp** l);
 
 /* ------------- Tougher Ones : Extensions ---------------*/
-
+/*
 // Builds a new list based on the string 'str'
 lisp* lisp_fromstring(const char* str);
 
@@ -73,3 +60,4 @@ lisp* lisp_list(const int n, ...);
 // The user-defined 'func' is passed a pointer to a cons,
 // and will maintain an accumulator of the result.
 atomtype lisp_reduce(atomtype(*func)(lisp* l), lisp* l);
+*/

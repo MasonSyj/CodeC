@@ -1,7 +1,8 @@
-//#include "lisp.h"
-#include "specific.h"
 #include <stdio.h>
-#include <string.h>
+
+typedef struct lisp lisp;
+
+typedef int atomtype;
 
 // It's more Lisp-like to call it cons() etc., not lisp_cons()
 #define atom(X)       lisp_atom(X)

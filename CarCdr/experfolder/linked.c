@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <stdarg.h>
 #include <string.h>
+#include <ctype.h>
 
 typedef int atomtype;
 
@@ -12,7 +13,7 @@ typedef int atomtype;
 #define car(L)        lisp_car(L)
 #define cdr(L)        lisp_cdr(L)
 #define copy(L)       lisp_copy(L)
-// #define fromstring(L) lisp_fromstring(L)
+#define fromstring(L) lisp_fromstring(L)
 // It's more Lisp-like to call it NIL, not NULL
 #define NIL NULL
 
@@ -101,9 +102,9 @@ void lisp_tostring(const lisp* l, char* str){
    char* head = tempstr;
    *tempstr++ = '(';
    while(l){
-      if (l->car->holdvalue == true){
+      if (l->car && l->car->holdvalue == true){
          *tempstr++ = l->car->value + '0';
-      }else{
+      }else if (l->car){
          char* substr = (char*)calloc(LISTSTRLEN, sizeof(char));
          lisp_tostring(l->car, substr);
          strcat(tempstr, substr);
@@ -132,6 +133,42 @@ void lisp_free(lisp** l){
    free(this);
    *l = NULL;
    return;
+}
+
+// Builds a new list based on the string 'str'
+lisp* lisp_fromstring(const char* str){
+   lisp* this = NIL;
+   while (*str != '\0'){
+      if (isdigit(*str)){
+         int value = *str - '0';
+         return cons(lisp_atom(value), lisp_fromstring(str + 1));
+      }else if (*str == '('){
+         str++;
+         int cnt = 0;
+         while (str[cnt] != ')' && str[cnt] != '('){
+            cnt++;
+         }
+         char* substr = (char*)calloc(cnt + 1, sizeof(char));
+         strncpy(substr, str, cnt);
+         str += cnt;
+         str--;
+         lisp* sub = lisp_fromstring(substr);
+         if (this == NIL){
+            this = (lisp*)calloc(1, sizeof(lisp));
+            this = sub;
+         }else{
+            lisp* temp = this;
+            while (temp->cdr){
+               temp = temp->cdr;
+            }
+            temp->cdr = (lisp*)calloc(1, sizeof(lisp));;
+            temp->cdr->car = sub;
+         }
+         
+        }
+      str++;
+   }
+   return this;
 }
 
 int main(void){
@@ -178,24 +215,23 @@ int main(void){
    puts(str);
    assert(strcmp(str, "(0 (1 2) 3 4 5)")==0);
 
+   printf("below fromstring function test.\n");
+//fromstring function test
+   char inp[5][LISTSTRLEN] = {"(1 (2))","()", "()", "(1 (2 3) (4 (5 6)))", "((1 2) (3 4) (5 (6 7)))"};
+   for(int i=0; i<5; i++){
+      lisp* f1 = fromstring(inp[i]);
+      lisp_tostring(f1, str);
+      puts(str);
+      assert(strcmp(str, inp[i])==0);
+      lisp_free(&f1);
+      assert(!f1);
+   }
 
 }
 
 /* ------------- Tougher Ones : Extensions ---------------*/
 
-// Builds a new list based on the string 'str'
-lisp* lisp_fromstring(const char* str){
-   lisp* this = (lisp*)calloc(1, sizeof(lisp));
-   while (*str != '\0'){
-      if (isdigit(*str)){
-         this = lisp_cons(atom(*str - '0'), NIL);
-      }else if (*str == '('){
-         
-      }
-      str++;
-   }
-   return this;
-}
+
 
 
 // Returns a new list from a set of existing lists.

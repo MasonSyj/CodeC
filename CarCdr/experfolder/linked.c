@@ -115,7 +115,9 @@ void lisp_tostring(const lisp* l, char* str){
    *tempstr++ = '(';
    while(l){
       if (l->car && l->car->holdvalue == true){
-         strcat(tempstr, inttostring(l->car->value));
+         char* strvalue = inttostring(l->car->value);
+         strcat(tempstr, strvalue);
+         free(strvalue);
          tempstr = tempstr + digits(l->car->value);
 //         *tempstr++ = l->car->value + '0';
       }else if (l->car){
@@ -123,6 +125,7 @@ void lisp_tostring(const lisp* l, char* str){
          lisp_tostring(l->car, substr);
          strcat(tempstr, substr);
          tempstr = tempstr + strlen(substr);
+         free(substr);
       }
       if (l->cdr != NULL){
          *tempstr++ = ' ';
@@ -188,6 +191,10 @@ void test(){
 
    char* str4 = substr(str + 16);
    assert(strcmp(str4, "5 6") == 0);
+   free(str1);
+   free(str2);
+   free(str3);
+   free(str4);
 }
 
 // Builds a new list based on the string 'str'
@@ -205,6 +212,7 @@ lisp* lisp_fromstring(const char* str){
             int len = strlen(newsubstr);
             str = str + len;
             lisp* sub = lisp_fromstring(newsubstr);
+            free(newsubstr);
          if (this == NIL){
             this = (lisp*)calloc(1, sizeof(lisp));
             this->car = sub;
@@ -291,6 +299,12 @@ int main(void){
    assert(lisp_length(l5)==5);
    lisp_tostring(l5, str);
    assert(strcmp(str, "(0 (1 2) 3 4 5)")==0);
+   
+//   lisp_free(&l1);
+//  lisp_free(&l2);
+//   lisp_free(&l3);
+//   lisp_free(&l4);
+   lisp_free(&l5);
 
 //fromstring function test didn't consider negative yet
    char inp[5][LISTSTRLEN] = {"(1 2 -3 4 5)","()", "(1 (2 (3 (4 5))))", "(0 1 (-2 3) (4 (5 6)))", "((1 2) (3 4) (5 (-6 7)))"};

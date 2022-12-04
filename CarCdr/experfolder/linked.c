@@ -5,6 +5,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdarg.h>
 
 typedef int atomtype;
 
@@ -135,14 +136,46 @@ void lisp_free(lisp** l){
    return;
 }
 
-// Builds a new list based on the string 'str'
-lisp* lisp_fromstring(const char* str){
-   lisp* this = NIL;
-   while (*str != '\0'){
-      if (isdigit(*str)){
-         int value = *str - '0';
-         return cons(lisp_atom(value), lisp_fromstring(str + 1));
-      }else if (*str == '('){
+char* substr(const char* str){
+   char* newsubstr = NULL;
+   assert(*str == '(');
+   char stack[LISTSTRLEN];
+   int i = 0;
+   stack[i++] = *str;
+   int index = 1;
+   while (str[index] != '\0'){
+      if (str[index] == '('){
+         stack[i++] = str[index];
+      }
+      if (str[index] == ')'){
+         assert(stack[--i] == '(');
+      }
+      if (i == 0){
+         newsubstr = (char*)calloc(index, sizeof(char));
+         strncpy(newsubstr, str + 1, index - 1);
+         return newsubstr;
+      }
+      index++;
+   }
+   return newsubstr;
+}
+
+void test(){
+   char* str = "(1 2 (7 8) (3 4 (5 6)))";
+   char* str1 = substr(str + 0);
+   puts(str1);
+
+   char* str2 = substr(str + 5);
+   puts(str2);
+
+   char* str3 = substr(str + 11);
+   puts(str3);
+
+   char* str4 = substr(str + 16);
+   puts(str4);
+}
+
+/*
          str++;
          int cnt = 0;
          while (str[cnt] != ')' && str[cnt] != '('){
@@ -150,12 +183,29 @@ lisp* lisp_fromstring(const char* str){
          }
          char* substr = (char*)calloc(cnt + 1, sizeof(char));
          strncpy(substr, str, cnt);
+         printf("here: %s\n", substr);
          str += cnt;
          str--;
          lisp* sub = lisp_fromstring(substr);
+*/
+
+// Builds a new list based on the string 'str'
+lisp* lisp_fromstring(const char* str){
+   lisp* this = NIL;
+   int index = 0;
+   while (str[index] != '\0'){
+      if (isdigit(str[index])){
+         int value = str[index] - '0';
+         return cons(lisp_atom(value), lisp_fromstring(str + index + 1));
+      }else if (str[index] == '(' && index != 0){
+            char* newsubstr = substr(str + index);
+            int len = strlen(newsubstr);
+            str = str + len;
+            printf("here: %s\n", newsubstr);	
+            lisp* sub = lisp_fromstring(newsubstr);
          if (this == NIL){
             this = (lisp*)calloc(1, sizeof(lisp));
-            this = sub;
+            this->car = sub;
          }else{
             lisp* temp = this;
             while (temp->cdr){
@@ -166,12 +216,43 @@ lisp* lisp_fromstring(const char* str){
          }
          
         }
-      str++;
+      index++;
    }
    return this;
 }
 
+// Returns a new list from a set of existing lists.
+// A variable number 'n' lists are used.
+// Data in existing lists are reused, and not copied.
+// You need to understand 'varargs' for this.
+
+lisp* lisp_list(const int n, ...){
+   lisp* this = NIL;
+   if (n == 0){
+      return this;	
+   }
+   va_list valist;
+   va_start(valist, n);
+   for (int i = 0; i < n; i++){
+      lisp* new = va_arg(valist, lisp*);
+      if (!this){
+         this = (lisp*)calloc(1, sizeof(lisp));
+         this->car = new;
+      }else{
+         lisp* temp = this;
+         while (temp->cdr){
+            temp = temp->cdr;
+         }
+         temp->cdr = (lisp*)calloc(1, sizeof(lisp));;
+         temp->cdr->car = new;
+      }
+   }
+   va_end(valist);
+   return this;
+}
+
 int main(void){
+   test();
    char str[LISTSTRLEN];
    printf("Test Lisp Start ... \n");
 
@@ -216,8 +297,8 @@ int main(void){
    assert(strcmp(str, "(0 (1 2) 3 4 5)")==0);
 
    printf("below fromstring function test.\n");
-//fromstring function test
-   char inp[5][LISTSTRLEN] = {"(1 (2))","()", "()", "(1 (2 3) (4 (5 6)))", "((1 2) (3 4) (5 (6 7)))"};
+//fromstring function test didn't consider negative yet
+   char inp[5][LISTSTRLEN] = {"(1 2 3 4 5)","()", "()", "(0 1 (2 3) (4 (5 6)))", "((1 2) (3 4) (5 (6 7)))"};
    for(int i=0; i<5; i++){
       lisp* f1 = fromstring(inp[i]);
       lisp_tostring(f1, str);
@@ -227,23 +308,28 @@ int main(void){
       assert(!f1);
    }
 
+   /*--------------------*/
+   /* lisp_list() tests  */
+   /*--------------------*/
+
+   lisp* g1 = lisp_list(3, atom(6), atom(7), atom(8));
+   lisp_tostring(g1, str);
+   assert(strcmp(str, "(6 7 8)")==0);
+   lisp* g2 = lisp_list(5, g1, atom(-123456), copy(g1), atom(25),
+                        fromstring("(1(2(3(4 5))))"));
+   lisp_tostring(g2, str);
+   assert(strcmp(str, "((6 7 8) -123456 (6 7 8) 25 (1 (2 (3 (4 5)))))")==0);
+   // g2 reuses g1, so no need to lisp_free(g1)
+   lisp_free(&g2);
+   assert(!g2);
+
 }
 
 /* ------------- Tougher Ones : Extensions ---------------*/
 
 
 
-
-// Returns a new list from a set of existing lists.
-// A variable number 'n' lists are used.
-// Data in existing lists are reused, and not copied.
-// You need to understand 'varargs' for this.
 /*
-lisp* lisp_list(const int n, ...){
-   lisp* this = (lisp*)calloc(1, sizeof(lisp));
-   return this;
-}
-
 // Allow a user defined function 'func' to be applied to
 // each component of the list 'l'.
 // The user-defined 'func' is passed a pointer to a cons,

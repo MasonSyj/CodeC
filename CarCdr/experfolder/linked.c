@@ -33,6 +33,9 @@ typedef struct lisp lisp;
 char* inttostring(int value);
 int firstnum(const char* str);
 int digits(int num);
+atomtype times(lisp* l);
+atomtype lisp_reduce(atomtype(*func)(lisp* l), lisp* l);
+atomtype atms(lisp* l);
 
 
 // Returns element 'a' - this is not a list, and
@@ -77,9 +80,13 @@ atomtype lisp_getval(const lisp* l){
 
 // Returns a deep copy of the list 'l'
 lisp* lisp_copy(const lisp* l){
+   if (l == NIL){
+      return NIL;
+   }
    lisp* this = (lisp*)calloc(1, sizeof(lisp));
-   this->car = l->car;
-   this->cdr = l->cdr;
+   memcpy(this, l, sizeof(lisp));
+   this->cdr = lisp_copy(l->cdr);
+   this->car = lisp_copy(l->car);
    return this;
 }
 
@@ -171,31 +178,17 @@ char* substr(const char* str){
 void test(){
    char* str = "(1 2 (7 8) (3 4 (5 6)))";
    char* str1 = substr(str + 0);
-   puts(str1);
+   assert(strcmp(str1, "1 2 (7 8) (3 4 (5 6))") == 0);
 
    char* str2 = substr(str + 5);
-   puts(str2);
+   assert(strcmp(str2, "7 8") == 0);
 
    char* str3 = substr(str + 11);
-   puts(str3);
+   assert(strcmp(str3, "3 4 (5 6)") == 0);
 
    char* str4 = substr(str + 16);
-   puts(str4);
+   assert(strcmp(str4, "5 6") == 0);
 }
-
-/*
-         str++;
-         int cnt = 0;
-         while (str[cnt] != ')' && str[cnt] != '('){
-            cnt++;
-         }
-         char* substr = (char*)calloc(cnt + 1, sizeof(char));
-         strncpy(substr, str, cnt);
-         printf("here: %s\n", substr);
-         str += cnt;
-         str--;
-         lisp* sub = lisp_fromstring(substr);
-*/
 
 // Builds a new list based on the string 'str'
 lisp* lisp_fromstring(const char* str){
@@ -234,7 +227,6 @@ lisp* lisp_fromstring(const char* str){
 // A variable number 'n' lists are used.
 // Data in existing lists are reused, and not copied.
 // You need to understand 'varargs' for this.
-
 lisp* lisp_list(const int n, ...){
    lisp* this = NIL;
    if (n == 0){
@@ -273,7 +265,6 @@ int main(void){
    assert(l1);
    assert(lisp_length(l1)==1);
    lisp_tostring(l1, str);
-   puts(str);
    assert(strcmp(str, "(2)")==0);
    assert(lisp_getval(car(l1))==2);
 
@@ -281,37 +272,31 @@ int main(void){
    assert(lisp_length(l2)==2);
    lisp_tostring(l1, str);
    lisp_tostring(l2, str);
-   puts(str);
    assert(strcmp(str, "(1 2)")==0);
 
    lisp* l3 = cons(atom(3), cons(atom(4), cons(atom(5), NIL)));
    assert(l3);
    assert(lisp_length(l3)==3);
    lisp_tostring(l3, str);
-   puts(str);
    assert(strcmp(str, "(3 4 5)")==0);
 
    lisp* l4 = cons(l2, l3);
    assert(l4);
    assert(lisp_length(l4)==4);
    lisp_tostring(l4, str);
-   puts(str);
    assert(strcmp(str, "((1 2) 3 4 5)")==0);
 
    lisp* l5 = cons(atom(0), l4);
    assert(l5);
    assert(lisp_length(l5)==5);
    lisp_tostring(l5, str);
-   puts(str);
    assert(strcmp(str, "(0 (1 2) 3 4 5)")==0);
 
-   printf("below fromstring function test.\n");
 //fromstring function test didn't consider negative yet
    char inp[5][LISTSTRLEN] = {"(1 2 -3 4 5)","()", "(1 (2 (3 (4 5))))", "(0 1 (-2 3) (4 (5 6)))", "((1 2) (3 4) (5 (-6 7)))"};
    for(int i=0; i<5; i++){
       lisp* f1 = fromstring(inp[i]);
       lisp_tostring(f1, str);
-      puts(str);
       assert(strcmp(str, inp[i])==0);
       lisp_free(&f1);
       assert(!f1);
@@ -328,30 +313,58 @@ int main(void){
 //                        fromstring("(1(2(3(4 5))))"));
                         fromstring("(1 (2 (3 (4 5))))"));
    lisp_tostring(g2, str);
-   puts(str);
    assert(strcmp(str, "((6 7 8) -123456 (6 7 8) 25 (1 (2 (3 (4 5)))))")==0);
    // g2 reuses g1, so no need to lisp_free(g1)
    lisp_free(&g2);
    assert(!g2);
 
+   /*----------------------*/
+   /* lisp_reduce() tests  */
+   /*----------------------*/
+
+   lisp* h1 = lisp_fromstring("(1 2 3 4)");
+   assert(lisp_reduce(times, h1)==24);
+   lisp_free(&h1);
+   h1 = lisp_fromstring("(10 20 (30 40 50))");
+   assert(lisp_reduce(atms, h1)==5);
+   lisp_free(&h1);
+   assert(!h1);
+
+   printf("End\n");
 }
 
 /* ------------- Tougher Ones : Extensions ---------------*/
 
-
-
-/*
 // Allow a user defined function 'func' to be applied to
 // each component of the list 'l'.
 // The user-defined 'func' is passed a pointer to a cons,
 // and will maintain an accumulator of the result.
 atomtype lisp_reduce(atomtype(*func)(lisp* l), lisp* l){
-   lisp* this = (lisp*)calloc(1, sizeof(lisp));
-   return this;
+   return (*func)(l);
 }
-*/
 
+atomtype times(lisp* l){
+   if (!l){
+      return 1;
+   }
+   
+   if (l->holdvalue == false){
+      return 1 * times(l->car) * times(l->cdr);
+   }else{
+      return l->value * times(l->car) * times(l->cdr);
+   }
+}
 
+atomtype atms(lisp* l){
+   if (!l){
+      return 0;
+   }
+   if (l->holdvalue == true){
+      return 1 + atms(l->cdr);
+   }else{
+      return 0 + atms(l->car) + atms(l->cdr);
+   }
+}
 
 char* inttostring(int value){
    int digit = digits(value);
@@ -395,6 +408,6 @@ int digits(int num){
    int i = 0;
    do{
       i++;
-   }while ((int)pow((double)10, (double)i) < num);
+   }while ((int)pow((double)10, (double)i) <= num);
    return i;
 }

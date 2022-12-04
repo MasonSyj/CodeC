@@ -143,7 +143,7 @@ int main(void)
    /*----------------------*/
    /* lisp_reduce() tests  */
    /*----------------------*/
-/*
+
    lisp* h1 = lisp_fromstring("(1 2 3 4)");
    assert(lisp_reduce(times, h1)==24);
    lisp_free(&h1);
@@ -151,7 +151,7 @@ int main(void)
    assert(lisp_reduce(atms, h1)==5);
    lisp_free(&h1);
    assert(!h1);
-*/
+
    printf("End\n");
    return 0;
 }

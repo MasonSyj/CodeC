@@ -6,6 +6,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdarg.h>
+#include <math.h>
 
 typedef int atomtype;
 
@@ -29,6 +30,9 @@ struct lisp{
 
 typedef struct lisp lisp;
 
+char* inttostring(int value);
+int firstnum(const char* str);
+int digits(int num);
 
 
 // Returns element 'a' - this is not a list, and
@@ -73,7 +77,7 @@ atomtype lisp_getval(const lisp* l){
 
 // Returns a deep copy of the list 'l'
 lisp* lisp_copy(const lisp* l){
-   lisp* this = lisp_atom(l->value);
+   lisp* this = (lisp*)calloc(1, sizeof(lisp));
    this->car = l->car;
    this->cdr = l->cdr;
    return this;
@@ -104,7 +108,9 @@ void lisp_tostring(const lisp* l, char* str){
    *tempstr++ = '(';
    while(l){
       if (l->car && l->car->holdvalue == true){
-         *tempstr++ = l->car->value + '0';
+         strcat(tempstr, inttostring(l->car->value));
+         tempstr = tempstr + digits(l->car->value);
+//         *tempstr++ = l->car->value + '0';
       }else if (l->car){
          char* substr = (char*)calloc(LISTSTRLEN, sizeof(char));
          lisp_tostring(l->car, substr);
@@ -125,13 +131,15 @@ void lisp_tostring(const lisp* l, char* str){
 // Clears up all space used
 // Double pointer allows function to set 'l' to NULL on success
 void lisp_free(lisp** l){
-   lisp* this = *l;
-   if (this == NULL){
+   if (l == NULL || *l == NULL){
       return;
    }
+	
+   lisp* this = *l;
+
    lisp_free(&this->car);
    lisp_free(&this->cdr);
-   free(this);
+   free(*l);
    *l = NULL;
    return;
 }
@@ -195,13 +203,14 @@ lisp* lisp_fromstring(const char* str){
    int index = 0;
    while (str[index] != '\0'){
       if (isdigit(str[index])){
-         int value = str[index] - '0';
-         return cons(lisp_atom(value), lisp_fromstring(str + index + 1));
+//         int value = str[index] - '0';
+         int value = firstnum(str);
+         int digit = digits(value);
+         return cons(lisp_atom(value), lisp_fromstring(str + index + digit));
       }else if (str[index] == '(' && index != 0){
             char* newsubstr = substr(str + index);
             int len = strlen(newsubstr);
             str = str + len;
-            printf("here: %s\n", newsubstr);	
             lisp* sub = lisp_fromstring(newsubstr);
          if (this == NIL){
             this = (lisp*)calloc(1, sizeof(lisp));
@@ -272,7 +281,7 @@ int main(void){
    assert(lisp_length(l2)==2);
    lisp_tostring(l1, str);
    lisp_tostring(l2, str);
-
+   puts(str);
    assert(strcmp(str, "(1 2)")==0);
 
    lisp* l3 = cons(atom(3), cons(atom(4), cons(atom(5), NIL)));
@@ -298,7 +307,7 @@ int main(void){
 
    printf("below fromstring function test.\n");
 //fromstring function test didn't consider negative yet
-   char inp[5][LISTSTRLEN] = {"(1 2 3 4 5)","()", "()", "(0 1 (2 3) (4 (5 6)))", "((1 2) (3 4) (5 (6 7)))"};
+   char inp[5][LISTSTRLEN] = {"(1 2 -3 4 5)","()", "(1 (2 (3 (4 5))))", "(0 1 (-2 3) (4 (5 6)))", "((1 2) (3 4) (5 (-6 7)))"};
    for(int i=0; i<5; i++){
       lisp* f1 = fromstring(inp[i]);
       lisp_tostring(f1, str);
@@ -316,8 +325,10 @@ int main(void){
    lisp_tostring(g1, str);
    assert(strcmp(str, "(6 7 8)")==0);
    lisp* g2 = lisp_list(5, g1, atom(-123456), copy(g1), atom(25),
-                        fromstring("(1(2(3(4 5))))"));
+//                        fromstring("(1(2(3(4 5))))"));
+                        fromstring("(1 (2 (3 (4 5))))"));
    lisp_tostring(g2, str);
+   puts(str);
    assert(strcmp(str, "((6 7 8) -123456 (6 7 8) 25 (1 (2 (3 (4 5)))))")==0);
    // g2 reuses g1, so no need to lisp_free(g1)
    lisp_free(&g2);
@@ -339,3 +350,51 @@ atomtype lisp_reduce(atomtype(*func)(lisp* l), lisp* l){
    return this;
 }
 */
+
+
+
+char* inttostring(int value){
+   int digit = digits(value);
+   char* str = (char*)calloc(digit + 1, sizeof(char));
+   int absvalue = abs(value);
+   while (digit > 0){
+      str[--digit] = absvalue % 10 + '0';
+      absvalue /= 10;
+   }
+   if (value < 0){
+      str[0] = '-';
+   }
+   return str;
+}
+
+//return first num in a very string
+int firstnum(const char* str){
+   int value = 0;
+   int flag = 1;
+   int index = 0;
+   while (str[index] != '\0'){
+      if (str[index] == '-'){
+         flag = -1;
+      }
+      if (isdigit(str[index])){
+         while (isdigit(str[index])){
+            value = value * 10 + (str[index] - '0');
+            index++;
+         }
+         return flag * value;
+      }
+      index++;
+   }
+   return flag * value;
+}
+
+int digits(int num){
+   if (num < 0){
+      return digits(-num) + 1; 
+   }
+   int i = 0;
+   do{
+      i++;
+   }while ((int)pow((double)10, (double)i) < num);
+   return i;
+}

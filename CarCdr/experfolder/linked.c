@@ -30,6 +30,7 @@ struct lisp{
 
 typedef struct lisp lisp;
 
+void add2list(lisp** l, lisp* sub);
 char* inttostring(int value);
 int firstnum(const char* str);
 int digits(int num);
@@ -208,11 +209,13 @@ lisp* lisp_fromstring(const char* str){
          int digit = digits(value);
          return cons(lisp_atom(value), lisp_fromstring(str + index + digit));
       }else if (str[index] == '(' && index != 0){
-            char* newsubstr = substr(str + index);
-            int len = strlen(newsubstr);
-            str = str + len;
-            lisp* sub = lisp_fromstring(newsubstr);
-            free(newsubstr);
+         char* newsubstr = substr(str + index);
+         int len = strlen(newsubstr);
+         str = str + len;
+         lisp* sub = lisp_fromstring(newsubstr);
+         free(newsubstr);
+         add2list(&this, sub);
+/*
          if (this == NIL){
             this = (lisp*)calloc(1, sizeof(lisp));
             this->car = sub;
@@ -221,14 +224,29 @@ lisp* lisp_fromstring(const char* str){
             while (temp->cdr){
                temp = temp->cdr;
             }
-            temp->cdr = (lisp*)calloc(1, sizeof(lisp));;
+            temp->cdr = (lisp*)calloc(1, sizeof(lisp));
             temp->cdr->car = sub;
          }
-         
-        }
+*/
+      }
       index++;
    }
    return this;
+}
+
+void add2list(lisp** l, lisp* sub){
+   lisp* this = *l;
+   if (this == NIL){
+      this = (lisp*)calloc(1, sizeof(lisp));
+      this->car = sub;
+   }else{
+      lisp* temp = this;
+      while (temp->cdr){
+         temp = temp->cdr;
+      }
+      temp->cdr = (lisp*)calloc(1, sizeof(lisp));
+      temp->cdr->car = sub;
+   }
 }
 
 // Returns a new list from a set of existing lists.
@@ -311,6 +329,7 @@ int main(void){
    for(int i=0; i<5; i++){
       lisp* f1 = fromstring(inp[i]);
       lisp_tostring(f1, str);
+      puts(str);
       assert(strcmp(str, inp[i])==0);
       lisp_free(&f1);
       assert(!f1);

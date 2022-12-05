@@ -268,5 +268,9 @@ lisp* lisp_list(const int n, ...){
 // The user-defined 'func' is passed a pointer to a cons,
 // and will maintain an accumulator of the result.
 atomtype lisp_reduce(atomtype(*func)(lisp* l), lisp* l){
-   return (*func)(l);
+   atomtype result;
+   atomtype resultcar;
+   atomtype resultcdr;
+   if 
+   return lisp_reduce(func, l) +lisp_reduce(func, l->car) + lisp_reduce(func, l->cdr);
 }

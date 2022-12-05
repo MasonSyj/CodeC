@@ -1,5 +1,7 @@
 #pragma once
 
+#define LISPIMPL "Linked"
+
 void add2list(lisp** l, lisp* sub);
 char* substr(const char* str);
 char* inttostring(int value);

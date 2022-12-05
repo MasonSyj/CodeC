@@ -136,6 +136,14 @@ atomtype lisp_getval(const lisp* l){
    return l->value;
 }
 
+// Returns a boolean depending up whether l points to an atom (not a list)
+bool lisp_isatomic(const lisp* l){
+   if (!l){
+      return false;
+   }
+   return l->value != 0;
+}
+
 // Returns a deep copy of the list 'l'
 lisp* lisp_copy(const lisp* l){
    if (l == NIL){
@@ -150,19 +158,15 @@ lisp* lisp_copy(const lisp* l){
 
 // Returns number of components in the list.
 int lisp_length(const lisp* l){
-   if (!l){
+   if (!l || lisp_isatomic(l)){
       return 0;
    }
+
    int cnt = 0;
-   if (l->car){
+   while (l){
+      l = l->cdr;
       cnt++;
    }
-   do{
-      l = l->cdr;
-      if (l){
-         cnt++;
-      }
-   }while (l);
    return cnt;
 }
 
@@ -267,15 +271,13 @@ lisp* lisp_list(const int n, ...){
 // each component of the list 'l'.
 // The user-defined 'func' is passed a pointer to a cons,
 // and will maintain an accumulator of the result.
-atomtype lisp_reduce(atomtype(*func)(lisp* l), lisp* l){
-   static atomtype acc;
-   acc = (*func)(l);
-   if (l->car){
-      acc = (*func)(l->car);
+void lisp_reduce(void (*func)(lisp* l, atomtype* n), lisp* l, atomtype* acc){
+   while (l){
+      if (lisp_isatomic(l->car)){
+         (*func)(l->car, acc);
+      }else if (l->car && !lisp_isatomic(l->car)){
+         lisp_reduce(func, l->car, acc);
+      }
+      l = l->cdr;
    }
-   if (l->cdr){
-      acc = (*func)(l->cdr);
-   }
-   printf("here: %d", acc);
-   return acc;
 }

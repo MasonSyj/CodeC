@@ -203,31 +203,18 @@ lisp* lisp_fromstring(const char* str){
    lisp* this = NIL;
    int index = 0;
    while (str[index] != '\0'){
-      if (isdigit(str[index])){
-//         int value = str[index] - '0';
-         int value = firstnum(str);
+      if (isdigit(str[index]) || str[index] == '-'){
+         int value = firstnum(str + index);
+         add2list(&this, lisp_atom(value));
          int digit = digits(value);
-         return cons(lisp_atom(value), lisp_fromstring(str + index + digit));
+         index = index + digit - 1;
       }else if (str[index] == '(' && index != 0){
          char* newsubstr = substr(str + index);
-         int len = strlen(newsubstr);
-         str = str + len;
          lisp* sub = lisp_fromstring(newsubstr);
-         free(newsubstr);
          add2list(&this, sub);
-/*
-         if (this == NIL){
-            this = (lisp*)calloc(1, sizeof(lisp));
-            this->car = sub;
-         }else{
-            lisp* temp = this;
-            while (temp->cdr){
-               temp = temp->cdr;
-            }
-            temp->cdr = (lisp*)calloc(1, sizeof(lisp));
-            temp->cdr->car = sub;
-         }
-*/
+         int len = strlen(newsubstr);
+         index = index + len + 1;
+         free(newsubstr);
       }
       index++;
    }
@@ -235,12 +222,12 @@ lisp* lisp_fromstring(const char* str){
 }
 
 void add2list(lisp** l, lisp* sub){
-   lisp* this = *l;
-   if (this == NIL){
-      this = (lisp*)calloc(1, sizeof(lisp));
-      this->car = sub;
+//   lisp* this = *l;
+   if (*l == NIL){
+      *l = (lisp*)calloc(1, sizeof(lisp));
+      (*l)->car = sub;
    }else{
-      lisp* temp = this;
+      lisp* temp = *l;
       while (temp->cdr){
          temp = temp->cdr;
       }
@@ -262,17 +249,7 @@ lisp* lisp_list(const int n, ...){
    va_start(valist, n);
    for (int i = 0; i < n; i++){
       lisp* new = va_arg(valist, lisp*);
-      if (!this){
-         this = (lisp*)calloc(1, sizeof(lisp));
-         this->car = new;
-      }else{
-         lisp* temp = this;
-         while (temp->cdr){
-            temp = temp->cdr;
-         }
-         temp->cdr = (lisp*)calloc(1, sizeof(lisp));;
-         temp->cdr->car = new;
-      }
+      add2list(&this, new);
    }
    va_end(valist);
    return this;
@@ -281,6 +258,10 @@ lisp* lisp_list(const int n, ...){
 int main(void){
    test();
    char str[LISTSTRLEN];
+   lisp* testl = (lisp*)calloc(1, sizeof(lisp));
+   assert(testl);
+   assert(!testl->car);
+   assert(!testl->cdr);
    printf("Test Lisp Start ... \n");
 
    lisp_tostring(NIL, str);
@@ -317,19 +298,14 @@ int main(void){
    assert(lisp_length(l5)==5);
    lisp_tostring(l5, str);
    assert(strcmp(str, "(0 (1 2) 3 4 5)")==0);
-   
-//   lisp_free(&l1);
-//  lisp_free(&l2);
-//   lisp_free(&l3);
-//   lisp_free(&l4);
+
    lisp_free(&l5);
 
 //fromstring function test didn't consider negative yet
-   char inp[5][LISTSTRLEN] = {"(1 2 -3 4 5)","()", "(1 (2 (3 (4 5))))", "(0 1 (-2 3) (4 (5 6)))", "((1 2) (3 4) (5 (-6 7)))"};
-   for(int i=0; i<5; i++){
+   char inp[6][LISTSTRLEN] = {"((1 -2) 4 5)", "(1 2 -3 4 5)", "()", "(1 (2 (3 (4 5))))", "(0 1 (-2 3) (4 (5 6)))", "((1 2) (3 4) (5 (-6 7)))"};
+   for(int i=0; i<6; i++){
       lisp* f1 = fromstring(inp[i]);
       lisp_tostring(f1, str);
-      puts(str);
       assert(strcmp(str, inp[i])==0);
       lisp_free(&f1);
       assert(!f1);
@@ -343,8 +319,7 @@ int main(void){
    lisp_tostring(g1, str);
    assert(strcmp(str, "(6 7 8)")==0);
    lisp* g2 = lisp_list(5, g1, atom(-123456), copy(g1), atom(25),
-//                        fromstring("(1(2(3(4 5))))"));
-                        fromstring("(1 (2 (3 (4 5))))"));
+                        fromstring("(1(2(3(4 5))))"));
    lisp_tostring(g2, str);
    assert(strcmp(str, "((6 7 8) -123456 (6 7 8) 25 (1 (2 (3 (4 5)))))")==0);
    // g2 reuses g1, so no need to lisp_free(g1)
@@ -444,3 +419,17 @@ int digits(int num){
    }while ((int)pow((double)10, (double)i) <= num);
    return i;
 }
+
+/*
+         if (this == NIL){
+            this = (lisp*)calloc(1, sizeof(lisp));
+            this->car = sub;
+         }else{
+            lisp* temp = this;
+            while (temp->cdr){
+               temp = temp->cdr;
+            }
+            temp->cdr = (lisp*)calloc(1, sizeof(lisp));
+            temp->cdr->car = sub;
+         }
+*/

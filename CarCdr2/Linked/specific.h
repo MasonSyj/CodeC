@@ -3,10 +3,10 @@
 #define LISPIMPL "Linked"
 
 void add2list(lisp** l, lisp* sub);
-char* substr(const char* str);
-char* inttostring(int value);
-int firstnum(const char* str);
-int digits(int num);
+char* strsublisp(const char* str);
+char* int2string(int value);
+int firstnumstr(const char* str);
+int numdigits(int num);
 
 struct lisp{
    atomtype value;

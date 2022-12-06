@@ -7,42 +7,26 @@
 #define LISTSTRLEN 1000
 
 void test(){
-
-   void add2list(lisp** l, lisp* sub);
-   lisp* l1 = ()
-   assert(strcmp(strsublisp("(4 5)"), "4 5") == 0);
-   assert(strcmp(strsublisp("(1 (2 3))"), "1 (2 3)") == 0);
-   assert(strcmp(strsublisp("(1 (2 (4 5) 3))"), "1 (2 (4 5) 3)") == 0);
-   assert(strcmp(strsublisp("(1 (2 (3 (4))))"), "1 (2 (3 (4)))") == 0);
-   assert(strcmp(int2string(1567), "1567") == 0);
-   assert(strcmp(int2string(233), "233") == 0);
-   assert(strcmp(int2string(0), "0") == 0);
-   assert(strcmp(int2string(-9), "-9") == 0);
-   assert(firstnumstr("26 95 315") == 26);
-   assert(firstnumstr("0 95 315") == 0);
-   assert(firstnumstr("-2 66 315") == -2);
-   assert(firstnumstr("658 497 666") == 658);
-   assert(firstnumstr("-9999 -751 751") == -9999);
-   assert(numdigits(10) == 2);
-   assert(numdigits(3) == 1);
-   assert(numdigits(0) == 1);
-   assert(numdigits(-1) == 2);
-   assert(numdigits(-12) == 3);
-   assert(numdigits(560) == 3);
-   assert(numdigits(9999) == 4);
-
+/*
+void add2list(lisp** l, lisp* sub);
+char* strsublisp(const char* str);
+char* int2string(int value);
+int firstnumstr(const char* str);
+int numdigits(int num);
+*/
 }
 
 void add2list(lisp** l, lisp* sub){
    if (*l == NIL){
       *l = (lisp*)calloc(1, sizeof(lisp));
-        *l = lisp_cons(sub, NIL);
+      (*l)->car = sub;
    }else{
       lisp* temp = *l;
-      while (lisp_cdr(temp)){
-         temp = lisp_cdr(temp);
+      while (temp->cdr){
+         temp = temp->cdr;
       }
-      temp->cdr = lisp_cons(sub, NIL);
+      temp->cdr = (lisp*)calloc(1, sizeof(lisp));
+      temp->cdr->car = sub;
    }
 }
 
@@ -124,8 +108,8 @@ lisp* lisp_atom(const atomtype a){
    lisp* this = (lisp*)calloc(1, sizeof(lisp));
    assert(this);
    this->value = a;
-   assert(!lisp_car(this));
-   assert(!lisp_cdr(this));
+   assert(!this->car);
+   assert(!this->cdr);
    return this;
 }
 
@@ -162,7 +146,7 @@ bool lisp_isatomic(const lisp* l){
    if (!l){
       return false;
    }
-   return !lisp_car(l) && !lisp_cdr(l);
+   return l->value != 0;
 }
 
 // Returns a deep copy of the list 'l'
@@ -185,7 +169,7 @@ int lisp_length(const lisp* l){
 
    int cnt = 0;
    while (l){
-      l = lisp_cdr(l);
+      l = l->cdr;
       cnt++;
    }
    return cnt;
@@ -193,8 +177,8 @@ int lisp_length(const lisp* l){
 
 // Returns stringified version of list
 void lisp_tostring(const lisp* l, char* str){
-   if (lisp_isatomic(l)){
-      char* x = int2string(lisp_getval(l));
+   if (l && !l->car){
+      char* x = int2string(l->value);
       strcpy(str, x);
       free(x);
       return;
@@ -204,25 +188,25 @@ void lisp_tostring(const lisp* l, char* str){
    char* head = tempstr;
    *tempstr++ = '(';
    while(l){
-      if (lisp_isatomic(lisp_car(l))){
-         int value = lisp_getval(lisp_car(l));
-         char* strvalue = int2string(value);
+      if (l->car && !l->car->car){
+         char* strvalue = int2string(l->car->value);
          strcat(tempstr, strvalue);
          free(strvalue);
-         tempstr = tempstr + numdigits(value);
-      }else if (lisp_car(l)){
+         tempstr = tempstr + numdigits(l->car->value);
+      }else if (l->car){
          char* substr = (char*)calloc(LISTSTRLEN, sizeof(char));
-         lisp_tostring(lisp_car(l), substr);
+         lisp_tostring(l->car, substr);
          strcat(tempstr, substr);
          tempstr = tempstr + strlen(substr);
          free(substr);
       }
-      if (lisp_cdr(l)){
+      if (l->cdr != NULL){
          *tempstr++ = ' ';
       }
-      l = lisp_cdr(l);
+      l = l->cdr;
    }
-   strcat(tempstr, ")");
+   *tempstr++ = ')';
+   *tempstr++ = '\0';
    strcpy(str, head);
    free(head);
 }
@@ -234,11 +218,10 @@ void lisp_free(lisp** l){
       return;
    }
 
-   lisp* car = lisp_car(*l);
-   lisp* cdr = lisp_cdr(*l);
+   lisp* this = *l;
 
-   lisp_free(&car);
-   lisp_free(&cdr);
+   lisp_free(&this->car);
+   lisp_free(&this->cdr);
    free(*l);
    *l = NULL;
    return;
@@ -294,11 +277,11 @@ lisp* lisp_list(const int n, ...){
 // and will maintain an accumulator of the result.
 void lisp_reduce(void (*func)(lisp* l, atomtype* n), lisp* l, atomtype* acc){
    while (l){
-      if (lisp_isatomic(lisp_car(l))){
-         (*func)(lisp_car(l), acc);
-      }else if (lisp_car(l) && !lisp_isatomic(lisp_car(l))){
-         lisp_reduce(func, lisp_car(l), acc);
+      if (lisp_isatomic(l->car)){
+         (*func)(l->car, acc);
+      }else if (l->car && !lisp_isatomic(l->car)){
+         lisp_reduce(func, l->car, acc);
       }
-      l = lisp_cdr(l);
+      l = l->cdr;
    }
 }

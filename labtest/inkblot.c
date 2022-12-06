@@ -24,7 +24,7 @@ int inkblot(int a[Y][X], int sx, int sy, int ex, int ey){
                }
                if (i - 1 >= 0 && a[j][i-1] == SPACE){
                   a[j][i-1] = currentmove;
-               }                   
+               }
             }
          }
       }    

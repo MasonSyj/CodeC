@@ -348,9 +348,34 @@ int main(void){
 // The user-defined 'func' is passed a pointer to a cons,
 // and will maintain an accumulator of the result.
 atomtype lisp_reduce(atomtype(*func)(lisp* l), lisp* l){
-   return (*func)(l);
+   static atomtype acc;
+   acc = (*func)(l);
+   if (l->car && l->value != 0){
+      acc = (*func)(l->car);
+   }
+   if (l->cdr && l->value != 0){
+      acc = (*func)(l->cdr);
+   }
+   printf("here: %d\n", acc);
+   return acc;
 }
 
+
+atomtype times(lisp* l)
+{
+   static atomtype acc = 1;
+   return acc = acc * lisp_getval(l);
+}
+
+/* To count number of atoms in list, including sub-lists */
+atomtype atms(lisp* l)
+{
+   static atomtype acc = 0;
+   return acc = acc + lisp_length(l);
+}
+
+
+/*
 atomtype times(lisp* l){
    if (!l){
       return 1;
@@ -373,7 +398,7 @@ atomtype atms(lisp* l){
       return 0 + atms(l->car) + atms(l->cdr);
    }
 }
-
+*/
 char* inttostring(int value){
    int digit = digits(value);
    char* str = (char*)calloc(digit + 1, sizeof(char));

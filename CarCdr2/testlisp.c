@@ -151,8 +151,12 @@ int main(void)
    /*--------------------------------------------------*/
    /* lisp_reduce() tests - calls func for every atom  */
    /*--------------------------------------------------*/
-   lisp* h1 = lisp_fromstring("(1 2 3 4)");
-   lisp* h2 = lisp_fromstring("(1 2 (7) 3)");
+//   lisp* h1 = lisp_fromstring("(1 2 3 4)");
+//   lisp* h2 = lisp_fromstring("(1 2 (7) 3)");
+
+   lisp* h1 = lisp_fromstring("(1 2 ((3)) 4)");
+   lisp* h2 = lisp_fromstring("(1 2 (7 (3)))");
+
    atomtype acc = 1;
    lisp_reduce(times, h1, &acc);
    assert(acc==24);

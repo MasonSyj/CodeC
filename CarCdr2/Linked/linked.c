@@ -10,9 +10,38 @@
 
 void test(){
    char str[LISTSTRLEN];
+   
+   char* brackkettest = "(((0) 1 (2 3)) 4 5 6)";
+   assert(indexrightbracket(0, brackkettest) == 20);
+   assert(indexrightbracket(1, brackkettest) == 13);
+   assert(indexrightbracket(2, brackkettest) == 4);
+   assert(indexrightbracket(8, brackkettest) == 12);
+
+   assert(!sublisp(brackkettest, 0));
+   assert(sublisp(brackkettest, 1));
+   assert(sublisp(brackkettest, 2));
+   assert(sublisp(brackkettest, 8));
+
+   strcpy(str, "(1 2 (7 8) (3 4 (5 6)))");
+   char* str1 = strsublisp(str + 0);
+   assert(strcmp(str1, "1 2 (7 8) (3 4 (5 6))") == 0);
+
+   char* str2 = strsublisp(str + 5);
+   assert(strcmp(str2, "7 8") == 0);
+
+   char* str3 = strsublisp(str + 11);
+   assert(strcmp(str3, "3 4 (5 6)") == 0);
+
+   char* str4 = strsublisp(str + 16);
+   assert(strcmp(str4, "5 6") == 0);
+   free(str1);
+   free(str2);
+   free(str3);
+   free(str4);
+
+   
    void add2list(lisp** l, lisp* sub);
-   char inp[7][LISTSTRLEN] = {"()", "5", "()", "((0 1 2) 3 2 1)", "(4 () 5)", "(1 2 -3 4 5)", "((1 (2 3)))"};
-//   char inp[6][LISTSTRLEN] = {"((0 1 (2 3)) 4 5 6)", "()", "((0 1 2) 3 2 1)", "(4 () 5)", "(1 2 -3 4 5)", "((1 (2 3)))"};
+   char inp[7][LISTSTRLEN] = {"((1 (2 (3 (4)))))", "5", "((0 1 2) 3 2 1)", "(4 (3) 5)", "(1 2 -3 4 5)", "((1 (2 3)))", "(5)"};
    lisp* main = NIL;
    lisp* sub0 = lisp_fromstring(inp[0]);
    lisp* sub1 = lisp_fromstring(inp[1]);
@@ -20,24 +49,28 @@ void test(){
    lisp* sub3 = lisp_fromstring(inp[3]);
    lisp* sub4 = lisp_fromstring(inp[4]);
    lisp* sub5 = lisp_fromstring(inp[5]);
+   lisp* sub6 = lisp_fromstring(inp[6]);
    add2list(&main, sub0);
    lisp_tostring(main, str);
-   puts(str);
+   assert(strcmp(str, "(((1 (2 (3 (4))))))") == 0);
    add2list(&main, sub1);
    lisp_tostring(main, str);
-   puts(str);
+   assert(strcmp(str, "(((1 (2 (3 (4))))) 5)") == 0);
    add2list(&main, sub2);
    lisp_tostring(main, str);
-   puts(str);
+   assert(strcmp(str, "(((1 (2 (3 (4))))) 5 ((0 1 2) 3 2 1))") == 0);
    add2list(&main, sub3);
    lisp_tostring(main, str);
-   puts(str);
+   assert(strcmp(str, "(((1 (2 (3 (4))))) 5 ((0 1 2) 3 2 1) (4 (3) 5))") == 0);
    add2list(&main, sub4);
    lisp_tostring(main, str);
-   puts(str);
+   assert(strcmp(str, "(((1 (2 (3 (4))))) 5 ((0 1 2) 3 2 1) (4 (3) 5) (1 2 -3 4 5))") == 0);
    add2list(&main, sub5);
    lisp_tostring(main, str);
-   puts(str);
+   assert(strcmp(str, "(((1 (2 (3 (4))))) 5 ((0 1 2) 3 2 1) (4 (3) 5) (1 2 -3 4 5) ((1 (2 3))))") == 0);
+   add2list(&main, sub6);
+   lisp_tostring(main, str);
+   assert(strcmp(str, "(((1 (2 (3 (4))))) 5 ((0 1 2) 3 2 1) (4 (3) 5) (1 2 -3 4 5) ((1 (2 3))) (5))") == 0);
 
    lisp_free(&main);
    
@@ -55,24 +88,30 @@ void test(){
    s2 = strsublisp("(1 (2 3))");
    s3 = strsublisp("(1 (2 (4 5) 3))");
    s4 = strsublisp("(1 (2 (3 (4))))");
-   i1 = int2string(1567);
-   i2 = int2string(233);
-   i3 = int2string(0);
-   i4 = int2string(-9);
    assert(strcmp(s1, "4 5") == 0);
    assert(strcmp(s2, "1 (2 3)") == 0);
    assert(strcmp(s3, "1 (2 (4 5) 3)") == 0);
    assert(strcmp(s4, "1 (2 (3 (4)))") == 0);
+
+   i1 = int2string(1567);
+   i2 = int2string(233);
+   i3 = int2string(0);
+   i4 = int2string(-9);
    assert(strcmp(i1, "1567") == 0);
    assert(strcmp(i2, "233") == 0);
    assert(strcmp(i3, "0") == 0);
    assert(strcmp(i4, "-9") == 0);
+
+//   sprintf(str, "%d", int);
+
    free(s1); free(s2); free(s3); free(s4); free(i1); free(i2); free(i3); free(i4);
+
    assert(firstnumstr("26 95 315") == 26);
    assert(firstnumstr("0 95 315") == 0);
    assert(firstnumstr("-2 66 315") == -2);
    assert(firstnumstr("658 497 666") == 658);
    assert(firstnumstr("-9999 -751 751") == -9999);
+
    assert(numdigits(10) == 2);
    assert(numdigits(3) == 1);
    assert(numdigits(0) == 1);
@@ -80,6 +119,7 @@ void test(){
    assert(numdigits(-12) == 3);
    assert(numdigits(560) == 3);
    assert(numdigits(9999) == 4);
+
 }
 
 bool sublisp(const char* str, int index){
@@ -304,6 +344,10 @@ void lisp_free(lisp** l){
 
 // Builds a new list based on the string 'str'
 lisp* lisp_fromstring(const char* str){
+   if (numdigits(firstnumstr(str)) == (int)strlen(str)){
+      return lisp_atom(firstnumstr(str));
+   }
+
    lisp* this = NIL;
    int index = 0;
    while (str[index] != '\0'){
@@ -314,10 +358,15 @@ lisp* lisp_fromstring(const char* str){
          index = index + digit - 1;
       }else if (str[index] == '(' && sublisp(str, index)){
          char* substr = strsublisp(str + index);
-         lisp* sub = lisp_fromstring(substr);
-         add2list(&this, sub);
-         int len = strlen(substr);
-         index = index + len + 1;
+         if (numdigits(firstnumstr(substr)) == (int)strlen(substr)){
+            add2list(&this, lisp_cons(lisp_atom(firstnumstr(substr)), NIL));
+            index = index + strlen(substr);
+         }else{
+            lisp* sub = lisp_fromstring(substr);
+            add2list(&this, sub);
+            int len = strlen(substr);
+            index = index + len + 1;
+         }
          free(substr);
       }
       index++;

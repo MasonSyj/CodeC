@@ -74,8 +74,7 @@ int indexrightbracket(int leftbracket, const char* str){
 
 void add2list(lisp** l, lisp* sub){
    if (*l == NIL){
-      *l = (lisp*)calloc(1, sizeof(lisp));
-        *l = lisp_cons(sub, NIL);
+      *l = lisp_cons(sub, NIL);
    }else{
       lisp* temp = *l;
       while (lisp_cdr(temp)){

@@ -39,6 +39,7 @@ void atms(lisp* l, atomtype* accum);
 void lisp_reduce(void (*func)(lisp* l, atomtype* n), lisp* l, atomtype* acc);
 int indexrightbracket(int leftbracket, const char* str);
 bool sublisp(const char* str, int index);
+lisp* lisp_fromstring(const char* str);
 
 bool sublisp(const char* str, int index){
    return index != 0 || indexrightbracket(index, str) != (int)strlen(str) - 1;
@@ -92,12 +93,20 @@ lisp* lisp_cons(const lisp* l1,  const lisp* l2){
 // Returns the car (1st) component of the list 'l'.
 // Does not copy any data.
 lisp* lisp_car(const lisp* l){
+   if (l == NULL){
+      lisp* nil = NIL;
+      return nil;
+   }
    return l->car;
 }
 
 // Returns the cdr (all but the 1st) component of the list 'l'.
 // Does not copy any data.
 lisp* lisp_cdr(const lisp* l){
+   if (l == NULL){
+      lisp* nil = NIL;
+      return nil;
+   }
    return l->cdr;
 }
 
@@ -217,12 +226,44 @@ char* substr(const char* str){
 }
 
 void test(){
+   char str[LISTSTRLEN];
+   void add2list(lisp** l, lisp* sub);
+   char inp[7][LISTSTRLEN] = {"(4 5)", "5", "((1) 2)", "((0 1 2) 3 2 1)", "(4 () 5)", "(1 2 -3 4 5)", "((1 (2 3)))"};
+//   char inp[6][LISTSTRLEN] = {"((0 1 (2 3)) 4 5 6)", "()", "((0 1 2) 3 2 1)", "(4 () 5)", "(1 2 -3 4 5)", "((1 (2 3)))"};
+   lisp* main = NIL;
+   lisp* sub0 = lisp_fromstring(inp[0]);
+   lisp* sub1 = lisp_fromstring(inp[1]);
+   lisp* sub2 = lisp_fromstring(inp[2]);
+   lisp* sub3 = lisp_fromstring(inp[3]);
+   lisp* sub4 = lisp_fromstring(inp[4]);
+   lisp* sub5 = lisp_fromstring(inp[5]);
+   add2list(&main, sub0);
+   lisp_tostring(main, str);
+   puts(str);
+   add2list(&main, sub1);
+   lisp_tostring(main, str);
+   puts(str);
+   add2list(&main, sub2);
+   lisp_tostring(main, str);
+   puts(str);
+   add2list(&main, sub3);
+   lisp_tostring(main, str);
+   puts(str);
+   add2list(&main, sub4);
+   lisp_tostring(main, str);
+   puts(str);
+   add2list(&main, sub5);
+   lisp_tostring(main, str);
+   puts(str);
+
+   lisp_free(&main);
+   
    char* brackkettest = "(((0) 1 (2 3)) 4 5 6)";
    assert(indexrightbracket(0, brackkettest) == 20);
    assert(indexrightbracket(1, brackkettest) == 13);
    assert(indexrightbracket(2, brackkettest) == 4);
    assert(indexrightbracket(8, brackkettest) == 12);
-   char* str = "(1 2 (7 8) (3 4 (5 6)))";
+   strcpy(str, "(1 2 (7 8) (3 4 (5 6)))");
    char* str1 = substr(str + 0);
    assert(strcmp(str1, "1 2 (7 8) (3 4 (5 6))") == 0);
 

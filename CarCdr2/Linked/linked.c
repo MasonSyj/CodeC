@@ -2,6 +2,7 @@
 #include "specific.h"
 #include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #define NIL NULL
 
@@ -14,16 +15,24 @@ void test(){
    lisp* inplisp = lisp_fromstring(inp);
    lisp_tostring(inplisp, str);
    lisp_free(&inplisp);
-   char* s1, s2, s3, s4, i1, i2, i3, i4;
-   s1 = ()
-   assert(strcmp(strsublisp("(4 5)"), "4 5") == 0);
-   assert(strcmp(strsublisp("(1 (2 3))"), "1 (2 3)") == 0);
-   assert(strcmp(strsublisp("(1 (2 (4 5) 3))"), "1 (2 (4 5) 3)") == 0);
-   assert(strcmp(strsublisp("(1 (2 (3 (4))))"), "1 (2 (3 (4)))") == 0);
-   assert(strcmp(int2string(1567), "1567") == 0);
-   assert(strcmp(int2string(233), "233") == 0);
-   assert(strcmp(int2string(0), "0") == 0);
-   assert(strcmp(int2string(-9), "-9") == 0);
+   char* s1, *s2, *s3, *s4, *i1, *i2, *i3, *i4;
+   s1 = strsublisp("(4 5)");
+   s2 = strsublisp("(1 (2 3))");
+   s3 = strsublisp("(1 (2 (4 5) 3))");
+   s4 = strsublisp("(1 (2 (3 (4))))");
+   i1 = int2string(1567);
+   i2 = int2string(233);
+   i3 = int2string(0);
+   i4 = int2string(-9);
+   assert(strcmp(s1, "4 5") == 0);
+   assert(strcmp(s2, "1 (2 3)") == 0);
+   assert(strcmp(s3, "1 (2 (4 5) 3)") == 0);
+   assert(strcmp(s4, "1 (2 (3 (4)))") == 0);
+   assert(strcmp(i1, "1567") == 0);
+   assert(strcmp(i2, "233") == 0);
+   assert(strcmp(i3, "0") == 0);
+   assert(strcmp(i4, "-9") == 0);
+   free(s1); free(s2); free(s3); free(s4); free(i1); free(i2); free(i3); free(i4);
    assert(firstnumstr("26 95 315") == 26);
    assert(firstnumstr("0 95 315") == 0);
    assert(firstnumstr("-2 66 315") == -2);
@@ -315,5 +324,3 @@ void lisp_reduce(void (*func)(lisp* l, atomtype* n), lisp* l, atomtype* acc){
       l = lisp_cdr(l);
    }
 }
-
-

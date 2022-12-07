@@ -11,10 +11,45 @@
 void test(){
    char str[LISTSTRLEN];
    void add2list(lisp** l, lisp* sub);
-   char* inp = "((1 (2 3)))";
-   lisp* inplisp = lisp_fromstring(inp);
-   lisp_tostring(inplisp, str);
-   lisp_free(&inplisp);
+   char inp[7][LISTSTRLEN] = {"()", "5", "()", "((0 1 2) 3 2 1)", "(4 () 5)", "(1 2 -3 4 5)", "((1 (2 3)))"};
+//   char inp[6][LISTSTRLEN] = {"((0 1 (2 3)) 4 5 6)", "()", "((0 1 2) 3 2 1)", "(4 () 5)", "(1 2 -3 4 5)", "((1 (2 3)))"};
+   lisp* main = NIL;
+   lisp* sub0 = lisp_fromstring(inp[0]);
+   lisp* sub1 = lisp_fromstring(inp[1]);
+   lisp* sub2 = lisp_fromstring(inp[2]);
+   lisp* sub3 = lisp_fromstring(inp[3]);
+   lisp* sub4 = lisp_fromstring(inp[4]);
+   lisp* sub5 = lisp_fromstring(inp[5]);
+   add2list(&main, sub0);
+   lisp_tostring(main, str);
+   puts(str);
+   add2list(&main, sub1);
+   lisp_tostring(main, str);
+   puts(str);
+   add2list(&main, sub2);
+   lisp_tostring(main, str);
+   puts(str);
+   add2list(&main, sub3);
+   lisp_tostring(main, str);
+   puts(str);
+   add2list(&main, sub4);
+   lisp_tostring(main, str);
+   puts(str);
+   add2list(&main, sub5);
+   lisp_tostring(main, str);
+   puts(str);
+
+   lisp_free(&main);
+   
+
+   for(int i=0; i<6; i++){
+      lisp* inplisp = lisp_fromstring(inp[i]);
+      lisp_tostring(inplisp, str);
+      assert(strcmp(str, inp[i])==0);
+      lisp_free(&inplisp);
+      assert(!inplisp);
+   }
+
    char* s1, *s2, *s3, *s4, *i1, *i2, *i3, *i4;
    s1 = strsublisp("(4 5)");
    s2 = strsublisp("(1 (2 3))");

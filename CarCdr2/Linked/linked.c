@@ -13,6 +13,9 @@ void test(){
    char* inp = "((1 (2 3)))";
    lisp* inplisp = lisp_fromstring(inp);
    lisp_tostring(inplisp, str);
+   lisp_free(&inplisp);
+   char* s1, s2, s3, s4, i1, i2, i3, i4;
+   s1 = ()
    assert(strcmp(strsublisp("(4 5)"), "4 5") == 0);
    assert(strcmp(strsublisp("(1 (2 3))"), "1 (2 3)") == 0);
    assert(strcmp(strsublisp("(1 (2 (4 5) 3))"), "1 (2 (4 5) 3)") == 0);

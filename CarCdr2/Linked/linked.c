@@ -1,15 +1,18 @@
 #include "../lisp.h"
 #include "specific.h"
 #include <ctype.h>
+#include <stdio.h>
 
 #define NIL NULL
 
 #define LISTSTRLEN 1000
 
 void test(){
-
+   char str[LISTSTRLEN];
    void add2list(lisp** l, lisp* sub);
-   lisp* l1 = ()
+   char* inp = "((1 (2 3)))";
+   lisp* inplisp = lisp_fromstring(inp);
+   lisp_tostring(inplisp, str);
    assert(strcmp(strsublisp("(4 5)"), "4 5") == 0);
    assert(strcmp(strsublisp("(1 (2 3))"), "1 (2 3)") == 0);
    assert(strcmp(strsublisp("(1 (2 (4 5) 3))"), "1 (2 (4 5) 3)") == 0);
@@ -30,7 +33,31 @@ void test(){
    assert(numdigits(-12) == 3);
    assert(numdigits(560) == 3);
    assert(numdigits(9999) == 4);
+}
 
+bool sublisp(const char* str, int index){
+   return index != 0 || indexrightbracket(index, str) != (int)strlen(str) - 1;
+}
+
+int indexrightbracket(int leftbracket, const char* str){
+   assert(str[leftbracket] == '(');
+   char stack[LISTSTRLEN];
+   int i = 0;
+   stack[i++] = str[leftbracket];
+   int index = leftbracket + 1;
+   while (str[index] != '\0'){
+      if (str[index] == '('){
+         stack[i++] = str[index];
+      }
+      if (str[index] == ')'){
+         assert(stack[--i] == '(');
+      }
+      if (i == 0){
+         return index;
+      }
+      index++;
+   }
+   return -1;
 }
 
 void add2list(lisp** l, lisp* sub){
@@ -47,26 +74,9 @@ void add2list(lisp** l, lisp* sub){
 }
 
 char* strsublisp(const char* str){
-   char* substr = NULL;
-   assert(*str == '(');
-   char stack[LISTSTRLEN];
-   int i = 0;
-   stack[i++] = *str;
-   int index = 1;
-   while (str[index] != '\0'){
-      if (str[index] == '('){
-         stack[i++] = str[index];
-      }
-      if (str[index] == ')'){
-         assert(stack[--i] == '(');
-      }
-      if (i == 0){
-         substr = (char*)calloc(index, sizeof(char));
-         strncpy(substr, str + 1, index - 1);
-         return substr;
-      }
-      index++;
-   }
+   int right = indexrightbracket(0, str);
+   char* substr = (char*)calloc(right, sizeof(char));
+   strncpy(substr, str + 1, right - 1);
    return substr;
 }
 
@@ -256,7 +266,7 @@ lisp* lisp_fromstring(const char* str){
          add2list(&this, lisp_atom(value));
          int digit = numdigits(value);
          index = index + digit - 1;
-      }else if (str[index] == '(' && index != 0){
+      }else if (str[index] == '(' && sublisp(str, index)){
          char* substr = strsublisp(str + index);
          lisp* sub = lisp_fromstring(substr);
          add2list(&this, sub);
@@ -302,3 +312,5 @@ void lisp_reduce(void (*func)(lisp* l, atomtype* n), lisp* l, atomtype* acc){
       l = lisp_cdr(l);
    }
 }
+
+

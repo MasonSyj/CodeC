@@ -130,7 +130,6 @@ int main(void)
    for(int i=0; i<9; i++){
       lisp* f1 = fromstring(inp[i]);
       lisp_tostring(f1, str);
-      puts(str);
       assert(strcmp(str, inp[i])==0);
       lisp_free(&f1);
       assert(!f1);

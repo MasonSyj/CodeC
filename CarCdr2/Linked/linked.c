@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 #define NIL NULL
-
+#define BASETEN 10
 #define LISTSTRLEN 1000
 
 void test(){
@@ -101,6 +101,7 @@ void test(){
    assert(firstnumstr("-2 66 315") == -2);
    assert(firstnumstr("658 497 666") == 658);
    assert(firstnumstr("-9999 -751 751") == -9999);
+   assert(firstnumstr("(((-9999)) -751 751)") == -9999);
 
    //numdigits test
    assert(numdigits(10) == 2);
@@ -164,8 +165,8 @@ char* int2string(int value){
    char* str = (char*)calloc(digit + 1, sizeof(char));
    int absvalue = abs(value);
    while (digit > 0){
-      str[--digit] = absvalue % 10 + '0'; // add digit backward since mod got digits in reverse order
-      absvalue /= 10;
+      str[--digit] = absvalue % BASETEN + '0'; // add digit backward since mod got digits in reverse order
+      absvalue /= BASETEN;
    }
    if (value < 0){
       str[0] = '-'; // negative number case
@@ -183,8 +184,8 @@ int firstnumstr(const char* str){
          flag = -1;
       }
       if (isdigit(str[index])){ //find the first digit
-         while (isdigit(str[index])){
-            value = value * 10 + (str[index] - '0');
+         while (isdigit(str[index])){ // from the first digit to last digit, calculate the value
+            value = value * BASETEN + (str[index] - '0');
             index++;
          }
          return flag * value;
@@ -195,14 +196,14 @@ int firstnumstr(const char* str){
 }
 
 int numdigits(int num){
-   int tens = 1;
    if (num < 0){
       return numdigits(-num) + 1; // negative num has one more: '-'
    }
    int i = 0;
+   int tens = 1;
    do{
       i++;
-      tens *= 10;
+      tens *= BASETEN;
    }while (tens <= num);
    return i;
 }
@@ -282,35 +283,38 @@ int lisp_length(const lisp* l){
 
 // Returns stringified version of list
 void lisp_tostring(const lisp* l, char* str){
-   memset(str, 0, strlen(str));
    if (lisp_isatomic(l)){ // when lisp is atom
       char* x = int2string(lisp_getval(l));
       strcpy(str, x);
       free(x);
       return;
    }
-   int index = 0;
-   str[index++] = '(';
+   //this tempstr act as parameter str, prefer to calloc one which is cleaner, str from outside might contain data rendering it difficult to manipulate
+   char* tempstr = (char*)calloc(LISTSTRLEN, sizeof(char)); 
+   char* head = tempstr;
+   *tempstr++ = '(';
    while(l){
-      if (lisp_isatomic(lisp_car(l))){ // when is atom, print value
+      if (lisp_isatomic(lisp_car(l))){
          int value = lisp_getval(lisp_car(l));
          char* strvalue = int2string(value);
-         strcat(str, strvalue);
+         strcat(tempstr, strvalue);
          free(strvalue);
-         index += numdigits(value);
-      }else if (lisp_car(l)){ // when as a sub lisp
-         char* substr = (char*)calloc(LISTSTRLEN, sizeof(char));
-         lisp_tostring(lisp_car(l), substr); // reucrsion
-         strcat(str, substr); // add sub string to the main string
-         index += strlen(substr);
+         tempstr = tempstr + numdigits(value);
+      }else if (lisp_car(l)){
+         char* substr = (char*)calloc(LISTSTRLEN, sizeof(char)); // pass in a calloced new str 
+         lisp_tostring(lisp_car(l), substr);
+         strcat(tempstr, substr);
+         tempstr = tempstr + strlen(substr);
          free(substr);
       }
       if (lisp_cdr(l)){
-         str[index++] = ' ';
+         *tempstr++ = ' ';
       }
-      l = lisp_cdr(l); //iterate through
+      l = lisp_cdr(l);
    }
-   strcat(str, ")"); //strcat add \0 automatically
+   strcat(tempstr, ")");
+   strcpy(str, head);
+   free(head);
 }
 
 // Clears up all space used
@@ -334,7 +338,7 @@ void lisp_free(lisp** l){
 
 // Builds a new list based on the string 'str'
 lisp* lisp_fromstring(const char* str){
-   if (numdigits(firstnumstr(str)) == (int)strlen(str)){
+   if (numdigits(firstnumstr(str)) == (int)strlen(str)){ //when only a single number
       return lisp_atom(firstnumstr(str));
    }
    

@@ -4,8 +4,8 @@
 #include <string.h>
 #include <stdio.h>
 
-#define NIL NULL
 #define BASETEN 10
+#define NIL NULL
 #define LISTSTRLEN 1000
 
 void test(){
@@ -154,15 +154,19 @@ void pend(lisp** l, lisp* sub){
 }
 
 char* strsublisp(const char* str){
-   int right = indexrightbracket(0, str); //str[0] == '(', and find index for ')'
-   char* substr = (char*)calloc(right + 2, sizeof(char));
+   assert(str[0] == '(');
+   int left = 0;
+   int right = indexrightbracket(left, str);
+   assert(right != -1);
+   int len = right - left + 1; // e.g. (0) length is 3, in which case left = 0, right = 2;
+   char* substr = (char*)calloc(len + 1, sizeof(char)); // one extra for '\0';
    strncpy(substr, str, right + 1); // cut down the str of the sublisp
    return substr;
 }
 
 char* int2string(int value){
    int digit = numdigits(value); 
-   char* str = (char*)calloc(digit + 1, sizeof(char));
+   char* str = (char*)calloc(digit + 1, sizeof(char)); 
    int absvalue = abs(value);
    while (digit > 0){
       str[--digit] = absvalue % BASETEN + '0'; // add digit backward since mod got digits in reverse order
@@ -233,17 +237,24 @@ lisp* lisp_cons(const lisp* l1,  const lisp* l2){
 // Returns the car (1st) component of the list 'l'.
 // Does not copy any data.
 lisp* lisp_car(const lisp* l){
+   if (!l){
+      return NIL;
+   }
    return l->car;
 }
 
 // Returns the cdr (all but the 1st) component of the list 'l'.
 // Does not copy any data.
 lisp* lisp_cdr(const lisp* l){
+   if (!l){
+      return NIL;
+   }
    return l->cdr;
 }
 
 // Returns the data/value stored in the cons 'l'
 atomtype lisp_getval(const lisp* l){
+   assert(l);
    return l->value;
 }
 
@@ -254,7 +265,7 @@ bool lisp_isatomic(const lisp* l){
    }
    return !lisp_car(l) && !lisp_cdr(l);
 }
-
+   
 // Returns a deep copy of the list 'l'
 lisp* lisp_copy(const lisp* l){
    if (l == NIL){
@@ -266,13 +277,13 @@ lisp* lisp_copy(const lisp* l){
    this->car = lisp_copy(l->car);
    return this;
 }
-
+   
 // Returns number of components in the list.
 int lisp_length(const lisp* l){
    if (!l || lisp_isatomic(l)){
       return 0;
    }
-
+   
    int cnt = 0;
    while (l){
       l = lisp_cdr(l);
@@ -320,7 +331,7 @@ void lisp_tostring(const lisp* l, char* str){
 // Clears up all space used
 // Double pointer allows function to set 'l' to NULL on success
 void lisp_free(lisp** l){
-   if (l == NULL || *l == NULL){
+   if (l == NULL || *l == NIL){
       return;
    }
 
@@ -330,7 +341,7 @@ void lisp_free(lisp** l){
    lisp_free(&car);
    lisp_free(&cdr);
    free(*l);
-   *l = NULL;
+   *l = NIL;
    return;
 }
 
@@ -354,7 +365,7 @@ lisp* lisp_fromstring(const char* str){
          char* substr = strsublisp(str + index);
          lisp* sub = lisp_fromstring(substr);
          pend(&this, sub);
-         int len = strlen(substr);
+         int len = (int)strlen(substr);
          index = index + len - 1;
          free(substr);
       }

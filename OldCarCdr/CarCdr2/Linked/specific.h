@@ -11,7 +11,9 @@ int indexrightbracket(int leftbracket, const char* str);
 void pend(lisp** l, lisp* sub);
 //when a lisp has a sublisp, return the str of this sublisp
 char* strsublisp(const char* str);
-//turn integer into string, which use exact alloced spaces for an integer rather than into a fixed-size huge array
+//turn integer into string, which use exact alloced spaces for an integer
+// if use sprintf, need to pass in an fixed-size huge char array, and i don't like that
+// each has pros and cons
 char* int2string(int value);
 //for a str which stands for lisp, locate its first num 
 int firstnumstr(const char* str);

@@ -1,5 +1,6 @@
 #include "lisp.h"
 #include "specific.h"
+#include <stdio.h>
 
 // It's more Lisp-like to call it cons() etc., not lisp_cons()
 #define atom(X)       lisp_atom(X)
@@ -67,8 +68,6 @@ int main(void)
    assert(l4);
    assert(lisp_length(l4)==4);
    lisp_tostring(l4, str);
-   printf("aaaaaa:");
-   puts(str);
    assert(strcmp(str, "((1 2) 3 4 5)")==0);
 
    lisp* l5 = cons(atom(0), l4);
@@ -131,6 +130,7 @@ int main(void)
    for(int i=0; i<9; i++){
       lisp* f1 = fromstring(inp[i]);
       lisp_tostring(f1, str);
+      puts(str);
       assert(strcmp(str, inp[i])==0);
       lisp_free(&f1);
       assert(!f1);

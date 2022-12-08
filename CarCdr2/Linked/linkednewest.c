@@ -2,7 +2,6 @@
 #include "specific.h"
 #include <ctype.h>
 #include <string.h>
-#include <stdio.h>
 
 #define NIL NULL
 
@@ -26,13 +25,13 @@ void test(){
    // strsublisp test
    strcpy(str, "(1 2 (7 8) (3 4 (5 6)))");
    char* str1 = strsublisp(str + 5);
-   assert(strcmp(str1, "(7 8)") == 0);
+   assert(strcmp(str1, "7 8") == 0);
 
    char* str2 = strsublisp(str + 11);
-   assert(strcmp(str2, "(3 4 (5 6))") == 0);
+   assert(strcmp(str2, "3 4 (5 6)") == 0);
 
    char* str3 = strsublisp(str + 16);
-   assert(strcmp(str3, "(5 6)") == 0);
+   assert(strcmp(str3, "5 6") == 0);
    free(str1);
    free(str2);
    free(str3);
@@ -43,10 +42,10 @@ void test(){
    s2 = strsublisp("(1 (2 3))");
    s3 = strsublisp("(1 (2 (4 5) 3))");
    s4 = strsublisp("(1 (2 (3 (4))))");
-   assert(strcmp(s1, "(4 5)") == 0);
-   assert(strcmp(s2, "(1 (2 3))") == 0);
-   assert(strcmp(s3, "(1 (2 (4 5) 3))") == 0);
-   assert(strcmp(s4, "(1 (2 (3 (4))))") == 0);
+   assert(strcmp(s1, "4 5") == 0);
+   assert(strcmp(s2, "1 (2 3)") == 0);
+   assert(strcmp(s3, "1 (2 (4 5) 3)") == 0);
+   assert(strcmp(s4, "1 (2 (3 (4)))") == 0);
 
 
    // int2string test
@@ -73,6 +72,7 @@ void test(){
    lisp* sub6 = lisp_fromstring(inp[6]);
    pend(&main, sub0);
    lisp_tostring(main, str);
+   puts(str);
    assert(strcmp(str, "(((1 (2 (3 (4))))))") == 0);
    pend(&main, sub1);
    lisp_tostring(main, str);
@@ -154,8 +154,8 @@ void pend(lisp** l, lisp* sub){
 
 char* strsublisp(const char* str){
    int right = indexrightbracket(0, str); //str[0] == '(', and find index for ')'
-   char* substr = (char*)calloc(right + 2, sizeof(char));
-   strncpy(substr, str, right + 1); // cut down the str of the sublisp
+   char* substr = (char*)calloc(right, sizeof(char));
+   strncpy(substr, str + 1, right - 1); // cut down the str of the sublisp
    return substr;
 }
 
@@ -312,6 +312,34 @@ void lisp_tostring(const lisp* l, char* str){
    }
    strcat(str, ")"); //strcat add \0 automatically
 }
+/*
+   char* tempstr = (char*)calloc(LISTSTRLEN, sizeof(char));
+   char* head = tempstr;
+   *tempstr++ = '(';
+   while(l){
+      if (lisp_isatomic(lisp_car(l))){
+         int value = lisp_getval(lisp_car(l));
+         char* strvalue = int2string(value);
+         strcat(tempstr, strvalue);
+         free(strvalue);
+         tempstr = tempstr + numdigits(value);
+      }else if (lisp_car(l)){
+         char* substr = (char*)calloc(LISTSTRLEN, sizeof(char));
+         lisp_tostring(lisp_car(l), substr);
+         strcat(tempstr, substr);
+         tempstr = tempstr + strlen(substr);
+         free(substr);
+      }
+      if (lisp_cdr(l)){
+         *tempstr++ = ' ';
+      }
+      l = lisp_cdr(l);
+   }
+   strcat(tempstr, ")");
+   strcpy(str, head);
+   free(head);
+*/
+
 
 // Clears up all space used
 // Double pointer allows function to set 'l' to NULL on success
@@ -337,10 +365,9 @@ lisp* lisp_fromstring(const char* str){
    if (numdigits(firstnumstr(str)) == (int)strlen(str)){
       return lisp_atom(firstnumstr(str));
    }
-   
    lisp* this = NIL;
    int index = 0;
-   while (index < (int)strlen(str)){
+   while (str[index] != '\0'){
       if (isdigit(str[index]) || str[index] == '-'){
          int value = firstnumstr(str + index);
          pend(&this, lisp_atom(value));
@@ -348,10 +375,15 @@ lisp* lisp_fromstring(const char* str){
          index = index + digit - 1;
       }else if (str[index] == '(' && sublisp(str, index)){
          char* substr = strsublisp(str + index);
-         lisp* sub = lisp_fromstring(substr);
-         pend(&this, sub);
-         int len = strlen(substr);
-         index = index + len - 1;
+         if (numdigits(firstnumstr(substr)) == (int)strlen(substr)){
+            pend(&this, lisp_cons(lisp_atom(firstnumstr(substr)), NIL));
+            index = index + strlen(substr);
+         }else{
+            lisp* sub = lisp_fromstring(substr);
+            pend(&this, sub);
+            int len = strlen(substr);
+            index = index + len + 1;
+         }
          free(substr);
       }
       index++;

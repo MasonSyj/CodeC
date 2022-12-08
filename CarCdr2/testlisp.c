@@ -28,7 +28,7 @@ int main(void)
 {
    test();
    char str[LISTSTRLEN];
-   printf("Test Lisp (%s) Start ... ", LISPIMPL);
+   printf("Test Lisp (%s) Start ... \n", LISPIMPL);
 
    lisp_tostring(NIL, str);
    assert(lisp_length(NIL)==0);
@@ -67,6 +67,8 @@ int main(void)
    assert(l4);
    assert(lisp_length(l4)==4);
    lisp_tostring(l4, str);
+   printf("aaaaaa:");
+   puts(str);
    assert(strcmp(str, "((1 2) 3 4 5)")==0);
 
    lisp* l5 = cons(atom(0), l4);

@@ -4,24 +4,26 @@
 
 //check if lisp's cdr or car part holds a sublisp rather than the atom
 //begining check from str[index]
-bool sublisp(const char* str, int index);
+bool issublisp(const char* str, int index);
+// build from cons, for a lisp, pend new things either it's atom or sublisp at the end
+// only use at extension part for better readability
+void lisp_pend(lisp** l, lisp* sub);
+//when a lisp has a sublisp, return the str of this sublisp
+char* sublisp_tostring(const char* str);
+//turn integer into string, which calloc a string for exact space then use snprintf
+char* int2string(int value);
 //in a str, for a left bracket, find index for the corresponding right bracket
 int indexrightbracket(int leftbracket, const char* str);
-// for a lisp, pend new things either it's atom or sublisp at the end
-void pend(lisp** l, lisp* sub);
-//when a lisp has a sublisp, return the str of this sublisp
-char* strsublisp(const char* str);
-//turn integer into string, which use exact alloced spaces for an integer
-// if use sprintf, need to pass in an fixed-size huge char array, and i don't like that
-// each has pros and cons
-char* int2string(int value);
-//for a str which stands for lisp, locate its first num 
+//for a str which stands for lisp, locate its first num and use sscanf to make it an int type
 int firstnumstr(const char* str);
 //count how many digits a num has, negative add 1 for '-' mark
 int numdigits(int num);
+//isnum check, in a char array, first char needs to be digit or '-'
+bool isnum(char x);
+
 
 struct lisp{
-   atomtype value;
+   atomtype val;
    struct lisp* car;
    struct lisp* cdr;
 };

@@ -166,7 +166,9 @@ char* strsublisp(const char* str){
 
 char* int2string(int value){
    int digit = numdigits(value); 
-   char* str = (char*)calloc(digit + 1, sizeof(char)); 
+   char* str = (char*)calloc(digit + 1, sizeof(char));
+   snprintf(str, digit, "%d", value);
+/*
    int absvalue = abs(value);
    while (digit > 0){
       str[--digit] = absvalue % BASETEN + '0'; // add digit backward since mod got digits in reverse order
@@ -175,6 +177,7 @@ char* int2string(int value){
    if (value < 0){
       str[0] = '-'; // negative number case
    }
+*/
    return str;
 }
 

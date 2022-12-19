@@ -1,0 +1,9 @@
+bool isPalindrome(int x){
+    long y = 0;
+	long temp = x;
+	while (x > 0){
+		y = y * 10 + x % 10;
+		x /=10;
+	}
+	return temp == y;
+}

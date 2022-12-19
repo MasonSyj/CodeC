@@ -1,0 +1,46 @@
+void letterChange(char *s){
+	char *temp = s;
+	while (*temp != '\0'){
+		switch (*temp){
+			case 'I' : *temp = 'A';break;
+			case 'V' : *temp = 'B';break;
+			case 'X' : *temp = 'C';break;
+			case 'L' : *temp = 'D';break;
+			case 'C' : *temp = 'E';break;
+			case 'D' : *temp = 'F';break;
+			case 'M' : *temp = 'G';break;
+		}
+		temp++;
+	}
+}
+
+int letterToNum(char a){
+	int x;
+	switch (a){
+		case 'A': x = 1;break;
+		case 'B': x = 5;break;
+		case 'C': x = 10;break;
+		case 'D': x = 50;break;
+		case 'E': x = 100;break;
+		case 'F': x = 500;break;
+		case 'G': x = 1000;break;
+	}
+	return x;
+}
+
+int romanToInt(char * s){
+    int sum = 0;
+	letterChange(s);
+	while (*s != '\0'){
+		if (*s >= *(s+1)){
+			sum += letterToNum(*s);
+			s++;
+		}
+		else{
+			sum += letterToNum(*(s+1)) - letterToNum(*s);
+			s+=2;
+		}
+		
+	}
+	return sum;
+}

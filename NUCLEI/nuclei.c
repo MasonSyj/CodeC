@@ -5,10 +5,11 @@
 #include <ctype.h>
 #include <assert.h>
 
-#define ROW 100
+#define ROW 1000
 #define COL 100
 #define STRSAME(A,B) (strcmp(A,B) == 0)
-#define ERROR(PHARSE) { fprintf(stderr, "Fatal Error %s occurred in %s, line %d\n", PHARSE, __FILE__, __LINE__); exit(EXIT_FAILURE);}
+#define ERROR(PHARSE) { fprintf(stderr, "Fatal Error %s occurred in %s, line %d, currentrow %d\n"\
+	, PHARSE, __FILE__, __LINE__, this->currentrow); exit(EXIT_FAILURE);}
 #define CODESIZE 1000
 
 typedef struct lisp{
@@ -89,18 +90,16 @@ int main(void){
 
    this = (code*)calloc(1, sizeof(code));
 //   fp = fopen("demo2.ncl", "r");
-   strcpy(this->word[this->currentrow++], "(");
-   strcpy(this->word[this->currentrow++], "(");
-   strcpy(this->word[this->currentrow++], "WHILE");
-   strcpy(this->word[this->currentrow++], "(");
-   strcpy(this->word[this->currentrow++], "LESS");
-   strcpy(this->word[this->currentrow++], "'1'");
-   strcpy(this->word[this->currentrow++], "'2'");
-   strcpy(this->word[this->currentrow++], ")");
-   strcpy(this->word[this->currentrow++], "(");
-   strcpy(this->word[this->currentrow++], "(");
+   this->word[this->currentrow++][0] = '(';
+   this->word[this->currentrow++][0] = '(';
    strcpy(this->word[this->currentrow++], "PRINT");
-   strcpy(this->word[this->currentrow++], "\"LOOP FOREVER\"");
+   strcpy(this->word[this->currentrow++], "(");
+   strcpy(this->word[this->currentrow++], "CONS");
+   strcpy(this->word[this->currentrow++], "'1'");
+   strcpy(this->word[this->currentrow++], "(");
+   strcpy(this->word[this->currentrow++], "CONS");
+   strcpy(this->word[this->currentrow++], "'2'");
+   strcpy(this->word[this->currentrow++], "NIL");
    strcpy(this->word[this->currentrow++], ")");
    strcpy(this->word[this->currentrow++], ")");
    strcpy(this->word[this->currentrow++], ")");
@@ -151,7 +150,7 @@ void instru(void){
    this->currentrow++;
    func();
    if (!STRSAME(this->word[this->currentrow], ")")){
-      ERROR("No ( in instru ?");
+      ERROR("No ) in instru ?");
    }
    
 }
@@ -405,11 +404,9 @@ bool islist(){
       if (retvalue == false){
          ERROR("invalid list");
       }
-      this->currentrow++;
       if (!STRSAME(this->word[this->currentrow], ")")){
          ERROR("invalid list");
       }
-      this->currentrow++;
       return true;
    }
    

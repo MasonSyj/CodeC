@@ -30,6 +30,7 @@ typedef struct liststack{
 code* this;
 FILE* fp;
 
+/*
 void parse(){
    char* str = (char*)calloc(CODESIZE, sizeof(char));
    char* temp = (char*)calloc(ROW, sizeof(char));
@@ -52,8 +53,10 @@ void parse(){
       }
    }
 }
+*/
+
 void Prog(void);
-void sinstru(void);
+void instrus(void);
 void instru(void);
 void func(void);
 /////
@@ -74,9 +77,53 @@ bool isvar();
 bool isliteral();
 bool isstring();
 
+void test();
+
+void test(){
+   this->currentrow = 3;
+   assert(isvar());
+   this->currentrow = 0;
+}
+
 int main(void){
+
    this = (code*)calloc(1, sizeof(code));
-   fp = fopen("demo2.ncl", "r");
+//   fp = fopen("demo2.ncl", "r");
+   strcpy(this->word[this->currentrow++], "(");
+   strcpy(this->word[this->currentrow++], "(");
+   strcpy(this->word[this->currentrow++], "WHILE");
+   strcpy(this->word[this->currentrow++], "(");
+   strcpy(this->word[this->currentrow++], "LESS");
+   strcpy(this->word[this->currentrow++], "'1'");
+   strcpy(this->word[this->currentrow++], "'2'");
+   strcpy(this->word[this->currentrow++], ")");
+   strcpy(this->word[this->currentrow++], "(");
+   strcpy(this->word[this->currentrow++], "(");
+   strcpy(this->word[this->currentrow++], "PRINT");
+   strcpy(this->word[this->currentrow++], "\"LOOP FOREVER\"");
+   strcpy(this->word[this->currentrow++], ")");
+   strcpy(this->word[this->currentrow++], ")");
+   strcpy(this->word[this->currentrow++], ")");
+   strcpy(this->word[this->currentrow++], ")");
+   this->currentrow = 0;
+   Prog();
+
+/*
+(
+(
+PRINT
+(
+CONS
+'1'
+(
+CONS
+'2'
+NIL
+)
+)
+)
+)
+*/
 }
 
 void Prog(void){
@@ -84,17 +131,17 @@ void Prog(void){
       ERROR("No Begin statement ?");
    }
    this->currentrow++;
-   sinstru();
+   instrus();
+   printf("Parsed OK");
 }
 
-void sinstru(void){
+void instrus(void){
    if (STRSAME(this->word[this->currentrow], ")")){
       return;
    }
-   this->currentrow++;
    instru();
    this->currentrow++;
-   sinstru();   
+   instrus();   
 }
 
 void instru(void){
@@ -103,7 +150,6 @@ void instru(void){
    }
    this->currentrow++;
    func();
-   this->currentrow++;
    if (!STRSAME(this->word[this->currentrow], ")")){
       ERROR("No ( in instru ?");
    }
@@ -114,25 +160,21 @@ void func(void){
    bool flag = false;
    flag = ret();
    if (flag == true){
-      this->currentrow++;
       return;
    }
    
    flag = iofunc();
    if (flag == true){
-      this->currentrow++;
       return;
    }
    
    flag = iffunc();
    if (flag == true){
-      this->currentrow++;
       return;
    }
    
    flag = loop();
    if (flag == true){
-      this->currentrow++;
       return;
    }
    
@@ -144,19 +186,16 @@ bool ret(){
 
    flag = listfunc();
    if (flag == true){
-      this->currentrow++;
       return true;
    }
    	
    flag = intfunc();
    if (flag == true){
-      this->currentrow++;
       return true;
    }
    
    flag = boolfunc();
    if (flag == true){
-      this->currentrow++;
       return true;
    }
    
@@ -173,13 +212,16 @@ bool listfunc(void){
 
    if (STRSAME(this->word[this->currentrow], "CDR")){
       this->currentrow++;
+      islist();
       this->currentrow++;
       return true;
    }
 
    if (STRSAME(this->word[this->currentrow], "CONS")){
       this->currentrow++;
+      islist();
       this->currentrow++;
+      islist();
       this->currentrow++;
       return true;
    }
@@ -190,13 +232,16 @@ bool listfunc(void){
 bool intfunc(void){
    if (STRSAME(this->word[this->currentrow], "PLUS")){
       this->currentrow++;
+      islist();
       this->currentrow++;
+      islist();
       this->currentrow++;
       return true;
    }
 
    if (STRSAME(this->word[this->currentrow], "LENGTH")){
       this->currentrow++;
+      islist();
       this->currentrow++;
       return true;
    }
@@ -207,20 +252,27 @@ bool intfunc(void){
 bool boolfunc(void){
    if (STRSAME(this->word[this->currentrow], "LESS")){
       this->currentrow++;
+      islist();
       this->currentrow++;
+      islist();
       this->currentrow++;
       return true;
    }
 
    if (STRSAME(this->word[this->currentrow], "GREATER")){
       this->currentrow++;
+      islist();
+      this->currentrow++;
+      islist();
       this->currentrow++;
       return true;
    }
 
    if (STRSAME(this->word[this->currentrow], "EQUAL")){
       this->currentrow++;
+      islist();
       this->currentrow++;
+      islist();
       this->currentrow++;
       return true;
    }
@@ -232,14 +284,12 @@ bool iofunc(void){
    bool flag = false;
    flag = set();
    if (flag == true){
-      this->currentrow++;
       return true;
    }
 
 
    flag = print();
    if (flag == true){
-      this->currentrow++;
       return true;
    }
 
@@ -256,6 +306,8 @@ bool set(void){
       if(!islist(this->word[this->currentrow])){
          ERROR("Set function miss list");
       }
+      this->currentrow++;
+      return true;
    }
    return false;
 }
@@ -264,8 +316,10 @@ bool print(void){
    if (STRSAME(this->word[this->currentrow], "PRINT")){
       this->currentrow++;
       if(islist()){
+         this->currentrow++;
          return true;
       }else if(isstring()){
+         this->currentrow++;
          return true;
       }else{
          ERROR("Print function miss list or string element");
@@ -288,7 +342,7 @@ bool iffunc(void){
       }
 
       this->currentrow++;
-      if (!STRSAME(this->word[this->currentrow], "(")){
+      if (!STRSAME(this->word[this->currentrow], ")")){
          ERROR("No ) in if function condition stage.");
       }
 
@@ -297,14 +351,14 @@ bool iffunc(void){
          ERROR("No ( in if function first action stage.");
       }
 
-      sinstru();
+      instrus();
 
       this->currentrow++;
       if (!STRSAME(this->word[this->currentrow], "(")){
          ERROR("No ( in if function second action stage.");
       }
-
-      sinstru();
+      this->currentrow++;
+      instrus();
 
       return true;
    }
@@ -322,9 +376,8 @@ bool loop(void){
       if (!boolf){
          ERROR("No boolfunctionb in loop function condition stage.");
       }
-
-      this->currentrow++;
-      if (!STRSAME(this->word[this->currentrow], "(")){
+      
+      if (!STRSAME(this->word[this->currentrow], ")")){
          ERROR("No ) in loop function condition stage.");
       }
 
@@ -332,8 +385,8 @@ bool loop(void){
       if (!STRSAME(this->word[this->currentrow], "(")){
          ERROR("No ( in loop function first action stage.");
       }
-
-      sinstru();
+      this->currentrow++;
+      instrus();
 
       return true;
    }
@@ -356,14 +409,15 @@ bool islist(){
       if (!STRSAME(this->word[this->currentrow], ")")){
          ERROR("invalid list");
       }
+      this->currentrow++;
       return true;
    }
    
-   ERROR("invalid list");
+   return false;
 }
 
 bool isvar(){
-   return (int)strlen(this->word[this->currentrow]) && isdigit(this->word[this->currentrow][0]);
+   return (int)strlen(this->word[this->currentrow]) == 1 && isupper(this->word[this->currentrow][0]);
 }
 
 bool isliteral(){
@@ -375,5 +429,3 @@ bool isstring(){
    int lastchar = (int)strlen(this->word[this->currentrow]) - 1;
    return this->word[this->currentrow][0] == '\"' && this->word[this->currentrow][lastchar] == '\"';
 }
-
-

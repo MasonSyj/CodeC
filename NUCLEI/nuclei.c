@@ -4,16 +4,23 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include <assert.h>
+#include <stdarg.h>
 
 #define ROW 1000
 #define COL 100
+#define NIL NULL
+#define LISTSTRLEN 1000
+#define BASETEN 10
 #define STRSAME(A,B) (strcmp(A,B) == 0)
 #define ERROR(PHARSE) { fprintf(stderr, "Fatal Error %s occurred in %s, line %d, currentrow %d\n"\
 	, PHARSE, __FILE__, __LINE__, this->currentrow); exit(EXIT_FAILURE);}
 #define CODESIZE 1000
+#define LEFTBRACKET '(' //maybe unnecessary, in case it maybe other type like [] or {}
+#define RIGHTBRACKET ')'
+typedef int atomtype;
 
 typedef struct lisp{
-   int value;
+   int val;
    struct lisp* car;
    struct lisp* cdr;
 }lisp;
@@ -24,37 +31,14 @@ typedef struct code{
 }code;
 
 typedef struct liststack{
-   lisp* l1;
-   lisp* l2;
+   int top;
+   lisp* l[2];
 }stack;
 
 code* this;
+lisp* var[26];
 FILE* fp;
-
-/*
-void parse(){
-   char* str = (char*)calloc(CODESIZE, sizeof(char));
-   char* temp = (char*)calloc(ROW, sizeof(char));
-   assert(str);
-   assert(temp);
-
-   while (fgets(temp, fp, ROW) == 1){
-      strcat(str, temp);
-   }
-
-   while (*str != '\0'){
-      switch (*str){
-         case '(': this->word[this->currentword++][0] = '('; break;
-         case ')': this->word[this->currentword++][0] = ')'; break;
-         case '\'': literalparse(str); break;
-         case '\"': literalparse(str); break;
-         case ' ':str++; break;
-  
-         default: digitparse(str); break;      
-      }
-   }
-}
-*/
+stack* s;
 
 void Prog(void);
 void instrus(void);
@@ -78,51 +62,105 @@ bool isvar();
 bool isliteral();
 bool isstring();
 
+void parse();
+void literalparse(char** pstr);
+void stringparse(char** pstr);
+void letterparse(char** pstr);
+char* list(int beginrow);
+
+lisp* literal2lisp(int row);
+char* list2str(int beginrow);
+
+//check if lisp's cdr or car part holds a sublisp rather than the atom
+//begining check from str[index]
+bool issublisp(const char* str, int index);
+// build from cons, for a lisp, pend new things either it's atom or sublisp at the end
+// only use at extension part for better readability
+void lisp_pend(lisp** l, lisp* sub);
+//when a lisp has a sublisp, return the str of this sublisp
+char* sublisp_tostring(const char* str);
+//turn integer into string, which calloc a string for exact space then use snprintf
+char* int2string(int value);
+//in a str, for a left bracket, find index for the corresponding right bracket
+int indexrightbracket(int leftbracket, const char* str);
+//for a str which stands for lisp, locate its first num and use sscanf to make it an int type
+int firstnumstr(const char* str);
+//count how many digits a num has, negative add 1 for '-' mark
+int numdigits(int num);
+//isnum check, in a char array, first char needs to be digit or '-'
+bool isnum(char x);
+
+// Returns element 'a' - this is not a list, and
+// by itself would be printed as e.g. "3", and not "(3)"
+lisp* lisp_atom(const atomtype a);
+
+// Returns a list containing the car as 'l1'
+// and the cdr as 'l2'- data in 'l1' and 'l2' are reused,
+// and not copied. Either 'l1' and/or 'l2' can be NULL
+lisp* lisp_cons(const lisp* l1,  const lisp* l2);
+
+// Returns the car (1st) component of the list 'l'.
+// Does not copy any data.
+lisp* lisp_car(const lisp* l);
+
+// Returns the cdr (all but the 1st) component of the list 'l'.
+// Does not copy any data.
+lisp* lisp_cdr(const lisp* l);
+
+// Returns the data/value stored in the cons 'l'
+atomtype lisp_getval(const lisp* l);
+
+// Returns a boolean depending up whether l points to an atom (not a list)
+bool lisp_isatomic(const lisp* l);
+
+// Returns a deep copy of the list 'l'
+lisp* lisp_copy(const lisp* l);
+
+// Returns number of components in the list.
+int lisp_length(const lisp* l);
+
+// Returns stringified version of list
+void lisp_tostring(const lisp* l, char* str);
+
+// Clears up all space used
+// Double pointer allows function to set 'l' to NULL on success
+void lisp_free(lisp** l);
+
+/* ------------- Tougher Ones : Extensions ---------------*/
+
+// Builds a new list based on the string 'str'
+lisp* lisp_fromstring(const char* str);
+
+// Returns a new list from a set of existing lists.
+// A variable number 'n' lists are used.
+// Data in existing lists are reused, and not copied.
+// You need to understand 'varargs' for this.
+lisp* lisp_list(const int n, ...);
+
+// Allow a user defined function 'func' to be applied to
+// each atom in the list l.
+// The user-defined 'func' is passed a pointer to a cons,
+// and will maintain an accumulator of the result.
+void lisp_reduce(void (*func)(lisp* l, atomtype* n), lisp* l, atomtype* acc);
+
 void test();
 
 void test(){
-   this->currentrow = 3;
-   assert(isvar());
-   this->currentrow = 0;
+   
 }
 
 int main(void){
-
+   
+   s = (stack*)calloc(1, sizeof(stack));
    this = (code*)calloc(1, sizeof(code));
-//   fp = fopen("demo2.ncl", "r");
-   this->word[this->currentrow++][0] = '(';
-   this->word[this->currentrow++][0] = '(';
-   strcpy(this->word[this->currentrow++], "PRINT");
-   strcpy(this->word[this->currentrow++], "(");
-   strcpy(this->word[this->currentrow++], "CONS");
-   strcpy(this->word[this->currentrow++], "'1'");
-   strcpy(this->word[this->currentrow++], "(");
-   strcpy(this->word[this->currentrow++], "CONS");
-   strcpy(this->word[this->currentrow++], "'2'");
-   strcpy(this->word[this->currentrow++], "NIL");
-   strcpy(this->word[this->currentrow++], ")");
-   strcpy(this->word[this->currentrow++], ")");
-   strcpy(this->word[this->currentrow++], ")");
-   strcpy(this->word[this->currentrow++], ")");
+   for (int i = 0; i < 26; i++){
+      var[i] = (lisp*)calloc(1, sizeof(lisp));
+   }
+   fp = fopen("demo1.ncl", "r");
+   parse();
    this->currentrow = 0;
    Prog();
 
-/*
-(
-(
-PRINT
-(
-CONS
-'1'
-(
-CONS
-'2'
-NIL
-)
-)
-)
-)
-*/
 }
 
 void Prog(void){
@@ -204,24 +242,42 @@ bool ret(){
 bool listfunc(void){
    if (STRSAME(this->word[this->currentrow], "CAR")){
       this->currentrow++;
+      
+      int temp = this->currentrow;
       islist();
+      char* tempstr = list2str(temp);
+      s->l[s->top++] = lisp_fromstring(tempstr);
       this->currentrow++;
       return true;
    }
 
    if (STRSAME(this->word[this->currentrow], "CDR")){
       this->currentrow++;
+      
+      int temp = this->currentrow;
       islist();
+      char* tempstr = list2str(temp);
+      s->l[s->top++] = lisp_fromstring(tempstr);
       this->currentrow++;
       return true;
    }
 
    if (STRSAME(this->word[this->currentrow], "CONS")){
       this->currentrow++;
+      
+      int temp = this->currentrow;
       islist();
+      char* tempstr = list2str(temp);
+      s->l[s->top++] = lisp_fromstring(tempstr);
       this->currentrow++;
+      
+      
+      temp = this->currentrow;
       islist();
+      tempstr = list2str(temp);
+      s->l[s->top++] = lisp_fromstring(tempstr);
       this->currentrow++;
+      
       return true;
    }
 	
@@ -301,10 +357,23 @@ bool set(void){
       if(!isvar(this->word[this->currentrow])){
          ERROR("Set function miss var");
       }
+      char x = this->word[this->currentrow][0];
+      
       this->currentrow++;
+      int beginrow = this->currentrow;
+      
       if(!islist(this->word[this->currentrow])){
          ERROR("Set function miss list");
       }
+      
+      if (isvar(this->word[beginrow])){
+         var[x - 'A'] = var[this->word[beginrow][0] - 'A'];
+      }else if (STRSAME(this->word[beginrow], "NIL")){
+         var[x - 'A'] = NIL;
+      }else if (this->word[beginrow][0] == '\''){
+         var[x - 'A'] = literal2lisp(beginrow);
+      }
+      
       this->currentrow++;
       return true;
    }
@@ -337,18 +406,18 @@ bool iffunc(void){
       this->currentrow++;
       bool boolf = boolfunc();
       if (!boolf){
-         ERROR("No boolfunctionb in if function condition stage.");
+         ERROR("No bool function in if function condition stage.");
       }
 
-      this->currentrow++;
       if (!STRSAME(this->word[this->currentrow], ")")){
          ERROR("No ) in if function condition stage.");
       }
-
       this->currentrow++;
+
       if (!STRSAME(this->word[this->currentrow], "(")){
          ERROR("No ( in if function first action stage.");
       }
+      this->currentrow++;
 
       instrus();
 
@@ -373,7 +442,7 @@ bool loop(void){
       this->currentrow++;
       bool boolf = boolfunc();
       if (!boolf){
-         ERROR("No boolfunctionb in loop function condition stage.");
+         ERROR("No bool function in loop function condition stage.");
       }
       
       if (!STRSAME(this->word[this->currentrow], ")")){
@@ -425,4 +494,384 @@ bool isliteral(){
 bool isstring(){
    int lastchar = (int)strlen(this->word[this->currentrow]) - 1;
    return this->word[this->currentrow][0] == '\"' && this->word[this->currentrow][lastchar] == '\"';
+}
+
+void parse(){
+   char* str = (char*)calloc(ROW, sizeof(char));
+   char* temp = (char*)calloc(ROW, sizeof(char));
+   assert(str);
+   assert(temp);
+
+   while (fgets(temp, ROW, fp)){
+      if (temp[0] != '#'){
+         temp[((int)strlen(temp) - 1)] = '\0';
+         strcat(str, temp);
+      }
+   }
+
+   while (*str != '\0'){
+      switch (*str){
+         case '(': this->word[this->currentrow++][0] = '('; str++; break;
+         case ')': this->word[this->currentrow++][0] = ')'; str++; break;
+         case '\'': literalparse(&str); break;
+         case '"': stringparse(&str); break;
+         case ' ':str++; break;
+         default: letterparse(&str); break;
+      }
+   }
+   	
+   int i = 0;
+   while (this->word[i][0] != '\0'){
+      puts(this->word[i++]);
+   }
+
+}
+
+void literalparse(char** pstr){
+   char* str = *pstr;
+   int i = 0;
+   assert(str[i++] == '\'');
+   while (str[i] != '\''){
+      i++;
+   }
+   strncpy(this->word[this->currentrow++], str, i + 1);
+   *pstr += i + 1;
+}
+
+void stringparse(char** pstr){
+   char* str = *pstr;
+   int i = 0;
+   assert(str[i++] == '"');
+   while (str[i] != '"'){
+      i++;
+   }
+   strncpy(this->word[this->currentrow++], str, i + 1);
+   *pstr += i + 1;
+}
+
+void letterparse(char** pstr){
+   char* str = *pstr;
+   int i = 0;
+   assert(isupper(str[i++]));
+   while (isupper(str[i])){
+      i++;
+   }
+   strncpy(this->word[this->currentrow++], str, i);
+   *pstr += i;
+}
+
+lisp* literal2lisp(int row){
+   int len = (int)strlen(this->word[row]);
+   this->word[row][len - 1] = '\0';
+   return lisp_fromstring(&this->word[row][1]);
+}
+
+// Returns element 'a' - this is not a list, and
+// by itelf would be printed as e.g. "3", and not "(3)"
+lisp* lisp_atom(const atomtype a){
+   lisp* this = (lisp*)calloc(1, sizeof(lisp));
+   assert(this);
+   this->val = a;
+   assert(!lisp_car(this));
+   assert(!lisp_cdr(this));
+   return this;
+}
+
+// Returns a list containing the car as 'l1'
+// and the cdr as 'l2'- data in 'l1' and 'l2' are reused,
+// and not copied. Either 'l1' and/or 'l2' can be NULL
+lisp* lisp_cons(const lisp* l1,  const lisp* l2){
+   lisp* this = (lisp*)calloc(1, sizeof(lisp));
+   assert(this);
+   this->car = (lisp*)l1;
+   this->cdr = (lisp*)l2;
+   return this;
+}
+
+// Returns the car (1st) component of the list 'l'.
+// Does not copy any data.
+lisp* lisp_car(const lisp* l){
+   if (!l){
+      return NIL;
+   }
+   return l->car;
+}
+
+// Returns the cdr (all but the 1st) component of the list 'l'.
+// Does not copy any data.
+lisp* lisp_cdr(const lisp* l){
+   if (!l){
+      return NIL;
+   }
+   return l->cdr;
+}
+
+// Returns the data/value stored in the cons 'l'
+atomtype lisp_getval(const lisp* l){
+   assert(l);
+   return l->val;
+}
+
+// Returns a boolean depending up whether l points to an atom (not a list)
+bool lisp_isatomic(const lisp* l){
+   if (!l){
+      return false;
+   }
+   return !lisp_car(l) && !lisp_cdr(l);
+}
+   
+// Returns a deep copy of the list 'l'
+lisp* lisp_copy(const lisp* l){
+   if (l == NIL){
+      return NIL;
+   }
+   lisp* copy = (lisp*)calloc(1, sizeof(lisp));
+   assert(copy);
+   copy->val = lisp_getval(l);
+   copy->cdr = lisp_copy(l->cdr);
+   copy->car = lisp_copy(l->car);
+   return copy;
+}
+   
+// Returns number of components in the list.
+int lisp_length(const lisp* l){
+   if (!l || lisp_isatomic(l)){
+      return 0;
+   }
+   
+   int cnt = 0;
+   while (l){
+      l = lisp_cdr(l);
+      cnt++;
+   }
+   return cnt;
+}
+
+// Returns stringified version of list
+void lisp_tostring(const lisp* l, char* str){
+   if (lisp_isatomic(l)){ // when lisp is atom
+      char* x = int2string(lisp_getval(l));
+      strcpy(str, x);
+      free(x);
+      return;
+   }
+   //this tempstr act as parameter str, prefer to calloc one which is cleaner, str from outside might contain data rendering it difficult to manipulate
+   char* tempstr = (char*)calloc(LISTSTRLEN, sizeof(char)); 
+   assert(tempstr);
+   char* head = tempstr;
+   *tempstr++ = LEFTBRACKET;
+   while(l){
+      if (lisp_isatomic(lisp_car(l))){
+         int value = lisp_getval(lisp_car(l));
+         char* strvalue = int2string(value);
+         strcat(tempstr, strvalue);
+         free(strvalue);
+         tempstr = tempstr + numdigits(value);
+      }else if (lisp_car(l)){
+         char substr[LISTSTRLEN];
+         lisp_tostring(lisp_car(l), substr);
+         strcat(tempstr, substr);
+         tempstr = tempstr + strlen(substr);
+      }
+      if (lisp_cdr(l)){
+         *tempstr++ = ' ';
+      }
+      l = lisp_cdr(l);
+   }
+   strcat(tempstr, ")");
+   strcpy(str, head);
+   free(head);
+}
+
+// Clears up all space used
+// Double pointer allows function to set 'l' to NULL on success
+void lisp_free(lisp** l){
+   if (l == NULL || *l == NIL){
+      return;
+   }
+
+   lisp* car = lisp_car(*l);
+   lisp* cdr = lisp_cdr(*l);
+
+   lisp_free(&car);
+   lisp_free(&cdr);
+   free(*l);
+   *l = NIL;
+   return;
+}
+
+/* ------------- Tougher Ones : Extensions ---------------*/
+
+// Builds a new list based on the string 'str'
+lisp* lisp_fromstring(const char* str){
+   if (isnum(*str)){ //when only a single number
+      return lisp_atom(firstnumstr(str)); // treat as atom
+   }
+   
+   lisp* this = NIL;
+   int index = 0;
+   while (index < (int)strlen(str)){
+      if (isnum(str[index])){
+         int value = firstnumstr(str + index);
+         lisp_pend(&this, lisp_atom(value));
+         int digit = numdigits(value);
+         index = index + digit - 1;
+      }else if (str[index] == LEFTBRACKET && issublisp(str, index)){
+         char* substr = sublisp_tostring(str + index);
+         lisp* sub = lisp_fromstring(substr);
+         lisp_pend(&this, sub);
+         int len = (int)strlen(substr);
+         index = index + len - 1;
+         free(substr);
+      }
+      index++;
+   }
+   return this;
+}
+
+// Returns a new list from a set of existing lists.
+// A variable number 'n' lists are used.
+// Data in existing lists are reused, and not copied.
+// You need to understand 'varargs' for this.
+lisp* lisp_list(const int n, ...){
+   lisp* this = NIL;
+   if (n == 0){
+      return this;
+   }
+   va_list valist;
+   va_start(valist, n);
+   for (int i = 0; i < n; i++){
+      lisp* new = va_arg(valist, lisp*);
+      lisp_pend(&this, new);
+   }
+   va_end(valist);
+   return this;
+}
+
+// Allow a user defined function 'func' to be applied to
+// each component of the list 'l'.
+// The user-defined 'func' is passed a pointer to a cons,
+// and will maintain an accumulator of the result.
+void lisp_reduce(void (*func)(lisp* l, atomtype* n), lisp* l, atomtype* acc){
+   while (l){
+      if (lisp_isatomic(lisp_car(l))){
+         (*func)(lisp_car(l), acc);
+      }else if (lisp_car(l) && !lisp_isatomic(lisp_car(l))){
+         lisp_reduce(func, lisp_car(l), acc);
+      }
+      l = lisp_cdr(l);
+   }
+}
+
+
+// the str[index] is '(', return false if '(' is at the start and '(' at the end
+// needs to separate between the main lisp and sublisp
+bool issublisp(const char* str, int index){
+   return index != 0 || indexrightbracket(index, str) != (int)strlen(str) - 1;
+}
+
+int indexrightbracket(int leftbracket, const char* str){
+   assert(str[leftbracket] == LEFTBRACKET);
+   char stack[LISTSTRLEN];
+   int i = 0;
+   stack[i++] = str[leftbracket];
+   int index = leftbracket + 1;
+   while (str[index] != '\0'){
+      if (str[index] == LEFTBRACKET){
+         stack[i++] = str[index]; // when is LEFTBRACKET '(', push into the array(like stack)
+      }
+      if (str[index] == RIGHTBRACKET){
+         assert(stack[--i] == LEFTBRACKET); // when is ')', pop
+      }
+      if (i == 0){ //when no element, the correct rightbracket is found
+         return index;
+      }
+      index++;
+   }
+   return -1;
+}
+
+void lisp_pend(lisp** l, lisp* sub){
+   if (*l == NIL){
+      *l = lisp_cons(sub, NIL); // if doesn't exist, build a new one to hold sub
+   }else{
+      lisp* temp = *l;
+      while (lisp_cdr(temp)){
+         temp = lisp_cdr(temp); // locate the end to pend the sub
+      }
+      temp->cdr = lisp_cons(sub, NIL);
+   }
+}
+
+char* sublisp_tostring(const char* str){
+   assert(str[0] == LEFTBRACKET);
+   int left = 0;
+   int right = indexrightbracket(left, str);
+   assert(right != -1);
+   int len = right - left + 1; // e.g. (0) length is 3, in which case left = 0, right = 2;
+   char* substr = (char*)calloc(len + 1, sizeof(char)); // one extra for '\0';
+   assert(substr);
+   strncpy(substr, str, right + 1); // cut down the str of the sublisp
+   return substr;
+}
+
+char* int2string(int value){
+   int digit = numdigits(value); 
+   char* str = (char*)calloc(digit + 1, sizeof(char));
+   assert(str);
+   assert(snprintf(str, digit + 1, "%d", value) == digit);
+   return str;
+}
+
+//return first num in a string, only call this function when str begins with number
+int firstnumstr(const char* str){
+   int value = 0;
+   assert(sscanf(str, "%d", &value) == 1);
+   return value;
+}
+
+bool isnum(char x){
+   return isdigit(x) || x == '-';
+}
+
+int numdigits(int num){
+   if (num < 0){
+      return numdigits(-num) + 1; // negative num has one more: '-'
+   }
+   int i = 0;
+   int tens = 1;
+   do{
+      i++;
+      tens *= BASETEN;
+   }while (tens <= num);
+   return i;
+}
+
+char* list2str(int beginrow){
+   char* str = (char*)calloc(LISTSTRLEN, sizeof(char));
+   assert(str);
+   
+   // is variable
+   if ((int)strlen(this->word[beginrow]) == 1 && isupper(this->word[beginrow][0])){
+      strcpy(str, this->word[beginrow]);
+   }else if (STRSAME(this->word[beginrow], "NIL")){
+      
+   }else if (this->word[beginrow][0] == '\''){
+      int len = (int)strlen(this->word[beginrow]);
+      strncpy(str, &this->word[beginrow][1], len - 2);
+   }else if (this->word[beginrow][0] == '('){
+      strcat(str, this->word[beginrow]);
+      int top = 0;
+      top++;
+      while (top != 0){
+         beginrow++;
+         if (this->word[beginrow][0] == ')'){
+            top--;
+         }else if (this->word[beginrow][0] == '('){
+            top++;
+         }
+         strcat(str, this->word[beginrow]);
+      }
+   }
+   return str;
 }

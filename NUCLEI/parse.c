@@ -15,6 +15,9 @@ typedef struct code{
 code* this;
 
 void parse();
+void literalparse(char** pstr);
+void stringparse(char** pstr);
+void letterparse(char** pstr);
 
 int main(void) {
    this = (code*)calloc(1, sizeof(code));
@@ -22,22 +25,21 @@ int main(void) {
    parse();
 }
 
-void literalparse(char** pstr);
-void stringparse(char** pstr);
-void letterparse(char** pstr);
+
 
 void parse(){
-   FILE* fp = fopen("parse.txt", "r");
+   FILE* fp = fopen("demo1.ncl", "r");
    char* str = (char*)calloc(ROW, sizeof(char));
    char* temp = (char*)calloc(ROW, sizeof(char));
    assert(str);
    assert(temp);
 
    while (fgets(temp, ROW, fp)){
-      temp[((int)strlen(temp) - 1)] = '\0';
-      strcat(str, temp);
+      if (temp[0] != '#'){
+         temp[((int)strlen(temp) - 1)] = '\0';
+         strcat(str, temp);
+      }
    }
-//   puts(str);
 
    while (*str != '\0'){
       switch (*str){
@@ -64,9 +66,8 @@ void literalparse(char** pstr){
    while (str[i] != '\''){
       i++;
    }
-   i++;
-   strncpy(this->word[this->currentrow++], str, i);
-   *pstr += i;
+   strncpy(this->word[this->currentrow++], str, i + 1);
+   *pstr += i + 1;
 }
 
 void stringparse(char** pstr){
@@ -76,11 +77,8 @@ void stringparse(char** pstr){
    while (str[i] != '"'){
       i++;
    }
-   strcpy(this->word[this->currentrow], "\\");
-   strncat(this->word[this->currentrow], str, i);
-   this->word[this->currentrow][i + 1] = '\\';
-   this->word[this->currentrow++][i + 2] = '\"';
-   *pstr += i + 2;
+   strncpy(this->word[this->currentrow++], str, i + 1);
+   *pstr += i + 1;
 }
 
 void letterparse(char** pstr){

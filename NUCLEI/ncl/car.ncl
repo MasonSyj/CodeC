@@ -1,7 +1,6 @@
 (
    (SET A '(1 2 3 4)')
-   (CAR A)
-   (CDR A)
-   (CONS A B)
+   (PRINT (CONS (CAR A) (CDR A)))
+   (PRINT (CONS A (CDR A)))
    (PLUS '-1' '4')
 )

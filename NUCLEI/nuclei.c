@@ -161,8 +161,10 @@ int main(void){
    parse();
    this->currentrow = 0;
    Prog();
+   
 }
-/*
+
+
 lisp* list2lisp(int beginrow){
    
    // is variable
@@ -172,11 +174,12 @@ lisp* list2lisp(int beginrow){
       return NIL;
    }else if (this->word[beginrow][0] == '\''){
       return literal2lisp(beginrow);
-   }else if (this->word[beginrow][0] == '('){
-      
+   }else{ //(this->word[beginrow][0] == '(')
+      s->top--;
+      return s->l[s->top];
    }
 }
-*/
+
 
 char* list2str(int beginrow){
    char* str = (char*)calloc(LISTSTRLEN, sizeof(char));
@@ -206,38 +209,6 @@ char* list2str(int beginrow){
    }
    return str;
 }
-/*
-char* list2str(int endrow){
-   char* str = (char*)calloc(LISTSTRLEN, sizeof(char));
-   assert(str);
-   
-   // is variable
-   if ((int)strlen(this->word[endrow]) == 1 && isupper(this->word[endrow][0])){
-      strcpy(str, this->word[endrow]);
-   }else if (STRSAME(this->word[endrow], "NIL")){
-      
-   }else if (this->word[endrow][0] == '\''){
-      int len = (int)strlen(this->word[endrow]);
-      strncpy(str, &this->word[endrow][1], len - 2);
-   }else if (this->word[endrow][0] == ')'){
-      int top = 0;
-      top++;
-      int beginrow = endrow;
-      while (top != 0){
-         beginrow--;
-         if (this->word[beginrow][0] == ')'){
-            top++;
-         }else if (this->word[beginrow][0] == '('){
-            top--;
-         }
-      }
-      for (int i = beginrow; i <= endrow; i ++){
-      }
-      
-   }
-   return str;
-}
-*/
 
 void Prog(void){
    if (!STRSAME(this->word[this->currentrow], "(")){
@@ -318,10 +289,11 @@ bool ret(){
 bool listfunc(void){
    if (STRSAME(this->word[this->currentrow], "CAR")){
       this->currentrow++;
+      
       int temp = this->currentrow;
       islist();
       char* tempstr = list2str(temp);
-      s->l[s->top++] = lisp_fromstring(tempstr);
+      s->l[s->top++] = lisp_car(lisp_fromstring(tempstr));
       this->currentrow++;
       return true;
    }
@@ -332,26 +304,24 @@ bool listfunc(void){
       int temp = this->currentrow;
       islist();
       char* tempstr = list2str(temp);
-      s->l[s->top++] = lisp_fromstring(tempstr);
+      s->l[s->top++] = lisp_cdr(lisp_fromstring(tempstr));
       this->currentrow++;
       return true;
    }
 
    if (STRSAME(this->word[this->currentrow], "CONS")){
       this->currentrow++;
-      
       int temp = this->currentrow;
       islist();
-      char* tempstr = list2str(temp);
-      s->l[s->top++] = lisp_fromstring(tempstr);
       this->currentrow++;
-      
+      lisp* l1 = list2lisp(temp);
       
       temp = this->currentrow;
       islist();
-      tempstr = list2str(temp);
-      s->l[s->top++] = lisp_fromstring(tempstr);
       this->currentrow++;
+      lisp* l2 = list2lisp(temp);
+      
+      s->l[s->top++] = lisp_cons(l1, l2);
       
       return true;
    }
@@ -362,17 +332,34 @@ bool listfunc(void){
 bool intfunc(void){
    if (STRSAME(this->word[this->currentrow], "PLUS")){
       this->currentrow++;
+      
+      int temp = this->currentrow;
       islist();
       this->currentrow++;
+      lisp* l1 = list2lisp(temp);
+      assert(lisp_isatomic(l1));
+      int value1 = lisp_getval(l1);
+      
+      temp = this->currentrow;
       islist();
       this->currentrow++;
+      lisp* l2 = list2lisp(temp);
+      assert(lisp_isatomic(l2));
+      int value2 = lisp_getval(l2);
+      s->l[s->top++] = lisp_atom(value1 + value2);
+      
       return true;
    }
 
    if (STRSAME(this->word[this->currentrow], "LENGTH")){
       this->currentrow++;
+      
+      int temp = this->currentrow;
       islist();
       this->currentrow++;
+      lisp* l = list2lisp(temp);
+      int len = lisp_length(l);
+      s->l[s->top++] = lisp_atom(len);
       return true;
    }
    
@@ -447,12 +434,9 @@ bool set(void){
          var[x - 'A'] = NIL;
       }else if (this->word[beginrow][0] == '\''){
          var[x - 'A'] = literal2lisp(beginrow);
+      }else{
+         var[x - 'A'] = s->l[s->top - 1];
       }
-      /*
-      else{
-         var[x - 'A'] = list2lisp(beginrow);
-      }
-      */
       
       this->currentrow++;
       return true;
@@ -474,10 +458,11 @@ bool print(void){
          }else if (isnil()){
             puts(this->word[beginrow]);
          }else if (this->word[this->currentrow][0] == ')'){
-            
+            char str[1000];
+            lisp_tostring(s->l[s->top - 1], str);
+            s->top--;
+            puts(str);
          }
-         
-         
          this->currentrow++;
          return true;
       }else if(isstring()){
@@ -805,7 +790,9 @@ void lisp_free(lisp** l){
 
 // Builds a new list based on the string 'str'
 lisp* lisp_fromstring(const char* str){
-   if (isnum(*str)){ //when only a single number
+   if (isupper(str[0])){
+      return var[str[0] - 'A'];
+   }else if (isnum(*str)){ //when only a single number
       return lisp_atom(firstnumstr(str)); // treat as atom
    }
    
@@ -947,3 +934,36 @@ int numdigits(int num){
    }while (tens <= num);
    return i;
 }
+
+/*
+char* list2str(int endrow){
+   char* str = (char*)calloc(LISTSTRLEN, sizeof(char));
+   assert(str);
+   
+   // is variable
+   if ((int)strlen(this->word[endrow]) == 1 && isupper(this->word[endrow][0])){
+      strcpy(str, this->word[endrow]);
+   }else if (STRSAME(this->word[endrow], "NIL")){
+      
+   }else if (this->word[endrow][0] == '\''){
+      int len = (int)strlen(this->word[endrow]);
+      strncpy(str, &this->word[endrow][1], len - 2);
+   }else if (this->word[endrow][0] == ')'){
+      int top = 0;
+      top++;
+      int beginrow = endrow;
+      while (top != 0){
+         beginrow--;
+         if (this->word[beginrow][0] == ')'){
+            top++;
+         }else if (this->word[beginrow][0] == '('){
+            top--;
+         }
+      }
+      for (int i = beginrow; i <= endrow; i ++){
+      }
+      
+   }
+   return str;
+}
+*/

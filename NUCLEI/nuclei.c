@@ -32,7 +32,7 @@ typedef struct code{
 
 typedef struct liststack{
    int top;
-   lisp* l[2];
+   lisp* l[ROW];
 }stack;
 
 code* this;
@@ -61,12 +61,13 @@ bool islist();
 bool isvar();
 bool isliteral();
 bool isstring();
+bool isnil();
 
 void parse();
 void literalparse(char** pstr);
 void stringparse(char** pstr);
 void letterparse(char** pstr);
-char* list(int beginrow);
+lisp* list2lisp(int beginrow);
 
 lisp* literal2lisp(int row);
 char* list2str(int beginrow);
@@ -156,12 +157,87 @@ int main(void){
    for (int i = 0; i < 26; i++){
       var[i] = (lisp*)calloc(1, sizeof(lisp));
    }
-   fp = fopen("demo1.ncl", "r");
+   fp = fopen("ncl/set.ncl", "r");
    parse();
    this->currentrow = 0;
    Prog();
-
 }
+/*
+lisp* list2lisp(int beginrow){
+   
+   // is variable
+   if ((int)strlen(this->word[beginrow]) == 1 && isupper(this->word[beginrow][0])){
+      return var[this->word[beginrow][0] - 'A'];
+   }else if (STRSAME(this->word[beginrow], "NIL")){
+      return NIL;
+   }else if (this->word[beginrow][0] == '\''){
+      return literal2lisp(beginrow);
+   }else if (this->word[beginrow][0] == '('){
+      
+   }
+}
+*/
+
+char* list2str(int beginrow){
+   char* str = (char*)calloc(LISTSTRLEN, sizeof(char));
+   assert(str);
+   
+   // is variable
+   if ((int)strlen(this->word[beginrow]) == 1 && isupper(this->word[beginrow][0])){
+      strcpy(str, this->word[beginrow]);
+   }else if (STRSAME(this->word[beginrow], "NIL")){
+      
+   }else if (this->word[beginrow][0] == '\''){
+      int len = (int)strlen(this->word[beginrow]);
+      strncpy(str, &this->word[beginrow][1], len - 2);
+   }else if (this->word[beginrow][0] == '('){
+      strcat(str, this->word[beginrow]);
+      int top = 0;
+      top++;
+      while (top != 0){
+         beginrow++;
+         if (this->word[beginrow][0] == ')'){
+            top--;
+         }else if (this->word[beginrow][0] == '('){
+            top++;
+         }
+         strcat(str, this->word[beginrow]);
+      }
+   }
+   return str;
+}
+/*
+char* list2str(int endrow){
+   char* str = (char*)calloc(LISTSTRLEN, sizeof(char));
+   assert(str);
+   
+   // is variable
+   if ((int)strlen(this->word[endrow]) == 1 && isupper(this->word[endrow][0])){
+      strcpy(str, this->word[endrow]);
+   }else if (STRSAME(this->word[endrow], "NIL")){
+      
+   }else if (this->word[endrow][0] == '\''){
+      int len = (int)strlen(this->word[endrow]);
+      strncpy(str, &this->word[endrow][1], len - 2);
+   }else if (this->word[endrow][0] == ')'){
+      int top = 0;
+      top++;
+      int beginrow = endrow;
+      while (top != 0){
+         beginrow--;
+         if (this->word[beginrow][0] == ')'){
+            top++;
+         }else if (this->word[beginrow][0] == '('){
+            top--;
+         }
+      }
+      for (int i = beginrow; i <= endrow; i ++){
+      }
+      
+   }
+   return str;
+}
+*/
 
 void Prog(void){
    if (!STRSAME(this->word[this->currentrow], "(")){
@@ -242,7 +318,6 @@ bool ret(){
 bool listfunc(void){
    if (STRSAME(this->word[this->currentrow], "CAR")){
       this->currentrow++;
-      
       int temp = this->currentrow;
       islist();
       char* tempstr = list2str(temp);
@@ -373,6 +448,11 @@ bool set(void){
       }else if (this->word[beginrow][0] == '\''){
          var[x - 'A'] = literal2lisp(beginrow);
       }
+      /*
+      else{
+         var[x - 'A'] = list2lisp(beginrow);
+      }
+      */
       
       this->currentrow++;
       return true;
@@ -383,10 +463,25 @@ bool set(void){
 bool print(void){
    if (STRSAME(this->word[this->currentrow], "PRINT")){
       this->currentrow++;
-      if(islist()){
+      int beginrow = this->currentrow;
+      if(islist()){ // VAR LITERAL NIL (RETFUNC)
+         if (isvar()){
+            char str[1000];
+            lisp_tostring(var[this->word[this->currentrow][0] - 'A'], str);
+            printf("var:%c, %s\n", this->word[this->currentrow][0], str);
+         }else if (isliteral()){
+            puts(this->word[beginrow]);
+         }else if (isnil()){
+            puts(this->word[beginrow]);
+         }else if (this->word[this->currentrow][0] == ')'){
+            
+         }
+         
+         
          this->currentrow++;
          return true;
       }else if(isstring()){
+         puts(this->word[this->currentrow]);
          this->currentrow++;
          return true;
       }else{
@@ -496,6 +591,10 @@ bool isstring(){
    return this->word[this->currentrow][0] == '\"' && this->word[this->currentrow][lastchar] == '\"';
 }
 
+bool isnil(){
+   return STRSAME(this->word[this->currentrow], "NIL");
+}
+
 void parse(){
    char* str = (char*)calloc(ROW, sizeof(char));
    char* temp = (char*)calloc(ROW, sizeof(char));
@@ -519,12 +618,14 @@ void parse(){
          default: letterparse(&str); break;
       }
    }
-   	
+
    int i = 0;
    while (this->word[i][0] != '\0'){
+      printf("%d: ", i);
       puts(this->word[i++]);
    }
-
+   
+   printf("---------Separate Line-----------\n");
 }
 
 void literalparse(char** pstr){
@@ -845,33 +946,4 @@ int numdigits(int num){
       tens *= BASETEN;
    }while (tens <= num);
    return i;
-}
-
-char* list2str(int beginrow){
-   char* str = (char*)calloc(LISTSTRLEN, sizeof(char));
-   assert(str);
-   
-   // is variable
-   if ((int)strlen(this->word[beginrow]) == 1 && isupper(this->word[beginrow][0])){
-      strcpy(str, this->word[beginrow]);
-   }else if (STRSAME(this->word[beginrow], "NIL")){
-      
-   }else if (this->word[beginrow][0] == '\''){
-      int len = (int)strlen(this->word[beginrow]);
-      strncpy(str, &this->word[beginrow][1], len - 2);
-   }else if (this->word[beginrow][0] == '('){
-      strcat(str, this->word[beginrow]);
-      int top = 0;
-      top++;
-      while (top != 0){
-         beginrow++;
-         if (this->word[beginrow][0] == ')'){
-            top--;
-         }else if (this->word[beginrow][0] == '('){
-            top++;
-         }
-         strcat(str, this->word[beginrow]);
-      }
-   }
-   return str;
 }

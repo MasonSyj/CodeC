@@ -1,5 +1,5 @@
 (
-   (WHILE (LESS '1' '2') ((PRINT "LOOP FOREVER")) )
+   (WHILE (LESS '1' '2') ((PRINT "LOOP FOREVER")))
 )
 
 #   strcpy(this->word[this->currentrow++], "(");

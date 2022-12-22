@@ -157,7 +157,7 @@ int main(void){
    for (int i = 0; i < 26; i++){
       var[i] = (lisp*)calloc(1, sizeof(lisp));
    }
-   fp = fopen("ncl/while.ncl", "r");
+   fp = fopen("printset.ncl", "r");
    parse();
    this->currentrow = 0;
    Prog();
@@ -194,6 +194,8 @@ char* list2str(int beginrow){
       int len = (int)strlen(this->word[beginrow]);
       strncpy(str, &this->word[beginrow][1], len - 2);
    }else if (this->word[beginrow][0] == '('){
+      lisp_tostring(s->l[--s->top], str);
+/*
       strcat(str, this->word[beginrow]);
       int top = 0;
       top++;
@@ -206,6 +208,7 @@ char* list2str(int beginrow){
          }
          strcat(str, this->word[beginrow]);
       }
+*/
    }
    return str;
 }
@@ -602,30 +605,36 @@ bool loop(void){
       }
       this->currentrow++;
       
+      int begin = this->currentrow;
       bool boolf = boolfunc();
       if (!boolf){
          ERROR("No bool function in loop function condition stage.");
       }
-      this->currentrow++;
       
+      this->currentrow++;
+/*      
       if (!STRSAME(this->word[this->currentrow], ")")){
          ERROR("No ) in loop function condition stage.");
       }
       this->currentrow++;
-      int begin = this->currentrow;
+*/
 
       if (!STRSAME(this->word[this->currentrow], "(")){
          ERROR("No ( in loop function first action stage.");
       }
       this->currentrow++;
       
-      while (lisp_getval(s->l[s->top - 1]) == true){
+      int end;
+      while (lisp_getval(s->l[--s->top]) == true){
          instrus();
-         printf("row now: %d\n", this->currentrow);
-         this->currentrow = begin + 1;
+         end = this->currentrow;
+         this->currentrow = begin;
+         boolfunc();
+         this->currentrow += 2;
       }
-      s->top--;
-
+      
+      this->currentrow = end;
+      this->currentrow++;
       return true;
    }
    return false;

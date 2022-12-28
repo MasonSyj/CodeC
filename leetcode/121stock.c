@@ -2,18 +2,18 @@
 #include <assert.h>
 
 int maxProfit(int* prices, int pricesSize){
-   int left = 0;
-   int right = pricesSize - 1;
-   int profit = 0;
-
-   while (prices[left] > prices[right]){
-      left++;
+   int buy = prices[0];
+   int maxprofit = 0;
+   for (int i = 1; i < pricesSize; i++){
+       if (prices[i] < buy){
+           buy = prices[i];
+       }else if (prices[i] - buy > maxprofit){
+           maxprofit = prices[i] - buy;
+       }
    }
-   
-   profit = prices[right] - prices[left];
-   
-   
+   return maxprofit;
 }
+
 
 int main(void) {
    int a[3] = {2, 4, 1};

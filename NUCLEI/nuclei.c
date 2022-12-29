@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <stdarg.h>
 
-#define ROW 1000
+#define ROW 10000
 #define COL 100
 #define NIL NULL
 #define LISTSTRLEN 1000
@@ -157,7 +157,7 @@ int main(void){
    for (int i = 0; i < 26; i++){
       var[i] = (lisp*)calloc(1, sizeof(lisp));
    }
-   fp = fopen("testl.ncl", "r");
+   fp = fopen("all.ncl", "r");
    parse();
    this->currentrow = 0;
    Prog();
@@ -331,6 +331,7 @@ bool intfunc(void){
       islist();
       this->currentrow++;
       lisp* l2 = list2lisp(temp);
+      printf("break: %d\n", this->currentrow);
       assert(lisp_isatomic(l2));
       int value2 = lisp_getval(l2);
       s->l[s->top++] = lisp_atom(value1 + value2);

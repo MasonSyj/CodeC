@@ -1,5 +1,12 @@
 (
 
+   
+   (PRINT M)
+   (SET A '(1 2 3 4)')
+   (PRINT (CONS (CAR A) (CDR A)))
+   (PRINT (CONS A (CDR A)))
+   (PRINT (PLUS '-1' '4'))
+   
   (SET A '1')
   (PRINT A)
   (SET B '2')
@@ -30,6 +37,7 @@
    
    (PRINT A)
    (SET A '5')
+   (PRINT A)
    (IF (EQUAL A '10') ((PRINT "EQUAL")) ((PRINT "NOT EQUAL")))
    (IF (LESS A '10') ((PRINT "LESS")) ((PRINT "NOT LESS")))
    (IF (GREATER A '3') ((PRINT "GREATER")) ((PRINT "NOT GREATER")))
@@ -70,20 +78,6 @@
    (SET A '(5 (1 2 3))')
    (PRINT (CAR A))
    
-   (SET L '(1 0)')
-   (SET C '2')
-   (WHILE (LESS C '20') (
-      (SET N (PLUS (CAR L)  (CAR (CDR L))))
-      (SET M (CONS N L))
-      (SET L M)
-      (SET B (PLUS '1' C))
-      (SET C B))
-   )
-   (PRINT M)
-   
-   (WHILE (LESS '1' '2') ((PRINT "LOOP FOREVER")))
-
-   
    (SET C '5')
    (WHILE (LESS '0' C)(
       (PRINT C)
@@ -107,4 +101,16 @@
   (SET F '(2)')
   (SET G '(2)')
   (SET H (CONS F G))
+   
+   (SET L '(1 0)')
+   (SET C '2')
+   (WHILE (LESS C '20') (
+      (SET N (PLUS (CAR L)  (CAR (CDR L))))
+      (SET M (CONS N L))
+      (SET L M)
+      (SET B (PLUS '1' C))
+      (SET C B))
+   )
+   
+  (WHILE (LESS '1' '2') ((PRINT "LOOP FOREVER")))
 )

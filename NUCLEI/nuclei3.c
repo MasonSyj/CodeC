@@ -20,6 +20,7 @@
 #define RIGHTBRACKET ')'
 
 typedef enum libfunc{CAR, CDR, CONS, PLUS, LENGTH, GREATER, LESS, EQUAL, PRINT, SET, IF, WHILE} libfunc;
+typedef enum parsetype{literal, string, letter} parsetype;
 
 typedef int atomtype;
 
@@ -73,6 +74,7 @@ void parse();
 void literalparse(char** pstr);
 void stringparse(char** pstr);
 void letterparse(char** pstr);
+void elementparse(char** pstr, parsetype x);
 lisp* list2lisp(int beginrow);
 char* list2str();
 
@@ -345,7 +347,6 @@ void print(void){
       ERROR("Print function miss list or string element");
    }
    
-   printf("       %d      ", printcnt++);
 }
 
 void iffunc(void){
@@ -557,26 +558,46 @@ void parse(){
       switch (*str){
          case '(': this->word[this->currentrow++][0] = '('; str++; break;
          case ')': this->word[this->currentrow++][0] = ')'; str++; break;
-         case '\'': literalparse(&str); break;
-         case '"': stringparse(&str); break;
+         case '\'': elementparse(&str, literal); break;
+         case '"': elementparse(&str, string); break;
          case ' ':str++; break;
-         default: letterparse(&str); break;
+         default: elementparse(&str, letter); break;
       }
    }
-
+/*
    int i = 0;
    while (this->word[i][0] != '\0'){
       printf("%d: ", i);
       puts(this->word[i++]);
    }
-   
+*/
    printf("---------Separate Line-----------\n");
+}
+
+void elementparse(char** pstr, parsetype x){
+   char* str = *pstr;
+   int i = 1;
+   if (x == literal){
+      while (str[i] != '\''){
+         i++;
+      }
+   }else if (x == string){
+      while (str[i] != '"'){
+         i++;
+      }   
+   }else if (x == letter){
+      while (isupper(str[i])){
+         i++;
+      }
+      i--;
+   }
+   strncpy(this->word[this->currentrow++], str, i + 1);
+   *pstr += i + 1;
 }
 
 void literalparse(char** pstr){
    char* str = *pstr;
-   int i = 0;
-   assert(str[i++] == '\'');
+   int i = 1;
    while (str[i] != '\''){
       i++;
    }
@@ -586,8 +607,7 @@ void literalparse(char** pstr){
 
 void stringparse(char** pstr){
    char* str = *pstr;
-   int i = 0;
-   assert(str[i++] == '"');
+   int i = 1;
    while (str[i] != '"'){
       i++;
    }
@@ -597,12 +617,12 @@ void stringparse(char** pstr){
 
 void letterparse(char** pstr){
    char* str = *pstr;
-   int i = 0;
-   assert(isupper(str[i++]));
+   int i = 1;
    while (isupper(str[i])){
       i++;
    }
    strncpy(this->word[this->currentrow++], str, i);
+
    *pstr += i;
 }
 

@@ -1,6 +1,5 @@
 (
 
-   
    (PRINT M)
    (SET A '(1 2 3 4)')
    (PRINT (CONS (CAR A) (CDR A)))

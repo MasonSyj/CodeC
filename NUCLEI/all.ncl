@@ -111,6 +111,7 @@
       (SET B (PLUS '1' C))
       (SET C B))
    )
+   (PRINT M)
    
-  (WHILE (LESS '1' '2') ((PRINT "LOOP FOREVER")))
+#  (WHILE (LESS '1' '2') ((PRINT "LOOP FOREVER")))
 )

@@ -43,6 +43,7 @@ code* this;
 lisp* var[26];
 FILE* fp;
 stack* s;
+int printcnt;
 
 void Prog(void);
 void instrus(void);
@@ -61,7 +62,7 @@ void boolfunc(int operand);
 void set(void);
 void print(void);
 
-bool islist();
+void islist();
 bool isvar();
 bool isliteral();
 bool isstring();
@@ -152,8 +153,6 @@ void test();
 void test(){
    strcpy(this->word[this->currentrow], "'0'");
    strcpy(this->word[this->currentrow], "'1'");
-   assert(islist());
-   assert(islist());
    
    this->currentrow = 0;
 }
@@ -320,9 +319,7 @@ void set(void){
    this->currentrow++;
    int beginrow = this->currentrow;
       
-   if(!islist(this->word[this->currentrow])){
-      ERROR("Set function miss list");
-   }
+   islist();
       
    var[x - 'A'] = list2lisp(beginrow);
    
@@ -347,6 +344,8 @@ void print(void){
    }else{
       ERROR("Print function miss list or string element");
    }
+   
+   printf("       %d      ", printcnt++);
 }
 
 void iffunc(void){
@@ -427,7 +426,7 @@ void loop(void){
    while (lisp_getval(s->l[--s->top]) == true){
       instrus();
       end = this->currentrow;
-      this->currentrow = begin;
+      this->currentrow = begin + 1;
       boolfunc(operand);
       this->currentrow += 2;
    }
@@ -435,13 +434,11 @@ void loop(void){
    this->currentrow = end + 1;
 }
 
-bool islist(){
+void islist(){
    bool result1 = isvar() || isliteral() || STRSAME(this->word[this->currentrow], "NIL");
    if (result1 == true){
-      return true;
+      return;
    }
-   
-   printf("%d\n", this->currentrow);
    
    if (!STRSAME(this->word[this->currentrow], "(")){
       ERROR("No ( in list");
@@ -472,7 +469,7 @@ bool islist(){
       ERROR("invalid list");
    }
 
-   return true;
+   return;
 
 }
 
@@ -504,10 +501,9 @@ lisp* list2lisp(int beginrow){
       return NIL;
    }else if (this->word[beginrow][0] == '\''){
       int len = (int)strlen(this->word[beginrow]);
-      if (this->word[beginrow][len - 1] == '\''){
-         this->word[beginrow][len - 1] = '\0';
-      }
-      return lisp_fromstring(&this->word[beginrow][1]);
+      char* str = (char*)calloc(len - 1, sizeof(char));
+      strncpy(str, &this->word[beginrow][1], len - 2);
+      return lisp_fromstring(str);
    }else{ //(this->word[beginrow][0] == '(')
       return s->l[--s->top];
    }

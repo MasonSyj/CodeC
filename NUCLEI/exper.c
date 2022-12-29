@@ -26,6 +26,7 @@ int firstprimebeforen(int n);
 int firstprimeaftern(int n);
 
 int main(void) {
+   printf("%ld\n", strlen("'0'"));
    hash* test = hash_init();
    hash_insert(test, "PRINT");
    hash_insert(test, "GREATER");

@@ -228,6 +228,8 @@ void func(void){
       ERROR("No appropriate function?");
    }
    
+   this->currentrow++;
+   
    if (index == hash_search(hashtable, "CAR")){
       listfunc(CAR);
    }else if (index == hash_search(hashtable, "CDR")){
@@ -256,7 +258,7 @@ void func(void){
 }
 
 void listfunc(int operand){
-   this->currentrow++;
+
    int temp = this->currentrow;
    islist();
    char* tempstr = list2str(temp);
@@ -284,7 +286,6 @@ void listfunc(int operand){
 
    
 void intfunc(int operand){
-   this->currentrow++;
    
    int temp = this->currentrow;
    islist();
@@ -309,8 +310,6 @@ void intfunc(int operand){
 }   
    
 void boolfunc(int operand){
-   
-   this->currentrow++;
       
    int temp = this->currentrow;
    islist();
@@ -337,7 +336,6 @@ void boolfunc(int operand){
 
 
 void set(void){
-   this->currentrow++;
    if(!isvar(this->word[this->currentrow])){
       ERROR("Set function miss var");
    }
@@ -364,7 +362,6 @@ void set(void){
 }
    
 void print(void){
-   this->currentrow++;
    int beginrow = this->currentrow;
    if(islist()){ // VAR LITERAL NIL (RETFUNC)
       if (isvar()){
@@ -391,13 +388,13 @@ void print(void){
 }
 
 void iffunc(void){
-   this->currentrow++;
    if (!STRSAME(this->word[this->currentrow], "(")){
       ERROR("No ( in if function condition stage.");
    }
 
    this->currentrow++;
    int index = hash_search(hashtable, this->word[this->currentrow]);
+   this->currentrow++;
    if (index == hash_search(hashtable, "LESS")){
       boolfunc(LESS);
    }else if (index == hash_search(hashtable, "GREATER")){
@@ -442,7 +439,6 @@ void iffunc(void){
 }
 
 void loop(void){
-   this->currentrow++;
    if (!STRSAME(this->word[this->currentrow], "(")){
       ERROR("No ( in loop function condition stage.");
    }
@@ -451,6 +447,7 @@ void loop(void){
    int begin = this->currentrow;
    int index = hash_search(hashtable, this->word[this->currentrow]);
    int operand;
+   this->currentrow++;
    if (index == hash_search(hashtable, "LESS")){
       boolfunc(LESS);
       operand = LESS;
@@ -476,6 +473,7 @@ void loop(void){
       instrus();
       end = this->currentrow;
       this->currentrow = begin;
+      this->currentrow++;
       boolfunc(operand);
       this->currentrow += 2;
    }
@@ -494,6 +492,7 @@ bool islist(){
       this->currentrow++;
       
       int index = hash_search(hashtable, this->word[this->currentrow]);
+      this->currentrow++;
       if (index == hash_search(hashtable, "CAR")){
          listfunc(CAR);
       }else if (index == hash_search(hashtable, "CDR")){

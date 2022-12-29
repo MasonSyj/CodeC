@@ -157,7 +157,7 @@ int main(void){
    for (int i = 0; i < 26; i++){
       var[i] = (lisp*)calloc(1, sizeof(lisp));
    }
-   fp = fopen("printset.ncl", "r");
+   fp = fopen("testl.ncl", "r");
    parse();
    this->currentrow = 0;
    Prog();
@@ -192,7 +192,6 @@ char* list2str(int beginrow){
       strncpy(str, &this->word[beginrow][1], len - 2);
    }else if (this->word[beginrow][0] == '('){
       lisp_tostring(s->l[--s->top], str);
-
    }
    return str;
 }

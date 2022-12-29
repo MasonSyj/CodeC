@@ -51,10 +51,10 @@ void instrus(void);
 void instru(void);
 void func(void);
 /////
-void ret(void);
-void iofunc(void);
-void iffunc(void);
-void loop(void);
+void islistfun(void);
+void isintfun(void);
+void isboolfun(void);
+void isiofun(void);
 /////
 void listfunc(int operand);
 void intfunc(int operand);
@@ -62,6 +62,8 @@ void boolfunc(int operand);
 /////
 void set(void);
 void print(void);
+void iffunc(void);
+void loop();
 
 void islist();
 bool isvar();
@@ -71,12 +73,10 @@ bool isnil();
 void pass();
 
 void parse();
-void literalparse(char** pstr);
-void stringparse(char** pstr);
-void letterparse(char** pstr);
 void elementparse(char** pstr, parsetype x);
+void ioparse(char* input);
+
 lisp* list2lisp(int beginrow);
-char* list2str();
 
 //check if lisp's cdr or car part holds a sublisp rather than the atom
 //begining check from str[index]
@@ -172,7 +172,15 @@ int main(void){
    parse();
    this->currentrow = 0;
    Prog();
-
+   
+   char temp[ROW];
+   while(1){
+      fgets(temp, ROW, stdin);
+      temp[strlen(temp) - 1] = '\0';
+      puts(temp);
+      ioparse(temp);
+      Prog();
+   }
 
 }
 
@@ -182,7 +190,7 @@ void Prog(void){
    }
    this->currentrow++;
    instrus();
-   printf("Parsed OK");
+   printf("Parsed OK\n");
 }
 
 void instrus(void){
@@ -203,7 +211,39 @@ void instru(void){
    if (!STRSAME(this->word[this->currentrow], ")")){
       ERROR("No ) in instru ?");
    }
-   
+}
+
+void islistfun(void){
+   if (STRSAME(this->word[this->currentrow - 1], "CAR")){
+      listfunc(CAR);
+   }else if (STRSAME(this->word[this->currentrow - 1], "CDR")){
+      listfunc(CDR);
+   }else if (STRSAME(this->word[this->currentrow - 1], "CONS")){
+      listfunc(CONS);
+   }
+}
+void isintfun(void){
+   if (STRSAME(this->word[this->currentrow - 1], "PLUS")){
+      intfunc(PLUS);
+   }else if (STRSAME(this->word[this->currentrow - 1], "LENGTH")){
+      intfunc(LENGTH);
+   }
+}
+void isboolfun(void){
+   if (STRSAME(this->word[this->currentrow - 1], "LESS")){
+      boolfunc(LESS);
+   }else if (STRSAME(this->word[this->currentrow - 1], "GREATER")){
+      boolfunc(GREATER);
+   }else if (STRSAME(this->word[this->currentrow - 1], "EQUAL")){
+      boolfunc(EQUAL);
+   }
+}
+void isiofun(void){
+   if (STRSAME(this->word[this->currentrow - 1], "SET")){
+      set();
+   }else if (STRSAME(this->word[this->currentrow - 1], "PRINT")){
+      print();
+   }
 }
 
 void func(void){
@@ -510,24 +550,6 @@ lisp* list2lisp(int beginrow){
    }
 }
 
-
-char* list2str(){
-   char* str = (char*)calloc(LISTSTRLEN, sizeof(char));
-   assert(str);
-   
-   // is variable
-   if (isvar()){
-      strcpy(str, this->word[this->currentrow]);
-   }else if (isliteral()){
-      int len = (int)strlen(this->word[this->currentrow]);
-      strncpy(str, &this->word[this->currentrow][1], len - 2);
-   }else if (this->word[this->currentrow][0] == '('){
-      lisp_tostring(s->l[--s->top], str);
-   }
-   
-   return str;
-}
-
 void pass(){
    assert(this->word[this->currentrow][0] == '(');
    int top = 1;
@@ -564,6 +586,21 @@ void parse(){
          default: elementparse(&str, letter); break;
       }
    }
+}
+
+void ioparse(char* input){
+
+   while (*input != '\0'){
+      switch (*input){
+         case '(': this->word[this->currentrow++][0] = '('; input++; break;
+         case ')': this->word[this->currentrow++][0] = ')'; input++; break;
+         case '\'': elementparse(&input, literal); break;
+         case '"': elementparse(&input, string); break;
+         case ' ':input++; break;
+         default: elementparse(&input, letter); break;
+      }
+   }
+}
 /*
    int i = 0;
    while (this->word[i][0] != '\0'){
@@ -571,8 +608,7 @@ void parse(){
       puts(this->word[i++]);
    }
 */
-   printf("---------Separate Line-----------\n");
-}
+
 
 void elementparse(char** pstr, parsetype x){
    char* str = *pstr;
@@ -594,38 +630,6 @@ void elementparse(char** pstr, parsetype x){
    strncpy(this->word[this->currentrow++], str, i + 1);
    *pstr += i + 1;
 }
-
-void literalparse(char** pstr){
-   char* str = *pstr;
-   int i = 1;
-   while (str[i] != '\''){
-      i++;
-   }
-   strncpy(this->word[this->currentrow++], str, i + 1);
-   *pstr += i + 1;
-}
-
-void stringparse(char** pstr){
-   char* str = *pstr;
-   int i = 1;
-   while (str[i] != '"'){
-      i++;
-   }
-   strncpy(this->word[this->currentrow++], str, i + 1);
-   *pstr += i + 1;
-}
-
-void letterparse(char** pstr){
-   char* str = *pstr;
-   int i = 1;
-   while (isupper(str[i])){
-      i++;
-   }
-   strncpy(this->word[this->currentrow++], str, i);
-
-   *pstr += i;
-}
-
 //////////////////////Separate Line//////////////////////////////////////////
 
 

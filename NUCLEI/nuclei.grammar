@@ -5,13 +5,13 @@
 
 <INSTRCT>  ::= "(" <FUNC> ")"
 
-<FUNC>     ::= <RETFUNC> | <IOFUNC> | <IF> | <LOOP>
+<FUNC>     ::= <RETFUNC> | <IOFUNC> | <IF> | <LOOP> 
 
 <RETFUNC>  ::= <LISTFUNC> | <INTFUNC> | <BOOLFUNC>
 
 <LISTFUNC> ::= "CAR" <LIST> | "CDR" <LIST> | "CONS" <LIST> <LIST>
 
-<INTFUNC>  ::= "PLUS" <LIST> <LIST> | "LENGTH" <LIST>
+<INTFUNC>  ::= "PLUS" <LIST> <LIST> | "LENGTH" <LIST> | "SUB" <LIST> <LIST> | "MULTI" <LIST> <LIST> | "DIV" <LIST> <LIST>
 
 <BOOLFUNC> ::= "LESS" <LIST> <LIST> | "GREATER" <LIST> <LIST> | "EQUAL" <LIST> <LIST>
 

@@ -5,15 +5,19 @@
 
 <INSTRCT>  ::= "(" <FUNC> ")"
 
-<FUNC>     ::= <RETFUNC> | <IOFUNC> | <IF> | <LOOP> 
+<FUNC>     ::= <RETFUNC> | <IOFUNC> | <IF> | <LOOP> | <DEFUN> 
 
-<RETFUNC>  ::= <LISTFUNC> | <INTFUNC> | <BOOLFUNC>
+<RETFUNC>  ::= <LISTFUNC> | <INTFUNC> | <BOOLFUNC> | <SELF-DEFINED FUNC> 
 
 <LISTFUNC> ::= "CAR" <LIST> | "CDR" <LIST> | "CONS" <LIST> <LIST>
 
 <INTFUNC>  ::= "PLUS" <LIST> <LIST> | "LENGTH" <LIST> | "SUB" <LIST> <LIST> | "MULTI" <LIST> <LIST> | "DIV" <LIST> <LIST>
 
 <BOOLFUNC> ::= "LESS" <LIST> <LIST> | "GREATER" <LIST> <LIST> | "EQUAL" <LIST> <LIST>
+
+<DEFUN>    ::= "DEFUN" <STRING> "(" <LIST> ","<LIST> ")" "(" <INSTRCTS>
+
+<SELF-DEFINED FUNC> ::= <STRING> "(" <LIST> "," <LIST> ")"
 
 <IOFUNC>   ::= <SET> | <PRINT>
 <SET>      ::= "SET" <VAR> <LIST>
@@ -23,6 +27,8 @@
 <IF>       ::= "IF" "(" <BOOLFUNC> ")" "(" <INSTRCTS> "(" <INSTRCTS>
 
 <LOOP>     ::= "WHILE""(" <BOOLFUNC> ")" "(" <INSTRCTS>
+
+<LISTS>     ::= <LIST> | <LIST> “,” <LISTS>
 
 <LIST>     ::= <VAR> | <LITERAL> | "NIL" | "(" <RETFUNC> ")"
 

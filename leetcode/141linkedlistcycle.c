@@ -1,3 +1,25 @@
+typedef struct ListNode ListNode;
+bool hasCycle(ListNode *head) {
+   ListNode* fastchaser = head;
+   ListNode* slowchaser = head;
+   while (fastchaser && slowchaser){
+       fastchaser = fastchaser->next;
+       if (fastchaser){
+           fastchaser = fastchaser->next;
+       }else{
+           return false;
+       }
+       slowchaser = slowchaser->next;
+       if (fastchaser == slowchaser){
+           return true;
+       }
+   }
+   return false;
+}
+
+
+
+/*
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -7,6 +29,8 @@ struct ListNode {
    int val;
    struct ListNode *next;
 };
+
+
 
 bool hasCycle(struct ListNode *head) {
    struct ListNode* defaultt = (struct ListNode*)calloc(1, sizeof(struct ListNode));

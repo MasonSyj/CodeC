@@ -212,7 +212,3 @@ void test(){
    assert(y == 3);
 }   
    
- 
-   assert(fact(3) == 6);
-   assert(fact(4) == 24);
-}

@@ -25,13 +25,13 @@ int main(void) {
 		printf("%d ", x[i]);
 	}
    printf("\n----------Separate Line--------------\n");
+	
 	int b[] = {-1,0,1,2,-1,-4};
-	int sizeb;
-	int col;
-	int* colsize = &col;
-	int** table = threeSum(b, 6, &sizeb, &colsize);
-	for (int j = 0; j < *colsize; j++){
-		for (int i = 0; i < sizeb; i++){
+	int* sizeb = NULL;
+	int** colsize = NULL;
+	int** table = threeSum(b, 6, sizeb, colsize);
+	for (int j = 0; j < colsize[0][j]; j++){
+		for (int i = 0; i < *sizeb; i++){
 			printf("%d ", table[j][i]);
 		}
 		printf("\n");
@@ -107,11 +107,6 @@ int** threeSum(int* nums, int numsSize, int* returnSize, int** returnColumnSizes
       int second = numsSize - 1;
       while (first < second){
          if (nums[first] + nums[second] + nums[i] == 0){
-/*				
-           temp[0] = nums[i];
-           temp[1] = nums[first];
-           temp[2] = nums[second];
-*/		
            if (cnt == 0){
               table = (int**)calloc(++cnt, sizeof(int*));		
            }else{
@@ -130,7 +125,16 @@ int** threeSum(int* nums, int numsSize, int* returnSize, int** returnColumnSizes
          }
       }
    }
+/*
    *returnSize = 3;
    **returnColumnSizes = cnt;
+*/
+   returnSize = (int*)calloc(1, sizeof(int));
+   *returnSize = 3;
+   returnColumnSizes = (int **)calloc(cnt, sizeof(int*));
+   for (int i = 0; i < cnt; i++) {
+        returnColumnSizes[i] = returnSize;
+    }
+
    return table;
 }

@@ -1,0 +1,27 @@
+outstanding issues:
+   -1. use of temp
+   0.if and loop may not work correctly
+   1.so many strsame function, try to use functions to replace instead.
+   2.outline the extension features.
+   2.1 defun function
+   2.2 same
+   
+
+In this project,
+at first, different functions should test separately which include either one or two lisps as parameters.
+Lisps are classified into different types, so each should be tested thoroughly.
+Furthermore, different types should be combined to be tested. Like Literal and var, var and ( <func> ).
+
+
+<LIST>     ::= <VAR> | <LITERAL> | "NIL" | "(" <RETFUNC> ")"
+In my work, list are treated(stored) differently
+1. for var, there exist a special space for var A to Z. Every time a user want to set something, just put to this special space.
+But what if it's not set and user try to use this.?
+2. Literal is dynamically transformed into lisp 
+3. Nil is simple
+4. I use a stack to store the last case which is formed by a RETFUNC. For example, (CONS (CAR A) (CAR B)). Since it has a outer func, it can capture or simply use and throw it away. 
+But I've been thinking if the user keep typeing CAR A, CAR A, CAR A. Meaninglessly though, the stack may overflow. (I set the space to 10000)
+And what if user put something that can polluate the later operation.
+Also, what if the user call functions in a recursion way, can different layers of functions collide with each other.
+
+Eventually, different functions and lists in different forms can be utilised at the same time. 

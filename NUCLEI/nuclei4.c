@@ -188,7 +188,7 @@ int main(void){
    deffunc = (newfunccoll*)calloc(1, sizeof(newfunccoll));
    deffunc->funclist = (selffunc**)calloc(26, sizeof(selffunc*));
    
-   fp = fopen(argv[1], "r");
+   fp = fopen("all.ncl", "r");
    parse();
    this->currentrow = 0;
    Prog();

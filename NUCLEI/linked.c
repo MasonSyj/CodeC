@@ -2,6 +2,8 @@
 #include "nuclei.h"
 
 #include <ctype.h>
+#include <stdio.h>
+#include <string.h>
 
 #define BASETEN 10
 #define NIL NULL

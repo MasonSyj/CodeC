@@ -1,13 +1,22 @@
 # First 20 Fibonacci Numbers 
 (
+   (PRINT A)
    (SET L '(1 0)')
+   (SET A L)
+   (PRINT A)
+   (SET L A)
+   (PRINT L)
    (SET C '2')
    (WHILE (LESS C '20') (
       (SET N (PLUS (CAR L)  (CAR (CDR L))))
       (SET M (CONS N L))
+      (PRINT M)
       (SET L M)
+      (PRINT A)
+      (PRINT L)
       (SET B (PLUS '1' C))
-      (SET C B))
+      (SET C B)
+      (PRINT M))
    )
    (PRINT M)
 )

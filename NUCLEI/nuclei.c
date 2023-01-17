@@ -1,15 +1,17 @@
 #include "nuclei.h"
 #include "lisp.h"
 #include "general.h"
+#include <stdio.h>
 
 code* this;
-lisp** var;
+lisp* var;
 FILE* fp;
 stack* s;
 int printcnt;
 newfunccoll* deffunc;
 int execode;
 int operand;
+lisp* emptylisp;
 
 void test(){
 
@@ -17,15 +19,14 @@ void test(){
 
 
 int main(int argc, char* argv[]){
+   emptylisp = (lisp*)calloc(1, sizeof(lisp));
+   
    assert(argc == 2);
    test();
    s = (stack*)calloc(1, sizeof(stack));
    s->l = (lisp**)calloc(ROW, sizeof(lisp*));
    this = (code*)calloc(1, sizeof(code));
-   var = (lisp**)calloc(26, sizeof(lisp*));
-   for (int i = 0; i < 26; i++){
-      var[i] = (lisp*)calloc(1, sizeof(lisp));
-   }
+   var = (lisp*)calloc(26, sizeof(lisp));
    deffunc = (newfunccoll*)calloc(1, sizeof(newfunccoll));
    deffunc->funclist = (selffunc**)calloc(26, sizeof(selffunc*));
    
@@ -34,13 +35,6 @@ int main(int argc, char* argv[]){
    this->currentrow = 0;
    Prog();
 
-   char str[1000];
-   for (int i = 0; i < 26; i++){
-      lisp_tostring(var[i], str);
-      puts(str);
-      printf("----%d----%p\n", i, var[i]);
-      free(var[i]);
-   }
    free(var);
    free(s->l);
    free(s);
@@ -283,8 +277,9 @@ void listfunc(){
 void intfunc(){
    
 //   lisp* l = list2lisp(this->currentrow);
-   
+   #ifdef INTERP
    int temp = this->currentrow;
+   #endif
    islist();
    this->currentrow++;
    #ifdef INTERP
@@ -295,9 +290,10 @@ void intfunc(){
       #ifdef INTERP
       assert(lisp_isatomic(l));
       int value1 = lisp_getval(l);
-      #endif
+
 
       temp = this->currentrow;
+      #endif
       islist();
       this->currentrow++;
 
@@ -316,17 +312,19 @@ void intfunc(){
 }   
    
 void boolfunc(){
-      
+   #ifdef INTERP      
    int temp = this->currentrow;
+   #endif
    islist();
    this->currentrow++;
    #ifdef INTERP
    lisp* l1 = list2lisp(temp);
    assert(lisp_isatomic(l1));
    int value1 = lisp_getval(l1);
-   #endif
+
       
    temp = this->currentrow;
+   #endif
    islist();
    this->currentrow++;
    #ifdef INTERP
@@ -349,20 +347,28 @@ void set(void){
    if(!isvar(this->word[this->currentrow])){
       ERROR("Set function miss var");
    }
+   #ifdef INTERP  
    char x = this->word[this->currentrow][0];
-      
+   #endif   
    this->currentrow++;
+   #ifdef INTERP  
    int beginrow = this->currentrow;
+   #endif
       
    islist();
-      
-   var[x - 'A'] = list2lisp(beginrow);
-   
+   #ifdef INTERP
+   lisp* receiver = list2lisp(beginrow);
+   if (receiver == NIL){
+      var[x - 'A'] = *emptylisp;
+   }else{
+      var[x - 'A'] = *receiver;
+   }
+
+   #endif
    this->currentrow++;
 }
    
 void print(void){
-   printf("Print, current row: %d \n", this->currentrow);
    if (isliteral() || isnil() || isstring()){
       #ifdef INTERP
       puts(this->word[this->currentrow]);
@@ -373,7 +379,7 @@ void print(void){
       #ifdef INTERP
       char x = this->word[this->currentrow][0];
       char str[ROW];
-      lisp_tostring(var[x - 'A'], str);
+      lisp_tostring(&var[x - 'A'], str);
       puts(str);
       #endif
       this->currentrow++;
@@ -474,7 +480,7 @@ void loop(void){
    }else {
       ERROR("No bool function in if function condition stage.");
    }
-   
+   int tempop = operand;
    if (!STRSAME(this->word[this->currentrow++], ")")){
       ERROR("No ) in loop function condition stage.");
    }
@@ -484,19 +490,19 @@ void loop(void){
       ERROR("No ( in loop function first action stage.");
    }
    #ifdef INTERP
+   
    int end;
    while (lisp_getval(s->l[--s->top]) == true){
+      printf("loop here.\n");
       instrus();
       end = this->currentrow;
       this->currentrow = begin + 1;
+      operand = tempop;
       boolfunc();
       this->currentrow += 2;
    }
    this->currentrow = end + 1;
-   #endif
-
-   #ifndef INTERP
-      instrus();
+   
    #endif
 }
 
@@ -572,7 +578,7 @@ lisp* list2lisp(int beginrow){
 
    // is variable
    if ((int)strlen(this->word[beginrow]) == 1 && isupper(this->word[beginrow][0])){
-      return var[this->word[beginrow][0] - 'A'];
+      return &var[this->word[beginrow][0] - 'A'];
    }else if (STRSAME(this->word[beginrow], "NIL")){
       return NIL;
    }else if (this->word[beginrow][0] == '\''){

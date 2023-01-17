@@ -48,13 +48,13 @@
    (PRINT "Hello World")
    (SET A '(1 2 (3 4))')
    (PRINT A)
-   (PRINT '(1 2 (3 4))')
+   (PRINT '(1 2 (3 4 5))')
    (PRINT NIL)
    (PRINT (CAR A))
    
    (SET Z '1')
    (PRINT Z)
-   (SET A '(1 2 (3 4))')
+   (SET A '(1 2 (3 4 5 6))')
    (PRINT A)
    (SET B A)
    (PRINT B)
@@ -100,6 +100,7 @@
   (SET F '(2)')
   (SET G '(2)')
   (SET H (CONS F G))
+  (PRINT H)
    
    (SET L '(1 0)')
    (SET C '2')
@@ -108,7 +109,8 @@
       (SET M (CONS N L))
       (SET L M)
       (SET B (PLUS '1' C))
-      (SET C B))
+      (SET C B)
+      (PRINT M))
    )
    (PRINT M)
    

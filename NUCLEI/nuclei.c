@@ -3,7 +3,7 @@
 #include "general.h"
 
 code* this;
-lisp* var[26];
+lisp** var;
 FILE* fp;
 stack* s;
 int printcnt;
@@ -20,7 +20,9 @@ int main(int argc, char* argv[]){
    assert(argc == 2);
    test();
    s = (stack*)calloc(1, sizeof(stack));
+   s->l = (lisp**)calloc(ROW, sizeof(lisp*));
    this = (code*)calloc(1, sizeof(code));
+   var = (lisp**)calloc(26, sizeof(lisp*));
    for (int i = 0; i < 26; i++){
       var[i] = (lisp*)calloc(1, sizeof(lisp));
    }
@@ -31,6 +33,18 @@ int main(int argc, char* argv[]){
    parse();
    this->currentrow = 0;
    Prog();
+
+   char str[1000];
+   for (int i = 0; i < 26; i++){
+      lisp_tostring(var[i], str);
+      puts(str);
+      printf("----%d----%p\n", i, var[i]);
+      free(var[i]);
+   }
+   free(var);
+   free(s->l);
+   free(s);
+   free(this);
 /*
    char temp[ROW];
    while(1){
@@ -347,7 +361,8 @@ void set(void){
    this->currentrow++;
 }
    
-void print(void){  
+void print(void){
+   printf("Print, current row: %d \n", this->currentrow);
    if (isliteral() || isnil() || isstring()){
       #ifdef INTERP
       puts(this->word[this->currentrow]);

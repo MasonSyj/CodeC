@@ -30,7 +30,7 @@ typedef struct code{
 
 typedef struct liststack{
    int top;
-   lisp* l[ROW];
+   lisp** l;
 }stack;
 
 typedef struct selffunc{

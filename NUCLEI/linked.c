@@ -137,9 +137,14 @@ void lisp_free(lisp** l){
 
    lisp* car = lisp_car(*l);
    lisp* cdr = lisp_cdr(*l);
+   if (car){
+      lisp_free(&car);
+   }
 
-   lisp_free(&car);
-   lisp_free(&cdr);
+   if (cdr){
+      lisp_free(&cdr);
+   }
+   
    free(*l);
    *l = NIL;
    return;

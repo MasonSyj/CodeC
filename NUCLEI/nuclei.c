@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 code* this;
-lisp* var;
+lisp** var;
 FILE* fp;
 stack* s;
 int printcnt;
@@ -26,7 +26,8 @@ int main(int argc, char* argv[]){
    s = (stack*)calloc(1, sizeof(stack));
    s->l = (lisp**)calloc(ROW, sizeof(lisp*));
    this = (code*)calloc(1, sizeof(code));
-   var = (lisp*)calloc(26, sizeof(lisp));
+   var = (lisp**)calloc(26, sizeof(lisp*));
+
    deffunc = (newfunccoll*)calloc(1, sizeof(newfunccoll));
    deffunc->funclist = (selffunc**)calloc(26, sizeof(selffunc*));
    
@@ -35,20 +36,20 @@ int main(int argc, char* argv[]){
    this->currentrow = 0;
    Prog();
 
-   free(var);
+   for (int i = 0; i < s->height; i++){
+      lisp_free(&s->l[i]);
+   }
    free(s->l);
    free(s);
    free(this);
-/*
-   char temp[ROW];
-   while(1){
-      fgets(temp, ROW, stdin);
-      temp[strlen(temp) - 1] = '\0';
-      puts(temp);
-      ioparse(temp);
-      Prog();
+   for (int i = 0; i < 26; i++){
+      printf("---%d---\n", i);
+      char s[1000];
+      lisp_tostring(var[i], s);
+      puts(s);
+      lisp_free(&var[i]);
    }
-*/
+
 }
 
 void Prog(void){
@@ -80,82 +81,89 @@ void instru(void){
    }
 }
 
-void islistfun(void){
+bool islistfun(void){
    if (STRSAME(this->word[this->currentrow - 1], "CAR")){
-      listfunc(CAR);
+      operand = CAR;
+      listfunc();
+      return true;
    }else if (STRSAME(this->word[this->currentrow - 1], "CDR")){
-      listfunc(CDR);
+      operand = CDR;
+      listfunc();
+      return true;
    }else if (STRSAME(this->word[this->currentrow - 1], "CONS")){
-      listfunc(CONS);
+      operand = CONS;
+      listfunc();
+      return true;
    }
+
+   return false;
 }
-void isintfun(void){
+
+bool isintfun(void){
    if (STRSAME(this->word[this->currentrow - 1], "PLUS")){
-      intfunc(PLUS);
+      operand = PLUS;
+      intfunc();
+      return true;
    }else if (STRSAME(this->word[this->currentrow - 1], "LENGTH")){
-      intfunc(LENGTH);
+      operand = LENGTH;
+      intfunc();
+      return true;
+   }else if (STRSAME(this->word[this->currentrow - 1], "LESS")){
+      operand = LESS;
+      boolfunc();
+      return true;
    }
+   return false;
 }
-void isboolfun(void){
+
+bool isboolfun(void){
    if (STRSAME(this->word[this->currentrow - 1], "LESS")){
-      boolfunc(LESS);
+      operand = LESS;
+      boolfunc();
+      return true;
    }else if (STRSAME(this->word[this->currentrow - 1], "GREATER")){
-      boolfunc(GREATER);
+      operand = GREATER;
+      boolfunc();
+      return true;
    }else if (STRSAME(this->word[this->currentrow - 1], "EQUAL")){
-      boolfunc(EQUAL);
+      operand = EQUAL;
+      boolfunc();
+      return true;
    }
+   return false;
 }
-void isiofun(void){
+
+bool isiofun(void){
    if (STRSAME(this->word[this->currentrow - 1], "SET")){
+      operand = SET;
       set();
+      return true;
    }else if (STRSAME(this->word[this->currentrow - 1], "PRINT")){
+      operand = PRINT;
       print();
+      return true;
    }
+   return false;
 }
 
 void func(void){
    
    this->currentrow++;
    
-   if (STRSAME(this->word[this->currentrow - 1], "CAR")){
-      operand = CAR;
-      listfunc();
-   }else if (STRSAME(this->word[this->currentrow - 1], "CDR")){
-      operand = CDR;
-      listfunc();
-   }else if (STRSAME(this->word[this->currentrow - 1], "CONS")){
-      operand = CONS;
-      listfunc();
-   }else if (STRSAME(this->word[this->currentrow - 1], "PLUS")){
-      operand = PLUS;
-      intfunc();
-   }else if (STRSAME(this->word[this->currentrow - 1], "LENGTH")){
-      operand = LENGTH;
-      intfunc();
-   }else if (STRSAME(this->word[this->currentrow - 1], "LESS")){
-      operand = LESS;
-      boolfunc();
-   }else if (STRSAME(this->word[this->currentrow - 1], "GREATER")){
-      operand = GREATER;
-      boolfunc();
-   }else if (STRSAME(this->word[this->currentrow - 1], "EQUAL")){
-      operand = EQUAL;
-      boolfunc();
-   }else if (STRSAME(this->word[this->currentrow - 1], "SET")){
-      operand = SET;
-      set();
-   }else if (STRSAME(this->word[this->currentrow - 1], "PRINT")){
-      operand = PRINT;
-      print();
+   if (islistfun() == true){
+
+   }else if (isintfun() == true){
+
+   }else if (isboolfun() == true){
+
+   }else if (isiofun() == true){
+
    }else if (STRSAME(this->word[this->currentrow - 1], "IF")){
       operand = IF;
       iffunc();
    }else if (STRSAME(this->word[this->currentrow - 1], "WHILE")){
       operand = WHILE;
       loop();
-   }else if (STRSAME(this->word[this->currentrow - 1], "DEFUN")){
-      operand = DEFUN;
-      defun();
    }else if (isselffunc()){
       selffuncexe();
    }else{
@@ -249,12 +257,14 @@ void listfunc(){
    if (operand == CAR){
       #ifdef INTERP
          s->l[s->top++] = lisp_car(list2lisp(this->currentrow));
+         updatestackheight();
       #endif
       this->currentrow++;
       return;
    }else if (operand == CDR){
       #ifdef INTERP
          s->l[s->top++] = lisp_cdr(list2lisp(this->currentrow));
+         updatestackheight();
       #endif
       this->currentrow++;
       return;
@@ -268,6 +278,7 @@ void listfunc(){
       #ifdef INTERP
          lisp* l2 = list2lisp(this->currentrow);
          s->l[s->top++] = lisp_cons(l1, l2);
+         updatestackheight();
       #endif
       this->currentrow++;
    }
@@ -276,7 +287,6 @@ void listfunc(){
    
 void intfunc(){
    
-//   lisp* l = list2lisp(this->currentrow);
    #ifdef INTERP
    int temp = this->currentrow;
    #endif
@@ -291,7 +301,6 @@ void intfunc(){
       assert(lisp_isatomic(l));
       int value1 = lisp_getval(l);
 
-
       temp = this->currentrow;
       #endif
       islist();
@@ -301,12 +310,15 @@ void intfunc(){
       lisp* l2 = list2lisp(temp);
       assert(lisp_isatomic(l2));
       int value2 = lisp_getval(l2);
-      s->l[s->top++] = lisp_atom(value1 + value2);  
+
+      s->l[s->top++] = lisp_atom(value1 + value2);
+      updatestackheight();
       #endif    
    }else{
       #ifdef INTERP
       int len = lisp_length(l);
       s->l[s->top++] = lisp_atom(len);
+      updatestackheight();
       #endif
    }
 }   
@@ -339,6 +351,7 @@ void boolfunc(){
    }
    
    s->l[s->top++] = lisp_atom(result);
+   updatestackheight();
    #endif
 }
 
@@ -357,13 +370,7 @@ void set(void){
       
    islist();
    #ifdef INTERP
-   lisp* receiver = list2lisp(beginrow);
-   if (receiver == NIL){
-      var[x - 'A'] = *emptylisp;
-   }else{
-      var[x - 'A'] = *receiver;
-   }
-
+      var[x - 'A'] = list2lisp(beginrow);
    #endif
    this->currentrow++;
 }
@@ -379,7 +386,7 @@ void print(void){
       #ifdef INTERP
       char x = this->word[this->currentrow][0];
       char str[ROW];
-      lisp_tostring(&var[x - 'A'], str);
+      lisp_tostring(var[x - 'A'], str);
       puts(str);
       #endif
       this->currentrow++;
@@ -406,16 +413,7 @@ void iffunc(void){
    }
    
    this->currentrow++;
-   if (STRSAME(this->word[this->currentrow - 1], "LESS")){
-      operand = LESS;
-      boolfunc();
-   }else if (STRSAME(this->word[this->currentrow - 1], "GREATER")){
-      operand = GREATER;
-      boolfunc();
-   }else if (STRSAME(this->word[this->currentrow - 1], "EQUAL")){
-      operand = EQUAL;
-      boolfunc();
-   }else {
+   if (isboolfun() == false){
       ERROR("No bool function in if function condition stage.");
    }
 
@@ -468,19 +466,14 @@ void loop(void){
    int begin = this->currentrow;
    #endif
    this->currentrow++;
-   if (STRSAME(this->word[this->currentrow - 1], "LESS")){
-      operand = LESS;
-      boolfunc();
-   }else if (STRSAME(this->word[this->currentrow - 1], "GREATER")){
-      operand = GREATER;
-      boolfunc();
-   }else if (STRSAME(this->word[this->currentrow - 1], "EQUAL")){
-      operand = EQUAL;
-      boolfunc();
-   }else {
-      ERROR("No bool function in if function condition stage.");
+
+   if (isboolfun() == false){
+      ERROR("No bool function in loop function condition stage.");
    }
+      
+   #ifdef INTERP
    int tempop = operand;
+   #endif
    if (!STRSAME(this->word[this->currentrow++], ")")){
       ERROR("No ) in loop function condition stage.");
    }
@@ -493,7 +486,6 @@ void loop(void){
    
    int end;
    while (lisp_getval(s->l[--s->top]) == true){
-      printf("loop here.\n");
       instrus();
       end = this->currentrow;
       this->currentrow = begin + 1;
@@ -503,6 +495,11 @@ void loop(void){
    }
    this->currentrow = end + 1;
    
+   #endif
+
+   #ifndef INTERP
+      instrus();
+      this->currentrow++;
    #endif
 }
 
@@ -578,7 +575,7 @@ lisp* list2lisp(int beginrow){
 
    // is variable
    if ((int)strlen(this->word[beginrow]) == 1 && isupper(this->word[beginrow][0])){
-      return &var[this->word[beginrow][0] - 'A'];
+      return var[this->word[beginrow][0] - 'A'];
    }else if (STRSAME(this->word[beginrow], "NIL")){
       return NIL;
    }else if (this->word[beginrow][0] == '\''){
@@ -675,6 +672,12 @@ void elementparse(char** pstr, parsetype x){
    }
    strncpy(this->word[this->currentrow++], str, i + 1);
    *pstr += i + 1;
+}
+
+void updatestackheight(){
+   if (s->top > s->height){
+      s->height = s->top;
+   }
 }
 //////////////////////Separate Line//////////////////////////////////////////
 

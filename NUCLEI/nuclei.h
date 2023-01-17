@@ -30,6 +30,7 @@ typedef struct code{
 
 typedef struct liststack{
    int top;
+   int height;
    lisp** l;
 }stack;
 
@@ -43,6 +44,7 @@ typedef struct selffunc{
 typedef struct newfunccoll{
    selffunc** funclist;
    int top;
+
 }newfunccoll;
 
 typedef struct funcstack{
@@ -55,10 +57,10 @@ void instrus(void);
 void instru(void);
 void func(void);
 /////
-void islistfun(void);
-void isintfun(void);
-void isboolfun(void);
-void isiofun(void);
+bool islistfun(void);
+bool isintfun(void);
+bool isboolfun(void);
+bool isiofun(void);
 /////
 void listfunc();
 void intfunc();
@@ -87,5 +89,7 @@ void selffuncexe();
 bool isselffunc();
 
 void test();
+
+void updatestackheight();
 
 

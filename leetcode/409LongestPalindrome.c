@@ -16,6 +16,26 @@ int main(void) {
    printf("%d\n", longestPalindrome("bananas"));
 }
 
+//Official ANSWER·
+/*
+int longestPalindrome(char * s){
+   int count[128] = {0};
+   while (*s != '\0'){
+       count[*s]++;
+       s++;
+   }
+   int ans = 0;
+   for (int i = 0; i < 128; i++){
+      ans += count[i] / 2 * 2;
+      if (ans % 2 == 0 && count[i] % 2 == 1){
+          ans++;
+      }
+   }
+   return ans;
+}
+*/   
+   
+/*
 int longestPalindrome(char * s){
    int lower[26] = {0};
    int upper[26] = {0};
@@ -55,3 +75,4 @@ int longestPalindrome(char * s){
 
    return cnt;
 }
+*/

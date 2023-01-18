@@ -277,7 +277,7 @@ void listfunc(){
       #ifdef INTERP
          lisp* l2 = list2lisp(this->currentrow);
          s->l[s->top++] = lisp_cons(l1, l2);
-         hashset_insert(s->l[s->top - 1]);
+         lisp_recycle(s->l[s->top - 1]);
       #endif
       this->currentrow++;
    }
@@ -311,7 +311,7 @@ void intfunc(){
       int value2 = lisp_getval(l2);
 
       s->l[s->top++] = lisp_atom(value1 + value2);
-      hashset_insert(s->l[s->top - 1]);
+      lisp_recycle(s->l[s->top - 1]);
  
       #endif    
    }else{
@@ -350,7 +350,7 @@ void boolfunc(){
    }
    
    s->l[s->top++] = lisp_atom(result);
-   hashset_insert(s->l[s->top - 1]);
+   lisp_recycle(s->l[s->top - 1]);
    #endif
 }
 
@@ -370,6 +370,7 @@ void set(void){
    islist();
    #ifdef INTERP
       var[x - 'A'] = list2lisp(beginrow);
+      lisp_recycle(var[x - 'A']);
    #endif
    this->currentrow++;
 }
@@ -573,7 +574,7 @@ bool isnil(){
 lisp* list2lisp(int beginrow){
    // is variable
    if ((int)strlen(this->word[beginrow]) == 1 && isupper(this->word[beginrow][0])){
-      hashset_insert(var[this->word[beginrow][0] - 'A']);
+      lisp_recycle(var[this->word[beginrow][0] - 'A']);
       return var[this->word[beginrow][0] - 'A'];
    }else if (STRSAME(this->word[beginrow], "NIL")){
       return NIL;
@@ -584,12 +585,12 @@ lisp* list2lisp(int beginrow){
       strncpy(str, &this->word[beginrow][1], len - 2);
       free(str);
       lisp* ret = lisp_fromstring(str);
-      hashset_insert(ret);
+      lisp_recycle(ret);
       return ret;
       #endif
    }else{ //(this->word[beginrow][0] == '(')
       #ifdef INTERP
-      hashset_insert(s->l[s->top - 1]);
+      lisp_recycle(s->l[s->top - 1]);
       return s->l[--s->top];
       #endif
    }

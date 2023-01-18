@@ -3,15 +3,16 @@
 #include "general.h"
 #include <stdio.h>
 
-sourcecode* token;
+code* this;
 lisp** var;
 FILE* fp;
-lispstack* newlisps;
+stack* s;
 int printcnt;
 newfunccoll* deffunc;
 int execode;
 int operand;
 recycleset* hashset;
+
 
 void test(){
 
@@ -19,31 +20,34 @@ void test(){
 
 
 int main(int argc, char* argv[]){
-
+   
    assert(argc == 2);
    test();
-   newlisps = (lispstack*)calloc(1, sizeof(lispstack));
-   newlisps->arr = (lisp**)calloc(ROW, sizeof(lisp*));
-   token = (sourcecode*)calloc(1, sizeof(sourcecode));
+   s = (stack*)calloc(1, sizeof(stack));
+   s->l = (lisp**)calloc(ROW, sizeof(lisp*));
+   this = (code*)calloc(1, sizeof(code));
    var = (lisp**)calloc(26, sizeof(lisp*));
    hashset_init();
 
    deffunc = (newfunccoll*)calloc(1, sizeof(newfunccoll));
    deffunc->funclist = (selffunc**)calloc(26, sizeof(selffunc*));
-
+   
    fp = fopen(argv[1], "r");
-   Lexer();
+   parse();
    fclose(fp);
-   token->currentrow = 0;
+   this->currentrow = 0;
    Prog();
 
    #ifdef INTERP
+   for (int i = 0; i < 26; i++){
+      hashset_insert(var[i]);
+   }
 
    exe_recycle();
 
-   free(newlisps->arr);
-   free(newlisps);
-   free(token);
+   free(s->l);
+   free(s);
+   free(this);
    free(var);
    free(deffunc->funclist);
    free(deffunc);
@@ -54,44 +58,44 @@ int main(int argc, char* argv[]){
 }
 
 void Prog(void){
-   if (!STRSAME(token->word[token->currentrow], "(")){
+   if (!STRSAME(this->word[this->currentrow], "(")){
       ERROR("No Begin statement ?");
    }
-   token->currentrow++;
+   this->currentrow++;
    instrus();
    printf("Parsed OK\n");
 }
 
 void instrus(void){
-   if (STRSAME(token->word[token->currentrow], ")")){
+   if (STRSAME(this->word[this->currentrow], ")")){
       return;
    }
    instru();
-   token->currentrow++;
-   instrus();
+   this->currentrow++;
+   instrus();   
 }
 
 void instru(void){
-   if (!STRSAME(token->word[token->currentrow], "(")){
+   if (!STRSAME(this->word[this->currentrow], "(")){
       ERROR("No ( in instru ?");
    }
-   token->currentrow++;
+   this->currentrow++;
    func();
-   if (!STRSAME(token->word[token->currentrow], ")")){
+   if (!STRSAME(this->word[this->currentrow], ")")){
       ERROR("No ) in instru ?");
    }
 }
 
 bool islistfun(void){
-   if (STRSAME(token->word[token->currentrow - 1], "CAR")){
+   if (STRSAME(this->word[this->currentrow - 1], "CAR")){
       operand = CAR;
       listfunc();
       return true;
-   }else if (STRSAME(token->word[token->currentrow - 1], "CDR")){
+   }else if (STRSAME(this->word[this->currentrow - 1], "CDR")){
       operand = CDR;
       listfunc();
       return true;
-   }else if (STRSAME(token->word[token->currentrow - 1], "CONS")){
+   }else if (STRSAME(this->word[this->currentrow - 1], "CONS")){
       operand = CONS;
       listfunc();
       return true;
@@ -101,15 +105,15 @@ bool islistfun(void){
 }
 
 bool isintfun(void){
-   if (STRSAME(token->word[token->currentrow - 1], "PLUS")){
+   if (STRSAME(this->word[this->currentrow - 1], "PLUS")){
       operand = PLUS;
       intfunc();
       return true;
-   }else if (STRSAME(token->word[token->currentrow - 1], "LENGTH")){
+   }else if (STRSAME(this->word[this->currentrow - 1], "LENGTH")){
       operand = LENGTH;
       intfunc();
       return true;
-   }else if (STRSAME(token->word[token->currentrow - 1], "LESS")){
+   }else if (STRSAME(this->word[this->currentrow - 1], "LESS")){
       operand = LESS;
       boolfunc();
       return true;
@@ -118,15 +122,15 @@ bool isintfun(void){
 }
 
 bool isboolfun(void){
-   if (STRSAME(token->word[token->currentrow - 1], "LESS")){
+   if (STRSAME(this->word[this->currentrow - 1], "LESS")){
       operand = LESS;
       boolfunc();
       return true;
-   }else if (STRSAME(token->word[token->currentrow - 1], "GREATER")){
+   }else if (STRSAME(this->word[this->currentrow - 1], "GREATER")){
       operand = GREATER;
       boolfunc();
       return true;
-   }else if (STRSAME(token->word[token->currentrow - 1], "EQUAL")){
+   }else if (STRSAME(this->word[this->currentrow - 1], "EQUAL")){
       operand = EQUAL;
       boolfunc();
       return true;
@@ -135,11 +139,11 @@ bool isboolfun(void){
 }
 
 bool isiofun(void){
-   if (STRSAME(token->word[token->currentrow - 1], "SET")){
+   if (STRSAME(this->word[this->currentrow - 1], "SET")){
       operand = SET;
       set();
       return true;
-   }else if (STRSAME(token->word[token->currentrow - 1], "PRINT")){
+   }else if (STRSAME(this->word[this->currentrow - 1], "PRINT")){
       operand = PRINT;
       print();
       return true;
@@ -148,9 +152,9 @@ bool isiofun(void){
 }
 
 void func(void){
-
-   token->currentrow++;
-
+   
+   this->currentrow++;
+   
    if (islistfun() == true){
 
    }else if (isintfun() == true){
@@ -159,10 +163,10 @@ void func(void){
 
    }else if (isiofun() == true){
 
-   }else if (STRSAME(token->word[token->currentrow - 1], "IF")){
+   }else if (STRSAME(this->word[this->currentrow - 1], "IF")){
       operand = IF;
       iffunc();
-   }else if (STRSAME(token->word[token->currentrow - 1], "WHILE")){
+   }else if (STRSAME(this->word[this->currentrow - 1], "WHILE")){
       operand = WHILE;
       loop();
    }else if (isselffunc()){
@@ -172,77 +176,77 @@ void func(void){
    }
 }
 
-void defun(void){
+void defun(){
    deffunc->funclist[deffunc->top] = (selffunc*)calloc(1, sizeof(selffunc));
-   strcpy(deffunc->funclist[deffunc->top]->funcname, token->word[token->currentrow++]);
-
-
-   if (!STRSAME(token->word[token->currentrow++], "(")){
+   strcpy(deffunc->funclist[deffunc->top]->funcname, this->word[this->currentrow++]);
+   
+   
+   if (!STRSAME(this->word[this->currentrow++], "(")){
       ERROR("No ( in if def function parameter stage.");
    }
-
+   
    islist();
-   token->currentrow++;
-   if (!STRSAME(token->word[token->currentrow++], ",")){
+   this->currentrow++;
+   if (!STRSAME(this->word[this->currentrow++], ",")){
       ERROR("No ( in if def function parameter stage.");
    }
-
+   
    islist();
-   token->currentrow++;
-
-   if (!STRSAME(token->word[token->currentrow++], ")")){
+   this->currentrow++;
+   
+   if (!STRSAME(this->word[this->currentrow++], ")")){
       ERROR("No ) in if def function parameter stage.");
    }
-
-   if (!STRSAME(token->word[token->currentrow], "(")){
+   
+   if (!STRSAME(this->word[this->currentrow], "(")){
       ERROR("No ( in if def function execution stage.");
    }
-
-   deffunc->funclist[deffunc->top]->firstrow = token->currentrow;
+   
+   deffunc->funclist[deffunc->top]->firstrow = this->currentrow;
    pass();
-   deffunc->funclist[deffunc->top]->lastrow = token->currentrow;
+   deffunc->funclist[deffunc->top]->lastrow = this->currentrow;
 /*
-   int firstrow = token->currentrow;
+   int firstrow = this->currentrow;
    pass();
-   int lastrow = token->currentrow;
+   int lastrow = this->currentrow;
    int row = 0;
    for (int i = firstrow; i < lastrow; i++){
-      strcpy(deffunc->funclist[deffunc->top]->word[row++], token->word[i]);
+      strcpy(deffunc->funclist[deffunc->top]->word[row++], this->word[i]);
    }
    */
    deffunc->top++;
 }
 
-void selffuncexe(void){
-
-   if (!STRSAME(token->word[token->currentrow++], "(")){
+void selffuncexe(){
+   
+   if (!STRSAME(this->word[this->currentrow++], "(")){
       ERROR("No ( in if self function execution parameter stage.");
    }
-
+   
    islist();
-   token->currentrow++;
-   if (!STRSAME(token->word[token->currentrow++], ",")){
+   this->currentrow++;
+   if (!STRSAME(this->word[this->currentrow++], ",")){
       ERROR("No ( in if self function execution parameter stage.");
    }
-
+   
    islist();
-   token->currentrow++;
-
-   if (!STRSAME(token->word[token->currentrow++], ")")){
+   this->currentrow++;
+   
+   if (!STRSAME(this->word[this->currentrow++], ")")){
       ERROR("No ) in if self function execution parameter stage.");
    }
-
-   int bl = token->currentrow;
-   token->currentrow = deffunc->funclist[execode]->firstrow + 1;
+   
+   int bl = this->currentrow;
+   this->currentrow = deffunc->funclist[execode]->firstrow + 1;
    func();
-   token->currentrow = bl;
+   this->currentrow = bl;
 }
 
-bool isselffunc(void){
+bool isselffunc(){
    printf("Enter selffunc name check\n");
    int i = 0;
    while (i != deffunc->top){
-      if (STRSAME(deffunc->funclist[i]->funcname, token->word[token->currentrow - 1])){
+      if (STRSAME(deffunc->funclist[i]->funcname, this->word[this->currentrow - 1])){
          execode = i;
          return true;
       }
@@ -251,174 +255,182 @@ bool isselffunc(void){
    return false;
 }
 
-void listfunc(void){
+void listfunc(){
 
    islist();
-
+   
    if (operand == CAR){
       #ifdef INTERP
-         newlisps->arr[newlisps->top++] = lisp_car(list2lisp());
+         s->l[s->top++] = lisp_car(list2lisp(this->currentrow));
       #endif
-      token->currentrow++;
+      this->currentrow++;
       return;
    }else if (operand == CDR){
       #ifdef INTERP
-         newlisps->arr[newlisps->top++] = lisp_cdr(list2lisp());
+         s->l[s->top++] = lisp_cdr(list2lisp(this->currentrow));
       #endif
-      token->currentrow++;
+      this->currentrow++;
       return;
    }else if (operand == CONS){
       #ifdef INTERP
-         lisp* l1 = list2lisp();
+         lisp* l1 = list2lisp(this->currentrow);
       #endif
-      token->currentrow++;
-
+      this->currentrow++;
+      
       islist();
       #ifdef INTERP
-         lisp* l2 = list2lisp();
-         newlisps->arr[newlisps->top++] = lisp_cons(l1, l2);
-         lisp_recycle(newlisps->arr[newlisps->top - 1]);
+         lisp* l2 = list2lisp(this->currentrow);
+         s->l[s->top++] = lisp_cons(l1, l2);
+         lisp_recycle(s->l[s->top - 1]);
       #endif
-      token->currentrow++;
+      this->currentrow++;
    }
 }
 
-
-void intfunc(void){
-
-
-   islist();
-
+   
+void intfunc(){
+   
    #ifdef INTERP
-   lisp* l = list2lisp();
+   int temp = this->currentrow;
    #endif
-   token->currentrow++;
-
+   islist();
+   this->currentrow++;
+   #ifdef INTERP
+   lisp* l = list2lisp(temp);
+   #endif
+   
    if (operand == PLUS){
       #ifdef INTERP
       assert(lisp_isatomic(l));
       int value1 = lisp_getval(l);
 
+      temp = this->currentrow;
       #endif
       islist();
+      this->currentrow++;
 
       #ifdef INTERP
-      lisp* l2 = list2lisp();
+      lisp* l2 = list2lisp(temp);
       assert(lisp_isatomic(l2));
       int value2 = lisp_getval(l2);
 
-      newlisps->arr[newlisps->top++] = lisp_atom(value1 + value2);
-      lisp_recycle(newlisps->arr[newlisps->top - 1]);
-
-      #endif
-      token->currentrow++;
+      s->l[s->top++] = lisp_atom(value1 + value2);
+      lisp_recycle(s->l[s->top - 1]);
+ 
+      #endif    
    }else{
       #ifdef INTERP
       int len = lisp_length(l);
-      newlisps->arr[newlisps->top++] = lisp_atom(len);
+      s->l[s->top++] = lisp_atom(len);
       #endif
    }
-}
-
-void boolfunc(void){
-
+}   
+   
+void boolfunc(){
+   #ifdef INTERP      
+   int temp = this->currentrow;
+   #endif
    islist();
-
+   this->currentrow++;
    #ifdef INTERP
-   lisp* l1 = list2lisp();
+   lisp* l1 = list2lisp(temp);
    assert(lisp_isatomic(l1));
    int value1 = lisp_getval(l1);
 
+      
+   temp = this->currentrow;
    #endif
-   token->currentrow++;
    islist();
-
+   this->currentrow++;
    #ifdef INTERP
-   lisp* l2 = list2lisp();
+   lisp* l2 = list2lisp(temp);
    assert(lisp_isatomic(l2));
    int value2 = lisp_getval(l2);
-
+   
    int result = 0;
-
+   
    if ((operand == LESS && value1 < value2) || (operand == GREATER && value1 > value2) || (operand == EQUAL && value1 == value2)){
       result = 1;
    }
-
-   newlisps->arr[newlisps->top++] = lisp_atom(result);
-   lisp_recycle(newlisps->arr[newlisps->top - 1]);
+   
+   s->l[s->top++] = lisp_atom(result);
+   lisp_recycle(s->l[s->top - 1]);
    #endif
-   token->currentrow++;
 }
 
 
 void set(void){
-   if(!isvar()){
+   if(!isvar(this->word[this->currentrow])){
       ERROR("Set function miss var");
    }
-   #ifdef INTERP
-   char x = token->word[token->currentrow][0];
+   #ifdef INTERP  
+   char x = this->word[this->currentrow][0];
+   #endif   
+   this->currentrow++;
+   #ifdef INTERP  
+   int beginrow = this->currentrow;
    #endif
-   token->currentrow++;
-
+      
    islist();
    #ifdef INTERP
-      var[x - 'A'] = list2lisp();
+      var[x - 'A'] = list2lisp(beginrow);
+      lisp_recycle(var[x - 'A']);
    #endif
-   token->currentrow++;
+   this->currentrow++;
 }
-
+   
 void print(void){
    if (isliteral() || isnil() || isstring()){
       #ifdef INTERP
-      puts(token->word[token->currentrow]);
+      puts(this->word[this->currentrow]);
       #endif
-      token->currentrow++;
+      this->currentrow++;
       return;
    }else if (isvar()){
       #ifdef INTERP
-      char x = token->word[token->currentrow][0];
+      char x = this->word[this->currentrow][0];
       char str[ROW];
       lisp_tostring(var[x - 'A'], str);
       puts(str);
       #endif
-      token->currentrow++;
+      this->currentrow++;
       return;
-   }else if (token->word[token->currentrow][0] == '('){
+   }else if (this->word[this->currentrow][0] == '('){
       islist();
       #ifdef INTERP
       char str[ROW];
-      lisp_tostring(newlisps->arr[newlisps->top - 1], str);
-      newlisps->top--;
+      lisp_tostring(s->l[s->top - 1], str);
+      s->top--;
       puts(str);
       #endif
-      token->currentrow++;
+      this->currentrow++;
       return;
    }else{
       ERROR("Print function miss list or string element");
    }
-
+   
 }
 
 void iffunc(void){
-   if (!STRSAME(token->word[token->currentrow++], "(")){
+   if (!STRSAME(this->word[this->currentrow++], "(")){
       ERROR("No ( in if function condition stage.");
    }
-
-   token->currentrow++;
+   
+   this->currentrow++;
    if (isboolfun() == false){
       ERROR("No bool function in if function condition stage.");
    }
 
-   if (!STRSAME(token->word[token->currentrow++], ")")){
+   if (!STRSAME(this->word[this->currentrow++], ")")){
       ERROR("No ) in if function condition stage.");
    }
 
-   if (!STRSAME(token->word[token->currentrow++], "(")){
+   if (!STRSAME(this->word[this->currentrow++], "(")){
       ERROR("No ( in if function first action stage.");
    }
-
+   
    #ifdef INTERP
-      lisp* exeflag = newlisps->arr[--newlisps->top];
+      lisp* exeflag = s->l[--s->top];
       if (lisp_getval(exeflag) == true){
          instrus();
       }else{
@@ -430,10 +442,10 @@ void iffunc(void){
       instrus();
    #endif
 
-   if (!STRSAME(token->word[++token->currentrow], "(")){
+   if (!STRSAME(this->word[++this->currentrow], "(")){
       ERROR("No ( in if function second action stage.");
    }
-   token->currentrow++;
+   this->currentrow++;
 
    #ifdef INTERP
       if (lisp_getval(exeflag) == false){
@@ -446,67 +458,67 @@ void iffunc(void){
    #ifndef INTERP
       instrus();
    #endif
-
-   token->currentrow++;
+   
+   this->currentrow++;
 }
 
 void loop(void){
-   if (!STRSAME(token->word[token->currentrow++], "(")){
+   if (!STRSAME(this->word[this->currentrow++], "(")){
       ERROR("No ( in loop function condition stage.");
    }
    #ifdef INTERP
-   int begin = token->currentrow;
+   int begin = this->currentrow;
    #endif
-   token->currentrow++;
+   this->currentrow++;
 
    if (isboolfun() == false){
       ERROR("No bool function in loop function condition stage.");
    }
-
+      
    #ifdef INTERP
    int tempop = operand;
    #endif
-   if (!STRSAME(token->word[token->currentrow++], ")")){
+   if (!STRSAME(this->word[this->currentrow++], ")")){
       ERROR("No ) in loop function condition stage.");
    }
+      
 
-
-   if (!STRSAME(token->word[token->currentrow++], "(")){
+   if (!STRSAME(this->word[this->currentrow++], "(")){
       ERROR("No ( in loop function first action stage.");
    }
    #ifdef INTERP
-
+   
    int end;
-   while (lisp_getval(newlisps->arr[--newlisps->top]) == true){
+   while (lisp_getval(s->l[--s->top]) == true){
       instrus();
-      end = token->currentrow;
-      token->currentrow = begin + 1;
+      end = this->currentrow;
+      this->currentrow = begin + 1;
       operand = tempop;
       boolfunc();
-      token->currentrow += 2;
+      this->currentrow += 2;
    }
-   token->currentrow = end + 1;
-
+   this->currentrow = end + 1;
+   
    #endif
 
    #ifndef INTERP
       instrus();
-      token->currentrow++;
+      this->currentrow++;
    #endif
 }
 
-void islist(void){
-   bool result1 = isvar() || isliteral() || STRSAME(token->word[token->currentrow], "NIL");
+void islist(){
+   bool result1 = isvar() || isliteral() || STRSAME(this->word[this->currentrow], "NIL");
    if (result1 == true){
       return;
    }
-
-   if (!STRSAME(token->word[token->currentrow], "(")){
+   
+   if (!STRSAME(this->word[this->currentrow], "(")){
       ERROR("No ( in list( retfunc type)");
    }
-
+   printf("begin: when list is retfunc: %d, ", this->currentrow);
    int preop = operand;
-   token->currentrow += 2;
+   this->currentrow += 2;
 
    if (islistfun() == true){
 
@@ -518,9 +530,11 @@ void islist(void){
       ERROR("invalid list");
    }
 
-   operand = preop;
+   printf("end: when list is retfunc: %d\n", this->currentrow);
 
-   if (!STRSAME(token->word[token->currentrow], ")")){
+   operand = preop;
+      
+   if (!STRSAME(this->word[this->currentrow], ")")){
       ERROR("invalid list");
    }
 
@@ -528,71 +542,71 @@ void islist(void){
 
 }
 
-bool isvar(void){
-   return (int)strlen(token->word[token->currentrow]) == 1 && isupper(token->word[token->currentrow][0]);
+bool isvar(){
+   return (int)strlen(this->word[this->currentrow]) == 1 && isupper(this->word[this->currentrow][0]);
 }
 
-bool isliteral(void){
-   int lastchar = (int)strlen(token->word[token->currentrow]) - 1;
-   return token->word[token->currentrow][0] == '\'' && token->word[token->currentrow][lastchar] == '\'';
+bool isliteral(){
+   int lastchar = (int)strlen(this->word[this->currentrow]) - 1;
+   return this->word[this->currentrow][0] == '\'' && this->word[this->currentrow][lastchar] == '\'';
 }
 
-bool isstring(void){
-   int lastchar = (int)strlen(token->word[token->currentrow]) - 1;
-   return token->word[token->currentrow][0] == '\"' && token->word[token->currentrow][lastchar] == '\"';
+bool isstring(){
+   int lastchar = (int)strlen(this->word[this->currentrow]) - 1;
+   return this->word[this->currentrow][0] == '\"' && this->word[this->currentrow][lastchar] == '\"';
 }
 
-bool isnil(void){
-   return STRSAME(token->word[token->currentrow], "NIL");
+bool isnil(){
+   return STRSAME(this->word[this->currentrow], "NIL");
 }
 
 
-lisp* list2lisp(void){
+lisp* list2lisp(int beginrow){
    // is variable
-   if ((int)strlen(token->word[token->currentrow]) == 1 && isupper(token->word[token->currentrow][0])){
+   if ((int)strlen(this->word[beginrow]) == 1 && isupper(this->word[beginrow][0])){
       #ifdef INTERP
-      lisp_recycle(var[token->word[token->currentrow][0] - 'A']);
-      return var[token->word[token->currentrow][0] - 'A'];
+      lisp_recycle(var[this->word[beginrow][0] - 'A']);
+      return var[this->word[beginrow][0] - 'A'];
       #endif
-   }else if (STRSAME(token->word[token->currentrow], "NIL")){
+   }else if (STRSAME(this->word[beginrow], "NIL")){
       return NIL;
-   }else if (token->word[token->currentrow][0] == '\''){
+   }else if (this->word[beginrow][0] == '\''){
       #ifdef INTERP
-      int len = (int)strlen(token->word[token->currentrow]);
+      int len = (int)strlen(this->word[beginrow]);
       char* str = (char*)calloc(len - 1, sizeof(char));
-      strncpy(str, &token->word[token->currentrow][1], len - 2);
+      strncpy(str, &this->word[beginrow][1], len - 2);
       lisp* ret = lisp_fromstring(str);
       lisp_recycle(ret);
       free(str);
       return ret;
       #endif
-   }else{
+   }else{ //(this->word[beginrow][0] == '(')
       #ifdef INTERP
-      lisp_recycle(newlisps->arr[newlisps->top - 1]);
-      return newlisps->arr[--newlisps->top];
+      lisp_recycle(s->l[s->top - 1]);
+      return s->l[--s->top];
       #endif
    }
    return NIL;
 }
 
-void pass(void){
-   assert(token->word[token->currentrow][0] == '(');
+void pass(){
+   assert(this->word[this->currentrow][0] == '(');
    int top = 1;
    while (top != -1){
-      token->currentrow++;
-      if (token->word[token->currentrow][0] == '('){
+      this->currentrow++;
+      if (this->word[this->currentrow][0] == '('){
          top++;
-      }else if (token->word[token->currentrow][0] == ')'){
+      }else if (this->word[this->currentrow][0] == ')'){
          top--;
       }
    }
 }
 
-void Lexer(void){
+void parse(){
    char* str = (char*)calloc(ROW, sizeof(char));
-   assert(str);
    char* head = str;
    char* temp = (char*)calloc(ROW, sizeof(char));
+   assert(str);
    assert(temp);
 
    while (fgets(temp, ROW, fp)){
@@ -604,43 +618,43 @@ void Lexer(void){
 
    while (*str != '\0'){
       switch (*str){
-         case '(': token->word[token->currentrow++][0] = '('; str++; break;
-         case ')': token->word[token->currentrow++][0] = ')'; str++; break;
-         case '\'': elementLexer(&str, literal); break;
-         case '"': elementLexer(&str, string); break;
+         case '(': this->word[this->currentrow++][0] = '('; str++; break;
+         case ')': this->word[this->currentrow++][0] = ')'; str++; break;
+         case '\'': elementparse(&str, literal); break;
+         case '"': elementparse(&str, string); break;
          case ' ':str++; break;
-         default: elementLexer(&str, letter); break;
+         default: elementparse(&str, letter); break;
       }
    }
 
    int i = 0;
 
-   while (token->word[i][0] != '\0'){
+   while (this->word[i][0] != '\0'){
       printf("%d: ", i);
-      puts(token->word[i++]);
+      puts(this->word[i++]);
    }
-
+   
    printf("---------Separate Line-----------\n");
 
    free(head);
    free(temp);
 }
 
-void ioLexer(char* input){
+void ioparse(char* input){
 
    while (*input != '\0'){
       switch (*input){
-         case '(': token->word[token->currentrow++][0] = '('; input++; break;
-         case ')': token->word[token->currentrow++][0] = ')'; input++; break;
-         case '\'': elementLexer(&input, literal); break;
-         case '"': elementLexer(&input, string); break;
+         case '(': this->word[this->currentrow++][0] = '('; input++; break;
+         case ')': this->word[this->currentrow++][0] = ')'; input++; break;
+         case '\'': elementparse(&input, literal); break;
+         case '"': elementparse(&input, string); break;
          case ' ':input++; break;
-         default: elementLexer(&input, letter); break;
+         default: elementparse(&input, letter); break;
       }
    }
 }
 
-void elementLexer(char** pstr, parsetype x){
+void elementparse(char** pstr, parsetype x){
    char* str = *pstr;
    int i = 1;
    if (x == literal){
@@ -650,31 +664,31 @@ void elementLexer(char** pstr, parsetype x){
    }else if (x == string){
       while (str[i] != '"'){
          i++;
-      }
+      }   
    }else if (x == letter){
       while (isupper(str[i])){
          i++;
       }
       i--;
    }
-   strncpy(token->word[token->currentrow++], str, i + 1);
+   strncpy(this->word[this->currentrow++], str, i + 1);
    *pstr += i + 1;
 }
 
-void lisp_recycle(lisp* newlisp){
-
-   if (newlisp == NULL){
+void lisp_recycle(lisp* l){
+   
+   if (l == NULL){
       return;
    }
    #ifdef INTERP
-   lisp_recycle(lisp_car(newlisp));
-   lisp_recycle(lisp_cdr(newlisp));
-
-   hashset_insert(newlisp);
-   #endif
+   lisp_recycle(lisp_car(l));
+   lisp_recycle(lisp_cdr(l));
+   
+   hashset_insert(l);
+   #endif 
 }
 
-void hashset_init(void){
+void hashset_init(){
    hashset = (recycleset*)calloc(1, sizeof(recycleset));
    assert(hashset);
    hashset->list = (lisp**)calloc(SIZE, sizeof(lisp*));
@@ -682,23 +696,23 @@ void hashset_init(void){
    hashset->size = SIZE;
 }
 
-void hashset_insert(lisp* singlelisp){
+void hashset_insert(lisp* newlisp){
    int i = 0;
-   while (hashset->list[doublehash(singlelisp, hashset->size, i)]){
-      if (singlelisp == hashset->list[doublehash(singlelisp, hashset->size, i)]){
+   while (hashset->list[doublehash(newlisp, hashset->size, i)]){
+      if (newlisp == hashset->list[doublehash(newlisp, hashset->size, i)]){
          return;
       }
       i++;
    }
 
-   hashset->list[doublehash(singlelisp, hashset->size, i)] = singlelisp;
+   hashset->list[doublehash(newlisp, hashset->size, i)] = newlisp;
    hashset->usage++;
-
+   
    if ((double)hashset->usage / (double)hashset->size >= 0.7){
-      rehash();
+      rehash(hashset);
    }
 }
-void rehash(void){
+void rehash(){
    int cnt = 0;
    lisp** templist = (lisp**)calloc(hashset->usage, sizeof(lisp*));
    for (int i = 0; i < hashset->size; i++){
@@ -706,7 +720,7 @@ void rehash(void){
          templist[cnt++] = hashset->list[i];
       }
    }
-   assert(cnt == hashset->usage);
+   assert(cnt == hashset->usage);  
 
    int newsz = firstprimeaftern(hashset->size * SCALEFACTOR);
    free(hashset->list);
@@ -721,7 +735,7 @@ void rehash(void){
    free(templist);
 }
 
-void hashset_free(void){
+void hashset_free(){
    free(hashset->list);
    free(hashset);
 }
@@ -755,7 +769,7 @@ int firstprimebeforen(int n){
    while (!isprime(i)){
       i--;
    }
-   return i;
+   return i; 
 }
 bool isprime(int n){
    for (int i = 2; i <= (int)sqrt(n); i++){
@@ -766,7 +780,7 @@ bool isprime(int n){
    return true;
 }
 
-void exe_recycle(void){
+void exe_recycle(){
    for (int i = 0; i < hashset->size; i++){
       if (hashset->list[i]){
          free(hashset->list[i]);
@@ -784,7 +798,7 @@ bool issublisp(const char* str, int index);
 // build from cons, for a lisp, pend new things either it's atom or sublisp at the end
 // only use at extension part for better readability
 void lisp_pend(lisp** l, lisp* sub);
-//when a lisp has a sublisp, return the str of token sublisp
+//when a lisp has a sublisp, return the str of this sublisp
 char* sublisp_tostring(const char* str);
 //turn integer into string, which calloc a string for exact space then use snprintf
 char* int2string(int value);
@@ -797,7 +811,7 @@ int numdigits(int num);
 //isnum check, in a char array, first char needs to be digit or '-'
 bool isnum(char x);
 
-// Returns element 'a' - token is not a list, and
+// Returns element 'a' - this is not a list, and
 // by itself would be printed as e.g. "3", and not "(3)"
 lisp* lisp_atom(const atomtype a);
 
@@ -842,7 +856,7 @@ lisp* lisp_fromstring(const char* str);
 // Returns a new list from a set of existing lists.
 // A variable number 'n' lists are used.
 // Data in existing lists are reused, and not copied.
-// You need to understand 'varargs' for token.
+// You need to understand 'varargs' for this.
 lisp* lisp_list(const int n, ...);
 
 // Allow a user defined function 'func' to be applied to
@@ -853,26 +867,26 @@ void lisp_reduce(void (*func)(lisp* l, atomtype* n), lisp* l, atomtype* acc);
 
 
 
-// Returns element 'a' - token is not a list, and
+// Returns element 'a' - this is not a list, and
 // by itelf would be printed as e.g. "3", and not "(3)"
 lisp* lisp_atom(const atomtype a){
-   lisp* token = (lisp*)calloc(1, sizeof(lisp));
-   assert(token);
-   token->val = a;
-   assert(!lisp_car(token));
-   assert(!lisp_cdr(token));
-   return token;
+   lisp* this = (lisp*)calloc(1, sizeof(lisp));
+   assert(this);
+   this->val = a;
+   assert(!lisp_car(this));
+   assert(!lisp_cdr(this));
+   return this;
 }
 
 // Returns a list containing the car as 'l1'
 // and the cdr as 'l2'- data in 'l1' and 'l2' are reused,
 // and not copied. Either 'l1' and/or 'l2' can be NULL
 lisp* lisp_cons(const lisp* l1,  const lisp* l2){
-   lisp* token = (lisp*)calloc(1, sizeof(lisp));
-   assert(token);
-   token->car = (lisp*)l1;
-   token->cdr = (lisp*)l2;
-   return token;
+   lisp* this = (lisp*)calloc(1, sizeof(lisp));
+   assert(this);
+   this->car = (lisp*)l1;
+   this->cdr = (lisp*)l2;
+   return this;
 }
 
 // Returns the car (1st) component of the list 'l'.
@@ -906,7 +920,7 @@ bool lisp_isatomic(const lisp* l){
    }
    return !lisp_car(l) && !lisp_cdr(l);
 }
-
+   
 // Returns a deep copy of the list 'l'
 lisp* lisp_copy(const lisp* l){
    if (l == NIL){
@@ -919,13 +933,13 @@ lisp* lisp_copy(const lisp* l){
    copy->car = lisp_copy(l->car);
    return copy;
 }
-
+   
 // Returns number of components in the list.
 int lisp_length(const lisp* l){
    if (!l || lisp_isatomic(l)){
       return 0;
    }
-
+   
    int cnt = 0;
    while (l){
       l = lisp_cdr(l);
@@ -942,8 +956,8 @@ void lisp_tostring(const lisp* l, char* str){
       free(x);
       return;
    }
-   //token tempstr act as parameter str, prefer to calloc one which is cleaner, str from outside might contain data rendering it difficult to manipulate
-   char* tempstr = (char*)calloc(LISTSTRLEN, sizeof(char));
+   //this tempstr act as parameter str, prefer to calloc one which is cleaner, str from outside might contain data rendering it difficult to manipulate
+   char* tempstr = (char*)calloc(LISTSTRLEN, sizeof(char)); 
    assert(tempstr);
    char* head = tempstr;
    *tempstr++ = LEFTBRACKET;
@@ -996,45 +1010,45 @@ lisp* lisp_fromstring(const char* str){
    }else if (isnum(*str)){ //when only a single number
       return lisp_atom(firstnumstr(str)); // treat as atom
    }
-
-   lisp* token = NIL;
+   
+   lisp* this = NIL;
    int index = 0;
    while (index < (int)strlen(str)){
       if (isnum(str[index])){
          int value = firstnumstr(str + index);
-         lisp_pend(&token, lisp_atom(value));
+         lisp_pend(&this, lisp_atom(value));
          int digit = numdigits(value);
          index = index + digit - 1;
       }else if (str[index] == LEFTBRACKET && issublisp(str, index)){
          char* substr = sublisp_tostring(str + index);
          lisp* sub = lisp_fromstring(substr);
-         lisp_pend(&token, sub);
+         lisp_pend(&this, sub);
          int len = (int)strlen(substr);
          index = index + len - 1;
          free(substr);
       }
       index++;
    }
-   return token;
+   return this;
 }
 
 // Returns a new list from a set of existing lists.
 // A variable number 'n' lists are used.
 // Data in existing lists are reused, and not copied.
-// You need to understand 'varargs' for token.
+// You need to understand 'varargs' for this.
 lisp* lisp_list(const int n, ...){
-   lisp* token = NIL;
+   lisp* this = NIL;
    if (n == 0){
-      return token;
+      return this;
    }
    va_list valist;
    va_start(valist, n);
    for (int i = 0; i < n; i++){
       lisp* new = va_arg(valist, lisp*);
-      lisp_pend(&token, new);
+      lisp_pend(&this, new);
    }
    va_end(valist);
-   return token;
+   return this;
 }
 
 // Allow a user defined function 'func' to be applied to
@@ -1105,14 +1119,14 @@ char* sublisp_tostring(const char* str){
 }
 
 char* int2string(int value){
-   int digit = numdigits(value);
+   int digit = numdigits(value); 
    char* str = (char*)calloc(digit + 1, sizeof(char));
    assert(str);
    assert(snprintf(str, digit + 1, "%d", value) == digit);
    return str;
 }
 
-//return first num in a string, only call token function when str begins with number
+//return first num in a string, only call this function when str begins with number
 int firstnumstr(const char* str){
    int value = 0;
    assert(sscanf(str, "%d", &value) == 1);
@@ -1136,3 +1150,4 @@ int numdigits(int num){
    return i;
 }
 */
+

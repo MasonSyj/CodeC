@@ -15,7 +15,7 @@
 #define BASETEN 10
 #define STRSAME(A,B) (strcmp(A,B) == 0)
 #define ERROR(PHARSE) { fprintf(stderr, "Fatal Error %s occurred in %s, line %d, currentrow %d\n"\
-	, PHARSE, __FILE__, __LINE__, this->currentrow); exit(EXIT_FAILURE);}
+	, PHARSE, __FILE__, __LINE__, token->currentrow); exit(EXIT_FAILURE);}
 #define CODESIZE 1000
 #define LEFTBRACKET '(' //maybe unnecessary, in case it maybe other type like [] or {}
 #define RIGHTBRACKET ')'
@@ -25,16 +25,22 @@
 typedef enum libfunc{CAR, CDR, CONS, PLUS, LENGTH, GREATER, LESS, EQUAL, PRINT, SET, IF, WHILE, DEFUN} libfunc;
 typedef enum parsetype{literal, string, letter} parsetype;
 
-typedef struct code{
+typedef struct sourcecode{
    char word[ROW][COL];
    int currentrow; //current word
-}code;
+}sourcecode;
 
-typedef struct liststack{
+typedef struct stack{
    int top;
-   int height;
-   lisp** l;
-}stack;
+   lisp** arr;
+}lispstack;
+
+typedef struct recycleset{
+   lisp** list;
+   int usage;
+   int size;
+}recycleset;
+
 
 typedef struct selffunc{
    char funcname[20];
@@ -54,18 +60,12 @@ typedef struct funcstack{
    lisp* l[ROW];
 }funcstack;
 
-typedef struct recycleset{
-   lisp** list;
-   int usage;
-   int size;
-}recycleset;
-
-void exe_recycle();
-void lisp_recycle(lisp* l);
-void hashset_init();
-void hashset_insert(lisp* newlisp);
-void hashset_free();
-void rehash(recycleset* set);
+void exe_recycle(void);
+void lisp_recycle(lisp* newlisp);
+void hashset_init(void);
+void hashset_insert(lisp* singlelisp);
+void hashset_free(void);
+void rehash(void);
 int hash1(lisp* newlisp, int sz);
 int hash2(lisp* newlisp, int sz); 
 int doublehash(lisp* newlisp, int sz, int i);
@@ -83,32 +83,34 @@ bool isintfun(void);
 bool isboolfun(void);
 bool isiofun(void);
 /////
-void listfunc();
-void intfunc();
-void boolfunc();
-/////
+void listfunc(void);
+void intfunc(void);
+void boolfunc(void);
+
 void set(void);
 void print(void);
 void iffunc(void);
-void loop();
-
-void islist();
-bool isvar();
-bool isliteral();
-bool isstring();
-bool isnil();
-void pass();
-
-void parse();
-void elementparse(char** pstr, parsetype x);
-void ioparse(char* input);
-
-lisp* list2lisp(int beginrow);
-
-void defun();
-void selffuncexe();
-bool isselffunc();
-
+void loop(void);
+/////
+lisp* list2lisp(void);
+/////
+void islist(void);
+bool isvar(void);
+bool isliteral(void);
+bool isstring(void);
+bool isnil(void);
+void pass(void);
+/////
+void Lexer(void);
+void elementLexer(char** pstr, parsetype x);
+void ioLexer(char* input);  //extension
+/////
 void test();
+/////
+
+void defun(); //extension
+void selffuncexe(); //extension
+bool isselffunc(); //extension
+
 
 

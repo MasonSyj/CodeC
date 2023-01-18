@@ -21,6 +21,7 @@
 #define RIGHTBRACKET ')'
 #define SIZE 1000
 #define SCALEFACTOR 3
+#define THRESHOLD 0.7
 
 typedef enum libfunc{CAR, CDR, CONS, PLUS, LENGTH, GREATER, LESS, EQUAL, PRINT, SET, IF, WHILE, DEFUN} libfunc;
 typedef enum parsetype{literal, string, letter} parsetype;
@@ -78,14 +79,17 @@ void instrus(void);
 void instru(void);
 void func(void);
 /////
-bool islistfun(void);
-bool isintfun(void);
-bool isboolfun(void);
-bool isiofun(void);
+bool islistfunc(void);
+bool isintfunc(void);
+bool isboolfunc(void);
+bool isiofunc(void);
+bool isiffunc(void);
+bool isloopfunc(void);
 /////
 void listfunc(void);
 void intfunc(void);
 void boolfunc(void);
+bool conditionjudge(int operand1, int operand2);
 
 void set(void);
 void print(void);

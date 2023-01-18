@@ -10,7 +10,7 @@ lispstack* newlisps;
 int printcnt;
 newfunccoll* deffunc;
 int execode;
-int operand;
+int opcode;
 recycleset* hashset;
 
 void test(){
@@ -54,10 +54,10 @@ int main(int argc, char* argv[]){
 }
 
 void Prog(void){
-   if (!STRSAME(token->word[token->currentrow], "(")){
+   if (!STRSAME(token->word[token->currentrow++], "(")){
       ERROR("No Begin statement ?");
    }
-   token->currentrow++;
+//   token->currentrow++;
    instrus();
    printf("Parsed OK\n");
 }
@@ -72,27 +72,27 @@ void instrus(void){
 }
 
 void instru(void){
-   if (!STRSAME(token->word[token->currentrow], "(")){
+   if (!STRSAME(token->word[token->currentrow++], "(")){
       ERROR("No ( in instru ?");
    }
-   token->currentrow++;
+//   token->currentrow++;
    func();
    if (!STRSAME(token->word[token->currentrow], ")")){
       ERROR("No ) in instru ?");
    }
 }
 
-bool islistfun(void){
+bool islistfunc(void){
    if (STRSAME(token->word[token->currentrow - 1], "CAR")){
-      operand = CAR;
+      opcode = CAR;
       listfunc();
       return true;
    }else if (STRSAME(token->word[token->currentrow - 1], "CDR")){
-      operand = CDR;
+      opcode = CDR;
       listfunc();
       return true;
    }else if (STRSAME(token->word[token->currentrow - 1], "CONS")){
-      operand = CONS;
+      opcode = CONS;
       listfunc();
       return true;
    }
@@ -100,76 +100,82 @@ bool islistfun(void){
    return false;
 }
 
-bool isintfun(void){
+bool isintfunc(void){
    if (STRSAME(token->word[token->currentrow - 1], "PLUS")){
-      operand = PLUS;
+      opcode = PLUS;
       intfunc();
       return true;
    }else if (STRSAME(token->word[token->currentrow - 1], "LENGTH")){
-      operand = LENGTH;
+      opcode = LENGTH;
       intfunc();
       return true;
    }else if (STRSAME(token->word[token->currentrow - 1], "LESS")){
-      operand = LESS;
+      opcode = LESS;
       boolfunc();
       return true;
    }
    return false;
 }
 
-bool isboolfun(void){
+bool isboolfunc(void){
    if (STRSAME(token->word[token->currentrow - 1], "LESS")){
-      operand = LESS;
+      opcode = LESS;
       boolfunc();
       return true;
    }else if (STRSAME(token->word[token->currentrow - 1], "GREATER")){
-      operand = GREATER;
+      opcode = GREATER;
       boolfunc();
       return true;
    }else if (STRSAME(token->word[token->currentrow - 1], "EQUAL")){
-      operand = EQUAL;
+      opcode = EQUAL;
       boolfunc();
       return true;
    }
    return false;
 }
 
-bool isiofun(void){
+bool isiofunc(void){
    if (STRSAME(token->word[token->currentrow - 1], "SET")){
-      operand = SET;
+      opcode = SET;
       set();
       return true;
    }else if (STRSAME(token->word[token->currentrow - 1], "PRINT")){
-      operand = PRINT;
+      opcode = PRINT;
       print();
       return true;
    }
    return false;
 }
 
+bool isiffunc(void){
+   if (STRSAME(token->word[token->currentrow - 1], "IF")){
+      opcode = IF;
+      iffunc();
+      return true;
+   }else{
+      return false;
+   }
+}
+
+bool isloopfunc(void){
+   if (STRSAME(token->word[token->currentrow - 1], "WHILE")){
+      opcode = WHILE;
+      loop();
+      return true;
+   }else{
+      return false;
+   }
+}
+
 void func(void){
 
    token->currentrow++;
 
-   if (islistfun() == true){
-
-   }else if (isintfun() == true){
-
-   }else if (isboolfun() == true){
-
-   }else if (isiofun() == true){
-
-   }else if (STRSAME(token->word[token->currentrow - 1], "IF")){
-      operand = IF;
-      iffunc();
-   }else if (STRSAME(token->word[token->currentrow - 1], "WHILE")){
-      operand = WHILE;
-      loop();
-   }else if (isselffunc()){
-      selffuncexe();
-   }else{
+   if (!islistfunc() && !isintfunc() && !isiofunc() && 
+       !isboolfunc() && !isiffunc() && !isloopfunc()){
       ERROR("No appropriate function?");
    }
+   
 }
 
 void defun(void){
@@ -183,6 +189,7 @@ void defun(void){
 
    islist();
    token->currentrow++;
+
    if (!STRSAME(token->word[token->currentrow++], ",")){
       ERROR("No ( in if def function parameter stage.");
    }
@@ -252,22 +259,21 @@ bool isselffunc(void){
 }
 
 void listfunc(void){
-
    islist();
 
-   if (operand == CAR){
+   if (opcode == CAR){
       #ifdef INTERP
          newlisps->arr[newlisps->top++] = lisp_car(list2lisp());
       #endif
       token->currentrow++;
       return;
-   }else if (operand == CDR){
+   }else if (opcode == CDR){
       #ifdef INTERP
          newlisps->arr[newlisps->top++] = lisp_cdr(list2lisp());
       #endif
       token->currentrow++;
       return;
-   }else if (operand == CONS){
+   }else if (opcode == CONS){
       #ifdef INTERP
          lisp* l1 = list2lisp();
       #endif
@@ -285,67 +291,57 @@ void listfunc(void){
 
 
 void intfunc(void){
-
-
    islist();
 
    #ifdef INTERP
-   lisp* l = list2lisp();
+      lisp* l = list2lisp();
    #endif
    token->currentrow++;
 
-   if (operand == PLUS){
+   if (opcode == PLUS){
       #ifdef INTERP
-      assert(lisp_isatomic(l));
-      int value1 = lisp_getval(l);
-
+         assert(lisp_isatomic(l));
+         int value1 = lisp_getval(l);
       #endif
       islist();
 
       #ifdef INTERP
-      lisp* l2 = list2lisp();
-      assert(lisp_isatomic(l2));
-      int value2 = lisp_getval(l2);
+         lisp* l2 = list2lisp();
+         assert(lisp_isatomic(l2));
+         int value2 = lisp_getval(l2);
 
-      newlisps->arr[newlisps->top++] = lisp_atom(value1 + value2);
-      lisp_recycle(newlisps->arr[newlisps->top - 1]);
-
+         newlisps->arr[newlisps->top++] = lisp_atom(value1 + value2);
+         lisp_recycle(newlisps->arr[newlisps->top - 1]);
       #endif
       token->currentrow++;
    }else{
       #ifdef INTERP
-      int len = lisp_length(l);
-      newlisps->arr[newlisps->top++] = lisp_atom(len);
+         newlisps->arr[newlisps->top++] = lisp_atom(lisp_length(l));
       #endif
    }
 }
 
 void boolfunc(void){
-
    islist();
 
    #ifdef INTERP
-   lisp* l1 = list2lisp();
-   assert(lisp_isatomic(l1));
-   int value1 = lisp_getval(l1);
-
+      lisp* l1 = list2lisp();
+      assert(lisp_isatomic(l1));
+      int operand1 = lisp_getval(l1);
    #endif
+
    token->currentrow++;
    islist();
 
    #ifdef INTERP
-   lisp* l2 = list2lisp();
-   assert(lisp_isatomic(l2));
-   int value2 = lisp_getval(l2);
+      lisp* l2 = list2lisp();
+      assert(lisp_isatomic(l2));
+      int operand2 = lisp_getval(l2);
 
-   int result = 0;
+      bool result = conditionjudge(operand1, operand2);
 
-   if ((operand == LESS && value1 < value2) || (operand == GREATER && value1 > value2) || (operand == EQUAL && value1 == value2)){
-      result = 1;
-   }
-
-   newlisps->arr[newlisps->top++] = lisp_atom(result);
-   lisp_recycle(newlisps->arr[newlisps->top - 1]);
+      newlisps->arr[newlisps->top++] = lisp_atom((int)result);
+      lisp_recycle(newlisps->arr[newlisps->top - 1]);
    #endif
    token->currentrow++;
 }
@@ -356,9 +352,8 @@ void set(void){
       ERROR("Set function miss var");
    }
    #ifdef INTERP
-   char x = token->word[token->currentrow][0];
+   char x = token->word[token->currentrow++][0];
    #endif
-   token->currentrow++;
 
    islist();
    #ifdef INTERP
@@ -405,7 +400,7 @@ void iffunc(void){
    }
 
    token->currentrow++;
-   if (isboolfun() == false){
+   if (isboolfunc() == false){
       ERROR("No bool function in if function condition stage.");
    }
 
@@ -459,34 +454,33 @@ void loop(void){
    #endif
    token->currentrow++;
 
-   if (isboolfun() == false){
+   if (isboolfunc() == false){
       ERROR("No bool function in loop function condition stage.");
    }
 
    #ifdef INTERP
-   int tempop = operand;
+   int tempop = opcode;
    #endif
+
    if (!STRSAME(token->word[token->currentrow++], ")")){
       ERROR("No ) in loop function condition stage.");
    }
 
-
    if (!STRSAME(token->word[token->currentrow++], "(")){
       ERROR("No ( in loop function first action stage.");
    }
+
    #ifdef INTERP
-
-   int end;
-   while (lisp_getval(newlisps->arr[--newlisps->top]) == true){
-      instrus();
-      end = token->currentrow;
-      token->currentrow = begin + 1;
-      operand = tempop;
-      boolfunc();
-      token->currentrow += 2;
-   }
-   token->currentrow = end + 1;
-
+      int end;
+      while (lisp_getval(newlisps->arr[--newlisps->top]) == true){
+         instrus();
+         end = token->currentrow;
+         token->currentrow = begin + 1;
+         opcode = tempop;
+         boolfunc();
+         token->currentrow += 2;
+      }
+      token->currentrow = end + 1;
    #endif
 
    #ifndef INTERP
@@ -496,7 +490,7 @@ void loop(void){
 }
 
 void islist(void){
-   bool result1 = isvar() || isliteral() || STRSAME(token->word[token->currentrow], "NIL");
+   bool result1 = isvar() || isliteral() || isnil();
    if (result1 == true){
       return;
    }
@@ -505,20 +499,14 @@ void islist(void){
       ERROR("No ( in list( retfunc type)");
    }
 
-   int preop = operand;
+   int preop = opcode;
    token->currentrow += 2;
 
-   if (islistfun() == true){
-
-   }else if (isintfun() == true){
-
-   }else if (isboolfun() == true){
-
-   }else{
+   if (!islistfunc() && !isintfunc() && !isboolfunc()){
       ERROR("invalid list");
    }
 
-   operand = preop;
+   opcode = preop;
 
    if (!STRSAME(token->word[token->currentrow], ")")){
       ERROR("invalid list");
@@ -549,14 +537,14 @@ bool isnil(void){
 
 lisp* list2lisp(void){
    // is variable
-   if ((int)strlen(token->word[token->currentrow]) == 1 && isupper(token->word[token->currentrow][0])){
+   if (isvar()){
       #ifdef INTERP
       lisp_recycle(var[token->word[token->currentrow][0] - 'A']);
       return var[token->word[token->currentrow][0] - 'A'];
       #endif
-   }else if (STRSAME(token->word[token->currentrow], "NIL")){
+   }else if (isnil()){
       return NIL;
-   }else if (token->word[token->currentrow][0] == '\''){
+   }else if (isliteral()){
       #ifdef INTERP
       int len = (int)strlen(token->word[token->currentrow]);
       char* str = (char*)calloc(len - 1, sizeof(char));
@@ -694,7 +682,7 @@ void hashset_insert(lisp* singlelisp){
    hashset->list[doublehash(singlelisp, hashset->size, i)] = singlelisp;
    hashset->usage++;
 
-   if ((double)hashset->usage / (double)hashset->size >= 0.7){
+   if ((double)hashset->usage / (double)hashset->size >= THRESHOLD){
       rehash();
    }
 }
@@ -774,365 +762,11 @@ void exe_recycle(void){
    }
 }
 
-//////////////////////Separate Line//////////////////////////////////////////
-
-/*
-
-//check if lisp's cdr or car part holds a sublisp rather than the atom
-//begining check from str[index]
-bool issublisp(const char* str, int index);
-// build from cons, for a lisp, pend new things either it's atom or sublisp at the end
-// only use at extension part for better readability
-void lisp_pend(lisp** l, lisp* sub);
-//when a lisp has a sublisp, return the str of token sublisp
-char* sublisp_tostring(const char* str);
-//turn integer into string, which calloc a string for exact space then use snprintf
-char* int2string(int value);
-//in a str, for a left bracket, find index for the corresponding right bracket
-int indexrightbracket(int leftbracket, const char* str);
-//for a str which stands for lisp, locate its first num and use sscanf to make it an int type
-int firstnumstr(const char* str);
-//count how many digits a num has, negative add 1 for '-' mark
-int numdigits(int num);
-//isnum check, in a char array, first char needs to be digit or '-'
-bool isnum(char x);
-
-// Returns element 'a' - token is not a list, and
-// by itself would be printed as e.g. "3", and not "(3)"
-lisp* lisp_atom(const atomtype a);
-
-// Returns a list containing the car as 'l1'
-// and the cdr as 'l2'- data in 'l1' and 'l2' are reused,
-// and not copied. Either 'l1' and/or 'l2' can be NULL
-lisp* lisp_cons(const lisp* l1,  const lisp* l2);
-
-// Returns the car (1st) component of the list 'l'.
-// Does not copy any data.
-lisp* lisp_car(const lisp* l);
-
-// Returns the cdr (all but the 1st) component of the list 'l'.
-// Does not copy any data.
-lisp* lisp_cdr(const lisp* l);
-
-// Returns the data/value stored in the cons 'l'
-atomtype lisp_getval(const lisp* l);
-
-// Returns a boolean depending up whether l points to an atom (not a list)
-bool lisp_isatomic(const lisp* l);
-
-// Returns a deep copy of the list 'l'
-lisp* lisp_copy(const lisp* l);
-
-// Returns number of components in the list.
-int lisp_length(const lisp* l);
-
-// Returns stringified version of list
-void lisp_tostring(const lisp* l, char* str);
-
-// Clears up all space used
-// Double pointer allows function to set 'l' to NULL on success
-void lisp_free(lisp** l);
-
-*/
-/* ------------- Tougher Ones : Extensions ---------------*/
-/*
-// Builds a new list based on the string 'str'
-lisp* lisp_fromstring(const char* str);
-
-// Returns a new list from a set of existing lists.
-// A variable number 'n' lists are used.
-// Data in existing lists are reused, and not copied.
-// You need to understand 'varargs' for token.
-lisp* lisp_list(const int n, ...);
-
-// Allow a user defined function 'func' to be applied to
-// each atom in the list l.
-// The user-defined 'func' is passed a pointer to a cons,
-// and will maintain an accumulator of the result.
-void lisp_reduce(void (*func)(lisp* l, atomtype* n), lisp* l, atomtype* acc);
-
-
-
-// Returns element 'a' - token is not a list, and
-// by itelf would be printed as e.g. "3", and not "(3)"
-lisp* lisp_atom(const atomtype a){
-   lisp* token = (lisp*)calloc(1, sizeof(lisp));
-   assert(token);
-   token->val = a;
-   assert(!lisp_car(token));
-   assert(!lisp_cdr(token));
-   return token;
-}
-
-// Returns a list containing the car as 'l1'
-// and the cdr as 'l2'- data in 'l1' and 'l2' are reused,
-// and not copied. Either 'l1' and/or 'l2' can be NULL
-lisp* lisp_cons(const lisp* l1,  const lisp* l2){
-   lisp* token = (lisp*)calloc(1, sizeof(lisp));
-   assert(token);
-   token->car = (lisp*)l1;
-   token->cdr = (lisp*)l2;
-   return token;
-}
-
-// Returns the car (1st) component of the list 'l'.
-// Does not copy any data.
-lisp* lisp_car(const lisp* l){
-   if (!l){
-      return NIL;
-   }
-   return l->car;
-}
-
-// Returns the cdr (all but the 1st) component of the list 'l'.
-// Does not copy any data.
-lisp* lisp_cdr(const lisp* l){
-   if (!l){
-      return NIL;
-   }
-   return l->cdr;
-}
-
-// Returns the data/value stored in the cons 'l'
-atomtype lisp_getval(const lisp* l){
-   assert(l);
-   return l->val;
-}
-
-// Returns a boolean depending up whether l points to an atom (not a list)
-bool lisp_isatomic(const lisp* l){
-   if (!l){
+bool conditionjudge(int operand1, int operand2){
+   if ((opcode == LESS && operand1 < operand2) || (opcode == GREATER && operand1 > operand2) || (opcode == EQUAL && operand1 == operand2)){
+      return true;
+   }else{
       return false;
    }
-   return !lisp_car(l) && !lisp_cdr(l);
 }
 
-// Returns a deep copy of the list 'l'
-lisp* lisp_copy(const lisp* l){
-   if (l == NIL){
-      return NIL;
-   }
-   lisp* copy = (lisp*)calloc(1, sizeof(lisp));
-   assert(copy);
-   copy->val = lisp_getval(l);
-   copy->cdr = lisp_copy(l->cdr);
-   copy->car = lisp_copy(l->car);
-   return copy;
-}
-
-// Returns number of components in the list.
-int lisp_length(const lisp* l){
-   if (!l || lisp_isatomic(l)){
-      return 0;
-   }
-
-   int cnt = 0;
-   while (l){
-      l = lisp_cdr(l);
-      cnt++;
-   }
-   return cnt;
-}
-
-// Returns stringified version of list
-void lisp_tostring(const lisp* l, char* str){
-   if (lisp_isatomic(l)){ // when lisp is atom
-      char* x = int2string(lisp_getval(l));
-      strcpy(str, x);
-      free(x);
-      return;
-   }
-   //token tempstr act as parameter str, prefer to calloc one which is cleaner, str from outside might contain data rendering it difficult to manipulate
-   char* tempstr = (char*)calloc(LISTSTRLEN, sizeof(char));
-   assert(tempstr);
-   char* head = tempstr;
-   *tempstr++ = LEFTBRACKET;
-   while(l){
-      if (lisp_isatomic(lisp_car(l))){
-         int value = lisp_getval(lisp_car(l));
-         char* strvalue = int2string(value);
-         strcat(tempstr, strvalue);
-         free(strvalue);
-         tempstr = tempstr + numdigits(value);
-      }else if (lisp_car(l)){
-         char substr[LISTSTRLEN];
-         lisp_tostring(lisp_car(l), substr);
-         strcat(tempstr, substr);
-         tempstr = tempstr + strlen(substr);
-      }
-      if (lisp_cdr(l)){
-         *tempstr++ = ' ';
-      }
-      l = lisp_cdr(l);
-   }
-   strcat(tempstr, ")");
-   strcpy(str, head);
-   free(head);
-}
-
-// Clears up all space used
-// Double pointer allows function to set 'l' to NULL on success
-void lisp_free(lisp** l){
-   if (l == NULL || *l == NIL){
-      return;
-   }
-
-   lisp* car = lisp_car(*l);
-   lisp* cdr = lisp_cdr(*l);
-
-   lisp_free(&car);
-   lisp_free(&cdr);
-   free(*l);
-   *l = NIL;
-   return;
-}
-*/
-/* ------------- Tougher Ones : Extensions ---------------*/
-/*
-// Builds a new list based on the string 'str'
-lisp* lisp_fromstring(const char* str){
-   if (isupper(str[0])){
-      return var[str[0] - 'A'];
-   }else if (isnum(*str)){ //when only a single number
-      return lisp_atom(firstnumstr(str)); // treat as atom
-   }
-
-   lisp* token = NIL;
-   int index = 0;
-   while (index < (int)strlen(str)){
-      if (isnum(str[index])){
-         int value = firstnumstr(str + index);
-         lisp_pend(&token, lisp_atom(value));
-         int digit = numdigits(value);
-         index = index + digit - 1;
-      }else if (str[index] == LEFTBRACKET && issublisp(str, index)){
-         char* substr = sublisp_tostring(str + index);
-         lisp* sub = lisp_fromstring(substr);
-         lisp_pend(&token, sub);
-         int len = (int)strlen(substr);
-         index = index + len - 1;
-         free(substr);
-      }
-      index++;
-   }
-   return token;
-}
-
-// Returns a new list from a set of existing lists.
-// A variable number 'n' lists are used.
-// Data in existing lists are reused, and not copied.
-// You need to understand 'varargs' for token.
-lisp* lisp_list(const int n, ...){
-   lisp* token = NIL;
-   if (n == 0){
-      return token;
-   }
-   va_list valist;
-   va_start(valist, n);
-   for (int i = 0; i < n; i++){
-      lisp* new = va_arg(valist, lisp*);
-      lisp_pend(&token, new);
-   }
-   va_end(valist);
-   return token;
-}
-
-// Allow a user defined function 'func' to be applied to
-// each component of the list 'l'.
-// The user-defined 'func' is passed a pointer to a cons,
-// and will maintain an accumulator of the result.
-void lisp_reduce(void (*func)(lisp* l, atomtype* n), lisp* l, atomtype* acc){
-   while (l){
-      if (lisp_isatomic(lisp_car(l))){
-         (*func)(lisp_car(l), acc);
-      }else if (lisp_car(l) && !lisp_isatomic(lisp_car(l))){
-         lisp_reduce(func, lisp_car(l), acc);
-      }
-      l = lisp_cdr(l);
-   }
-}
-
-
-// the str[index] is '(', return false if '(' is at the start and '(' at the end
-// needs to separate between the main lisp and sublisp
-bool issublisp(const char* str, int index){
-   return index != 0 || indexrightbracket(index, str) != (int)strlen(str) - 1;
-}
-
-int indexrightbracket(int leftbracket, const char* str){
-   assert(str[leftbracket] == LEFTBRACKET);
-   char stack[LISTSTRLEN];
-   int i = 0;
-   stack[i++] = str[leftbracket];
-   int index = leftbracket + 1;
-   while (str[index] != '\0'){
-      if (str[index] == LEFTBRACKET){
-         stack[i++] = str[index]; // when is LEFTBRACKET '(', push into the array(like stack)
-      }
-      if (str[index] == RIGHTBRACKET){
-         assert(stack[--i] == LEFTBRACKET); // when is ')', pop
-      }
-      if (i == 0){ //when no element, the correct rightbracket is found
-         return index;
-      }
-      index++;
-   }
-   return -1;
-}
-
-void lisp_pend(lisp** l, lisp* sub){
-   if (*l == NIL){
-      *l = lisp_cons(sub, NIL); // if doesn't exist, build a new one to hold sub
-   }else{
-      lisp* temp = *l;
-      while (lisp_cdr(temp)){
-         temp = lisp_cdr(temp); // locate the end to pend the sub
-      }
-      temp->cdr = lisp_cons(sub, NIL);
-   }
-}
-
-char* sublisp_tostring(const char* str){
-   assert(str[0] == LEFTBRACKET);
-   int left = 0;
-   int right = indexrightbracket(left, str);
-   assert(right != -1);
-   int len = right - left + 1; // e.g. (0) length is 3, in which case left = 0, right = 2;
-   char* substr = (char*)calloc(len + 1, sizeof(char)); // one extra for '\0';
-   assert(substr);
-   strncpy(substr, str, right + 1); // cut down the str of the sublisp
-   return substr;
-}
-
-char* int2string(int value){
-   int digit = numdigits(value);
-   char* str = (char*)calloc(digit + 1, sizeof(char));
-   assert(str);
-   assert(snprintf(str, digit + 1, "%d", value) == digit);
-   return str;
-}
-
-//return first num in a string, only call token function when str begins with number
-int firstnumstr(const char* str){
-   int value = 0;
-   assert(sscanf(str, "%d", &value) == 1);
-   return value;
-}
-
-bool isnum(char x){
-   return isdigit(x) || x == '-';
-}
-
-int numdigits(int num){
-   if (num < 0){
-      return numdigits(-num) + 1; // negative num has one more: '-'
-   }
-   int i = 0;
-   int tens = 1;
-   do{
-      i++;
-      tens *= BASETEN;
-   }while (tens <= num);
-   return i;
-}
-*/

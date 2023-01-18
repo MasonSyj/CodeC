@@ -19,6 +19,8 @@
 #define CODESIZE 1000
 #define LEFTBRACKET '(' //maybe unnecessary, in case it maybe other type like [] or {}
 #define RIGHTBRACKET ')'
+#define SIZE 1000
+#define SCALEFACTOR 3
 
 typedef enum libfunc{CAR, CDR, CONS, PLUS, LENGTH, GREATER, LESS, EQUAL, PRINT, SET, IF, WHILE, DEFUN} libfunc;
 typedef enum parsetype{literal, string, letter} parsetype;
@@ -51,6 +53,25 @@ typedef struct funcstack{
    int top;
    lisp* l[ROW];
 }funcstack;
+
+typedef struct recycleset{
+   lisp** list;
+   int usage;
+   int size;
+}recycleset;
+
+void exe_recycle();
+void lisp_recycle(lisp* l);
+void hashset_init();
+void hashset_insert(lisp* newlisp);
+void hashset_free();
+void rehash(recycleset* set);
+int hash1(lisp* newlisp, int sz);
+int hash2(lisp* newlisp, int sz); 
+int doublehash(lisp* newlisp, int sz, int i);
+int firstprimeaftern(int n);
+int firstprimebeforen(int n);
+bool isprime(int n);
 
 void Prog(void);
 void instrus(void);

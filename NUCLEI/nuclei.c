@@ -11,6 +11,8 @@ int printcnt;
 newfunccoll* deffunc;
 int execode;
 int operand;
+recycleset* hashset;
+
 
 void test(){
 
@@ -25,6 +27,7 @@ int main(int argc, char* argv[]){
    s->l = (lisp**)calloc(ROW, sizeof(lisp*));
    this = (code*)calloc(1, sizeof(code));
    var = (lisp**)calloc(26, sizeof(lisp*));
+   hashset_init();
 
    deffunc = (newfunccoll*)calloc(1, sizeof(newfunccoll));
    deffunc->funclist = (selffunc**)calloc(26, sizeof(selffunc*));
@@ -33,6 +36,11 @@ int main(int argc, char* argv[]){
    parse();
    this->currentrow = 0;
    Prog();
+   for (int i = 0; i < 26; i++){
+      hashset_insert(var[i]);
+   }
+
+   exe_recycle();
 
    free(s->l);
    free(s);
@@ -40,6 +48,8 @@ int main(int argc, char* argv[]){
    free(var);
    free(deffunc->funclist);
    free(deffunc);
+   hashset_free();
+   fclose(fp);
 
 }
 
@@ -267,6 +277,7 @@ void listfunc(){
       #ifdef INTERP
          lisp* l2 = list2lisp(this->currentrow);
          s->l[s->top++] = lisp_cons(l1, l2);
+         hashset_insert(s->l[s->top - 1]);
       #endif
       this->currentrow++;
    }
@@ -300,6 +311,8 @@ void intfunc(){
       int value2 = lisp_getval(l2);
 
       s->l[s->top++] = lisp_atom(value1 + value2);
+      hashset_insert(s->l[s->top - 1]);
+ 
       #endif    
    }else{
       #ifdef INTERP
@@ -337,6 +350,7 @@ void boolfunc(){
    }
    
    s->l[s->top++] = lisp_atom(result);
+   hashset_insert(s->l[s->top - 1]);
    #endif
 }
 
@@ -557,21 +571,25 @@ bool isnil(){
 
 
 lisp* list2lisp(int beginrow){
-   printf("beginrow: %d\n", beginrow);
    // is variable
    if ((int)strlen(this->word[beginrow]) == 1 && isupper(this->word[beginrow][0])){
+      hashset_insert(var[this->word[beginrow][0] - 'A']);
       return var[this->word[beginrow][0] - 'A'];
    }else if (STRSAME(this->word[beginrow], "NIL")){
       return NIL;
    }else if (this->word[beginrow][0] == '\''){
+      #ifdef INTERP
       int len = (int)strlen(this->word[beginrow]);
       char* str = (char*)calloc(len - 1, sizeof(char));
       strncpy(str, &this->word[beginrow][1], len - 2);
-      #ifdef INTERP
-      return lisp_fromstring(str);
+      free(str);
+      lisp* ret = lisp_fromstring(str);
+      hashset_insert(ret);
+      return ret;
       #endif
    }else{ //(this->word[beginrow][0] == '(')
       #ifdef INTERP
+      hashset_insert(s->l[s->top - 1]);
       return s->l[--s->top];
       #endif
    }
@@ -615,14 +633,16 @@ void parse(){
          default: elementparse(&str, letter); break;
       }
    }
-   
+/*
    int i = 0;
+
    while (this->word[i][0] != '\0'){
       printf("%d: ", i);
       puts(this->word[i++]);
    }
    
    printf("---------Separate Line-----------\n");
+*/
    free(head);
    free(temp);
 }
@@ -660,6 +680,117 @@ void elementparse(char** pstr, parsetype x){
    }
    strncpy(this->word[this->currentrow++], str, i + 1);
    *pstr += i + 1;
+}
+
+void lisp_recycle(lisp* l){
+   if (l == NULL){
+      return;
+   }
+
+   lisp_recycle(lisp_car(l));
+   lisp_recycle(lisp_cdr(l));
+
+   hashset_insert(l);
+}
+
+void hashset_init(){
+   hashset = (recycleset*)calloc(1, sizeof(recycleset));
+   assert(hashset);
+   hashset->list = (lisp**)calloc(SIZE, sizeof(lisp*));
+   assert(hashset->list);
+   hashset->size = SIZE;
+}
+
+void hashset_insert(lisp* newlisp){
+   int i = 0;
+   while (hashset->list[doublehash(newlisp, hashset->size, i)]){
+      if (newlisp == hashset->list[doublehash(newlisp, hashset->size, i)]){
+         return;
+      }
+      i++;
+   }
+
+   hashset->list[doublehash(newlisp, hashset->size, i)] = newlisp;
+   hashset->usage++;
+   
+   if ((double)hashset->usage / (double)hashset->size >= 0.7){
+      rehash(hashset);
+   }
+}
+void rehash(){
+   int cnt = 0;
+   lisp** templist = (lisp**)calloc(hashset->usage, sizeof(lisp*));
+   for (int i = 0; i < hashset->size; i++){
+      if (hashset->list[i]){
+         templist[cnt++] = hashset->list[i];
+      }
+   }
+   assert(cnt == hashset->usage);  
+
+   int newsz = firstprimeaftern(hashset->size * SCALEFACTOR);
+   free(hashset->list);
+   hashset->list = (lisp**)calloc(newsz, sizeof(lisp*));
+   assert(hashset->list);
+   hashset->usage = 0;
+   hashset->size = newsz;
+
+   for (int i = 0; i < cnt; i++){
+      hashset_insert(templist[i]);
+   }
+   free(templist);
+}
+
+void hashset_free(){
+   free(hashset->list);
+   free(hashset);
+}
+
+int hash1(lisp* newlisp, int sz){
+   int address = (int)newlisp;
+   return address % sz;
+}
+int hash2(lisp* newlisp, int sz){
+   int prime = firstprimebeforen(sz);
+   return prime - (hash1(newlisp, sz) % prime);
+}
+
+int doublehash(lisp* newlisp, int sz, int i){
+   int value = (hash1(newlisp, sz) + i * hash2(newlisp, sz)) % sz;
+   return value;
+}
+int firstprimeaftern(int n){
+   int i = n + 1;
+   while (!isprime(i)){
+      i++;
+   }
+   return i;
+}
+int firstprimebeforen(int n){
+   if (n <= 3){
+      return 3;
+   }
+
+   int i = n - 1;
+   while (!isprime(i)){
+      i--;
+   }
+   return i; 
+}
+bool isprime(int n){
+   for (int i = 2; i <= (int)sqrt(n); i++){
+      if (n % i == 0){
+         return false;
+      }
+   }
+   return true;
+}
+
+void exe_recycle(){
+   for (int i = 0; i < hashset->size; i++){
+      if (hashset->list[i]){
+         free(hashset->list[i]);
+      }
+   }
 }
 
 //////////////////////Separate Line//////////////////////////////////////////

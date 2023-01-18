@@ -11,7 +11,6 @@ int printcnt;
 newfunccoll* deffunc;
 int execode;
 int operand;
-lisp* emptylisp;
 
 void test(){
 
@@ -19,7 +18,6 @@ void test(){
 
 
 int main(int argc, char* argv[]){
-   emptylisp = (lisp*)calloc(1, sizeof(lisp));
    
    assert(argc == 2);
    test();
@@ -36,19 +34,12 @@ int main(int argc, char* argv[]){
    this->currentrow = 0;
    Prog();
 
-   for (int i = 0; i < s->height; i++){
-      lisp_free(&s->l[i]);
-   }
    free(s->l);
    free(s);
    free(this);
-   for (int i = 0; i < 26; i++){
-      printf("---%d---\n", i);
-      char s[1000];
-      lisp_tostring(var[i], s);
-      puts(s);
-      lisp_free(&var[i]);
-   }
+   free(var);
+   free(deffunc->funclist);
+   free(deffunc);
 
 }
 
@@ -257,14 +248,12 @@ void listfunc(){
    if (operand == CAR){
       #ifdef INTERP
          s->l[s->top++] = lisp_car(list2lisp(this->currentrow));
-         updatestackheight();
       #endif
       this->currentrow++;
       return;
    }else if (operand == CDR){
       #ifdef INTERP
          s->l[s->top++] = lisp_cdr(list2lisp(this->currentrow));
-         updatestackheight();
       #endif
       this->currentrow++;
       return;
@@ -278,7 +267,6 @@ void listfunc(){
       #ifdef INTERP
          lisp* l2 = list2lisp(this->currentrow);
          s->l[s->top++] = lisp_cons(l1, l2);
-         updatestackheight();
       #endif
       this->currentrow++;
    }
@@ -312,13 +300,11 @@ void intfunc(){
       int value2 = lisp_getval(l2);
 
       s->l[s->top++] = lisp_atom(value1 + value2);
-      updatestackheight();
       #endif    
    }else{
       #ifdef INTERP
       int len = lisp_length(l);
       s->l[s->top++] = lisp_atom(len);
-      updatestackheight();
       #endif
    }
 }   
@@ -351,7 +337,6 @@ void boolfunc(){
    }
    
    s->l[s->top++] = lisp_atom(result);
-   updatestackheight();
    #endif
 }
 
@@ -572,7 +557,7 @@ bool isnil(){
 
 
 lisp* list2lisp(int beginrow){
-
+   printf("beginrow: %d\n", beginrow);
    // is variable
    if ((int)strlen(this->word[beginrow]) == 1 && isupper(this->word[beginrow][0])){
       return var[this->word[beginrow][0] - 'A'];
@@ -608,6 +593,7 @@ void pass(){
 
 void parse(){
    char* str = (char*)calloc(ROW, sizeof(char));
+   char* head = str;
    char* temp = (char*)calloc(ROW, sizeof(char));
    assert(str);
    assert(temp);
@@ -637,6 +623,8 @@ void parse(){
    }
    
    printf("---------Separate Line-----------\n");
+   free(head);
+   free(temp);
 }
 
 void ioparse(char* input){
@@ -674,11 +662,6 @@ void elementparse(char** pstr, parsetype x){
    *pstr += i + 1;
 }
 
-void updatestackheight(){
-   if (s->top > s->height){
-      s->height = s->top;
-   }
-}
 //////////////////////Separate Line//////////////////////////////////////////
 
 /*

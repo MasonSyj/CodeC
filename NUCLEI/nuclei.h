@@ -90,6 +90,4 @@ bool isselffunc();
 
 void test();
 
-void updatestackheight();
-
 

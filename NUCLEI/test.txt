@@ -1,10 +1,11 @@
 outstanding issues:
+ 
    -1. use of temp
    0.if and loop may not work correctly
-   1.so many strsame function, try to use functions to replace instead.
+   1.memory leak
    2.outline the extension features.
    2.1 defun function
-   2.2 same
+   2.2 lispsame
    
 
 In this project,

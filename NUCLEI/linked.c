@@ -131,7 +131,8 @@ void lisp_tostring(const lisp* l, char* str){
 // Clears up all space used
 // Double pointer allows function to set 'l' to NULL on success
 void lisp_free(lisp** l){
-   if (l == NULL || *l == NIL){
+   printf("%p\n", *l);
+   if (l == NULL || *l == NULL || *l){
       return;
    }
 
@@ -146,7 +147,7 @@ void lisp_free(lisp** l){
    }
    
    free(*l);
-   *l = NIL;
+   *l = NULL;
    return;
 }
 

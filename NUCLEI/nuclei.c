@@ -67,10 +67,12 @@ int main(int argc, char* argv[]){
 }
 
 void Prog(void){
-   
+   if (!STRSAME(token->word[token->currentrow++], "(")){
+/*   
    if (!STRSAME(token->word[token->currentrow++], "("
    && (STRSAME(token->word[token->currentrow + 1], "("
    || STRSAME(token->word[token->currentrow + 1], ")")){
+*/  
       ERROR("No ( statement int Prog Stage?");
    }
 
@@ -382,12 +384,15 @@ void iffunc(void){
       ERROR("No ) in if function condition stage.");
    }
 
+   if (!STRSAME(token->word[token->currentrow++], "(")){
+/*
    if (!STRSAME(token->word[token->currentrow++], "(")
       && STRSAME(token->word[token->currentrow + 1], "(")
       || STRSAME(token->word[token->currentrow + 1], ")")){
+*/   
       ERROR("No ( in if function first action stage.");
    }
-   
+
    #ifdef INTERP
    lisp* exeflag = newlisps->arr[--newlisps->top];
    #endif
@@ -403,10 +408,13 @@ void iffunc(void){
    #else
       instrus();
    #endif
-
+   
+   if (!STRSAME(token->word[token->currentrow++], "(")){
+/*
    if (!STRSAME(token->word[token->currentrow++], "(")
       && STRSAME(token->word[token->currentrow + 1], "(")
       || STRSAME(token->word[token->currentrow + 1], ")")){
+*/
       ERROR("No ( in if function second action stage.");
    }
    token->currentrow++;

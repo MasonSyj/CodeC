@@ -7,8 +7,9 @@
 #include <stdarg.h>
 #include <math.h>
 #include "lisp.h"
+#include "general.h"
 
-
+#define EXE
 #define ROW 10000
 #define COL 100
 #define NIL NULL
@@ -62,6 +63,8 @@ typedef struct funcstack{
    lisp* l[ROW];
 }funcstack;
 
+void pass(void);
+void defagain(void);
 void exe_recycle(void);
 void lisp_recycle(lisp* newlisp);
 void hashset_init(void);
@@ -104,7 +107,7 @@ bool isvar(void);
 bool isliteral(void);
 bool isstring(void);
 bool isnil(void);
-void pass(void);
+
 /////
 void Lexer(void);
 void elementLexer(char** pstr, parsetype x);

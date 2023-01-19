@@ -1,4 +1,4 @@
-#include "lisp.h"
+//#include "lisp.h"
 #include "nuclei.h"
 
 #include <ctype.h>
@@ -131,7 +131,6 @@ void lisp_tostring(const lisp* l, char* str){
 // Clears up all space used
 // Double pointer allows function to set 'l' to NULL on success
 void lisp_free(lisp** l){
-   printf("%p\n", *l);
    if (l == NULL || *l == NULL || *l){
       return;
    }

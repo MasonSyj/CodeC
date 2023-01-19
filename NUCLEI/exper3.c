@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#define EXE
 
-#define BOOL EXE
+#define BOOL
 
 void x(){
    #ifdef BOOL
@@ -11,12 +12,13 @@ void x(){
 }
 
 int main(void){
-   bool EXE = true;
+   
    #ifdef BOOL
       #undef BOOL
+      printf("CANCELLED.\n");
    #endif
 
-   #ifdef BOOL
+   #if defined EXE && defined BOOL
       printf("Hello World.\n");
    #endif
 
@@ -24,8 +26,7 @@ int main(void){
       printf("GoodBye World.\n");
    #endif
 
-   #define BOOL EXE
-
+   #define BOOL
 
    x();
 }

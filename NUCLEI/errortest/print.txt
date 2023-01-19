@@ -1,3 +1,5 @@
+#PRINT func don't have things to print
+
 (
    (PRINT A)
    (PRINT NIL)
@@ -5,5 +7,5 @@
    (PRINT A)
    (PRINT (CAR A))
    (PRINT "HELLO WORLD")
-   (PRINT "strange thing')
+   (PRINT )
 )

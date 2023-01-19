@@ -26,7 +26,6 @@ void test(){
 }
 
 void pass(void){
-   assert(token->word[token->currentrow][0] == '(');
    notpass = false;
    instrus();
    notpass = true;
@@ -467,7 +466,7 @@ void loop(void){
       instrus();
       token->currentrow++;
    #endif
-
+ 
 }
 
 void islist(void){

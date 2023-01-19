@@ -199,7 +199,8 @@ void listfunc(void){
       #ifdef INTERP
       if (notpass){
             newlisps->arr[newlisps->top++] = lisp_car(list2lisp());
-         }
+      }
+      #endif
       token->currentrow++;
       return;
    }else if (opcode == CDR){
@@ -208,6 +209,7 @@ void listfunc(void){
             newlisps->arr[newlisps->top++] = lisp_cdr(list2lisp());
          }
       token->currentrow++;
+      #endif
       return;
    }else if (opcode == CONS){
 
@@ -215,6 +217,7 @@ void listfunc(void){
       if (notpass){
          templisp1 = list2lisp();
       }
+      #endif
       token->currentrow++;
 
       islist();
@@ -225,6 +228,7 @@ void listfunc(void){
          newlisps->arr[newlisps->top++] = lisp_cons(templisp1, templisp2);
          lisp_recycle(newlisps->arr[newlisps->top - 1]);
       }
+      #endif
       token->currentrow++;
    }
 }
@@ -237,6 +241,7 @@ void intfunc(void){
    if (notpass){
       templisp1 = list2lisp();
    }
+   #endif
    token->currentrow++;
    
    if (opcode == PLUS){
@@ -245,6 +250,7 @@ void intfunc(void){
          assert(lisp_isatomic(templisp1));
          value1 = lisp_getval(templisp1);
       }
+      #endif
       islist();
 
       #ifdef INTERP
@@ -256,18 +262,19 @@ void intfunc(void){
          newlisps->arr[newlisps->top++] = lisp_atom(value1 + value2);
          lisp_recycle(newlisps->arr[newlisps->top - 1]);
       }
+      #endif
       token->currentrow++;
    }else{
       #ifdef INTERP
       if (notpass){
          newlisps->arr[newlisps->top++] = lisp_atom(lisp_length(templisp1));
       }
+      #endif
    }
 }
 
 void boolfunc(void){
    islist();
-   
 
    #ifdef INTERP
    if (notpass){
@@ -275,7 +282,8 @@ void boolfunc(void){
       assert(lisp_isatomic(templisp1));
       value1 = lisp_getval(templisp1);
    }
-
+   #endif
+   
    token->currentrow++;
    islist();
 
@@ -290,6 +298,7 @@ void boolfunc(void){
       newlisps->arr[newlisps->top++] = lisp_atom((int)result);
       lisp_recycle(newlisps->arr[newlisps->top - 1]);
    }
+   #endif
    token->currentrow++;
 }
 
@@ -301,10 +310,11 @@ void set(void){
 
    #ifdef INTERP
    if (notpass){
-      varname = token->word[token->currentrow++][0];
-   #else
-      token->currentrow++;
+      varname = token->word[token->currentrow][0];
+   }
    #endif
+   token->currentrow++;
+
 
 
    islist();
@@ -320,23 +330,21 @@ void print(void){
    if (isliteral() || isnil() || isstring()){
       #ifdef INTERP
       if (notpass){
-         puts(token->word[token->currentrow++]);
+         puts(token->word[token->currentrow]);
       }
-      #else
-         token->currentrow++;
       #endif
+      token->currentrow++;
       return;
    }else if (isvar()){
       #ifdef INTERP
       if (notpass){
-         char varname = token->word[token->currentrow++][0];
+         char varname = token->word[token->currentrow][0];
          char str[ROW];
          lisp_tostring(var[varname - 'A'], str);
          puts(str);
       }
-      #else
-         token->currentrow++;
       #endif
+      token->currentrow++;
       return;
    }else if (token->word[token->currentrow][0] == '('){
       islist();
@@ -373,11 +381,13 @@ void iffunc(void){
    if (!STRSAME(token->word[token->currentrow++], "(")){
       ERROR("No ( in if function first action stage.");
    }
+   
+   #ifdef INTERP
+   lisp* exeflag = newlisps->arr[--newlisps->top];
+   #endif
 
-   lisp* exeflag;
    #ifdef INTERP
    if (notpass){
-      exeflag = newlisps->arr[--newlisps->top];
       if (lisp_getval(exeflag) == true){
          instrus();
       }else{
@@ -412,21 +422,25 @@ void loop(void){
    if (!STRSAME(token->word[token->currentrow++], "(")){
       ERROR("No ( in loop function condition stage.");
    }
-   int begin;
+   
    #ifdef INTERP
+   int begin;
    if (notpass){
       begin = token->currentrow;
    }
+   #endif
    token->currentrow++;
 
    if (isboolfunc() == false){
       ERROR("No bool function in loop function condition stage.");
    }
-   int tempop;
+   
    #ifdef INTERP
+   int tempop;
    if (notpass){
       tempop = opcode;
    }
+   #endif
 
    if (!STRSAME(token->word[token->currentrow++], ")")){
       ERROR("No ) in loop function condition stage.");
@@ -513,6 +527,7 @@ lisp* list2lisp(void){
          lisp_recycle(var[token->word[token->currentrow][0] - 'A']);
          return var[token->word[token->currentrow][0] - 'A'];
       }
+      #endif
    }else if (isnil()){
       return NIL;
    }else if (isliteral()){

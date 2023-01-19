@@ -1,4 +1,3 @@
-
 #include "nuclei.h"
 
 sourcecode* token;

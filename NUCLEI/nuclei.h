@@ -108,9 +108,11 @@ bool isliteral(void);
 bool isstring(void);
 bool isnil(void);
 
+int rowlength();
+
 /////
 void Lexer(void);
-void elementLexer(char** pstr, parsetype x);
+void elementLexer(char** pstr, parsetype type);
 void ioLexer(char* input);  //extension
 /////
 void test();

@@ -3,9 +3,6 @@
 #include "general.h"
 #include <stdio.h>
 
-bool PASS;
-#define EXE PASS
-
 sourcecode* token;
 lisp** var;
 FILE* fp;
@@ -22,7 +19,7 @@ void test(){
 
 
 int main(int argc, char* argv[]){
-   PASS = true;
+
    assert(argc == 2);
    test();
    newlisps = (lispstack*)calloc(1, sizeof(lispstack));
@@ -174,11 +171,11 @@ void func(void){
 
    token->currentrow++;
 
-   if (!islistfunc() && !isintfunc() && !isiofunc() &&
+   if (!islistfunc() && !isintfunc() && !isiofunc() && 
        !isboolfunc() && !isiffunc() && !isloopfunc()){
       ERROR("No appropriate function?");
    }
-
+   
 }
 
 void defun(void){
@@ -265,25 +262,25 @@ void listfunc(void){
    islist();
 
    if (opcode == CAR){
-      #if defined INTERP && defined EXE
+      #ifdef INTERP
          newlisps->arr[newlisps->top++] = lisp_car(list2lisp());
       #endif
       token->currentrow++;
       return;
    }else if (opcode == CDR){
-      #if defined INTERP && defined EXE
+      #ifdef INTERP
          newlisps->arr[newlisps->top++] = lisp_cdr(list2lisp());
       #endif
       token->currentrow++;
       return;
    }else if (opcode == CONS){
-      #if defined INTERP && defined EXE
+      #ifdef INTERP
          lisp* l1 = list2lisp();
       #endif
       token->currentrow++;
 
       islist();
-      #if defined INTERP && defined EXE
+      #ifdef INTERP
          lisp* l2 = list2lisp();
          newlisps->arr[newlisps->top++] = lisp_cons(l1, l2);
          lisp_recycle(newlisps->arr[newlisps->top - 1]);
@@ -296,19 +293,19 @@ void listfunc(void){
 void intfunc(void){
    islist();
 
-   #if defined INTERP && defined EXE
+   #ifdef INTERP
       lisp* l = list2lisp();
    #endif
    token->currentrow++;
 
    if (opcode == PLUS){
-      #if defined INTERP && defined EXE
+      #ifdef INTERP
          assert(lisp_isatomic(l));
          int value1 = lisp_getval(l);
       #endif
       islist();
 
-      #if defined INTERP && defined EXE
+      #ifdef INTERP
          lisp* l2 = list2lisp();
          assert(lisp_isatomic(l2));
          int value2 = lisp_getval(l2);
@@ -318,7 +315,7 @@ void intfunc(void){
       #endif
       token->currentrow++;
    }else{
-      #if defined INTERP && defined EXE
+      #ifdef INTERP
          newlisps->arr[newlisps->top++] = lisp_atom(lisp_length(l));
       #endif
    }
@@ -327,7 +324,7 @@ void intfunc(void){
 void boolfunc(void){
    islist();
 
-   #if defined INTERP && defined EXE
+   #ifdef INTERP
       lisp* l1 = list2lisp();
       assert(lisp_isatomic(l1));
       int operand1 = lisp_getval(l1);
@@ -336,7 +333,7 @@ void boolfunc(void){
    token->currentrow++;
    islist();
 
-   #if defined INTERP && defined EXE
+   #ifdef INTERP
       lisp* l2 = list2lisp();
       assert(lisp_isatomic(l2));
       int operand2 = lisp_getval(l2);
@@ -354,15 +351,15 @@ void set(void){
    if(!isvar()){
       ERROR("Set function miss var");
    }
-   #if defined INTERP && defined EXE
+   #ifdef INTERP
       char x = token->word[token->currentrow++][0];
    #else
       token->currentrow++;
    #endif
-
+   
 
    islist();
-   #if defined INTERP && defined EXE
+   #ifdef INTERP
       var[x - 'A'] = list2lisp();
    #endif
    token->currentrow++;
@@ -370,14 +367,14 @@ void set(void){
 
 void print(void){
    if (isliteral() || isnil() || isstring()){
-      #if defined INTERP && defined EXE
+      #ifdef INTERP
          puts(token->word[token->currentrow++]);
       #else
          token->currentrow++;
       #endif
       return;
    }else if (isvar()){
-      #if defined INTERP && defined EXE
+      #ifdef INTERP
          char x = token->word[token->currentrow++][0];
          char str[ROW];
          lisp_tostring(var[x - 'A'], str);
@@ -388,7 +385,7 @@ void print(void){
       return;
    }else if (token->word[token->currentrow][0] == '('){
       islist();
-      #if defined INTERP && defined EXE
+      #ifdef INTERP
          char str[ROW];
          lisp_tostring(newlisps->arr[newlisps->top - 1], str);
          newlisps->top--;
@@ -420,13 +417,14 @@ void iffunc(void){
       ERROR("No ( in if function first action stage.");
    }
 
-
-   #if defined INTERP && defined EXE
+   #ifdef INTERP
       lisp* exeflag = newlisps->arr[--newlisps->top];
       if (lisp_getval(exeflag) == true){
          instrus();
       }else{
-         pass();
+         	#undef INTERP
+         instrus();
+         #define INTERP
       }
    #else
       instrus();
@@ -438,15 +436,18 @@ void iffunc(void){
    }
    token->currentrow++;
 
-   #if defined INTERP && defined EXE
+   #ifdef INTERP
       if (lisp_getval(exeflag) == false){
          instrus();
       }else{
-         pass();
+         #undef INTERP
+         instrus();
+         #define INTERP
       }
    #else
       instrus();
    #endif
+
 
    token->currentrow++;
 }
@@ -455,7 +456,7 @@ void loop(void){
    if (!STRSAME(token->word[token->currentrow++], "(")){
       ERROR("No ( in loop function condition stage.");
    }
-   #if defined INTERP && defined EXE
+   #ifdef INTERP
       int begin = token->currentrow;
    #endif
    token->currentrow++;
@@ -464,7 +465,7 @@ void loop(void){
       ERROR("No bool function in loop function condition stage.");
    }
 
-   #if defined INTERP && defined EXE
+   #ifdef INTERP
    int tempop = opcode;
    #endif
 
@@ -476,7 +477,7 @@ void loop(void){
       ERROR("No ( in loop function first action stage.");
    }
 
-   #if defined INTERP && defined EXE
+   #ifdef INTERP
       int end;
       while (lisp_getval(newlisps->arr[--newlisps->top]) == true){
          instrus();
@@ -544,14 +545,14 @@ bool isnil(void){
 lisp* list2lisp(void){
    // is variable
    if (isvar()){
-      #if defined INTERP && defined EXE
+      #ifdef INTERP
       lisp_recycle(var[token->word[token->currentrow][0] - 'A']);
       return var[token->word[token->currentrow][0] - 'A'];
       #endif
    }else if (isnil()){
       return NIL;
    }else if (isliteral()){
-      #if defined INTERP && defined EXE
+      #ifdef INTERP
       int len = (int)strlen(token->word[token->currentrow]);
       char* str = (char*)calloc(len - 1, sizeof(char));
       strncpy(str, &token->word[token->currentrow][1], len - 2);
@@ -561,7 +562,7 @@ lisp* list2lisp(void){
       return ret;
       #endif
    }else{
-      #if defined INTERP && defined EXE
+      #ifdef INTERP
       lisp_recycle(newlisps->arr[newlisps->top - 1]);
       return newlisps->arr[--newlisps->top];
       #endif
@@ -570,12 +571,7 @@ lisp* list2lisp(void){
 }
 
 void pass(void){
-
    assert(token->word[token->currentrow][0] == '(');
-   #undef EXE
-   instrus();
-   #define EXE PASS
-/*
    int top = 1;
    while (top != -1){
       token->currentrow++;
@@ -585,7 +581,6 @@ void pass(void){
          top--;
       }
    }
-*/
 }
 
 void Lexer(void){
@@ -666,7 +661,7 @@ void lisp_recycle(lisp* newlisp){
    if (newlisp == NULL){
       return;
    }
-   #if defined INTERP && defined EXE
+   #ifdef INTERP
    lisp_recycle(lisp_car(newlisp));
    lisp_recycle(lisp_cdr(newlisp));
 
@@ -781,3 +776,4 @@ bool conditionjudge(int operand1, int operand2){
       return false;
    }
 }
+

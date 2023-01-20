@@ -6,9 +6,3 @@
    (PRINT NIL)
    (PRINT (CAR A))
 )
-
-
-# (
-# CAR
-# A
-# )

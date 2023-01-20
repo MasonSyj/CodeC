@@ -68,11 +68,6 @@ int main(int argc, char* argv[]){
 
 void Prog(void){
    if (!STRSAME(token->word[token->currentrow++], "(")){
-/*   
-   if (!STRSAME(token->word[token->currentrow++], "("
-   && (STRSAME(token->word[token->currentrow + 1], "("
-   || STRSAME(token->word[token->currentrow + 1], ")")){
-*/  
       ERROR("No ( statement int Prog Stage?");
    }
 
@@ -385,11 +380,6 @@ void iffunc(void){
    }
 
    if (!STRSAME(token->word[token->currentrow++], "(")){
-/*
-   if (!STRSAME(token->word[token->currentrow++], "(")
-      && STRSAME(token->word[token->currentrow + 1], "(")
-      || STRSAME(token->word[token->currentrow + 1], ")")){
-*/   
       ERROR("No ( in if function first action stage.");
    }
 
@@ -409,12 +399,7 @@ void iffunc(void){
       instrus();
    #endif
    
-   if (!STRSAME(token->word[token->currentrow++], "(")){
-/*
-   if (!STRSAME(token->word[token->currentrow++], "(")
-      && STRSAME(token->word[token->currentrow + 1], "(")
-      || STRSAME(token->word[token->currentrow + 1], ")")){
-*/
+   if (!STRSAME(token->word[++token->currentrow], "(")){
       ERROR("No ( in if function second action stage.");
    }
    token->currentrow++;
@@ -463,7 +448,7 @@ void loop(void){
    }
 
    if (!STRSAME(token->word[token->currentrow++], "(")){
-      ERROR("No ( in loop function first action stage.");
+      ERROR("No ( in loop function action stage.");
    }
 
    #ifdef INTERP
@@ -493,7 +478,7 @@ void islist(void){
    }
 
    if (!STRSAME(token->word[token->currentrow], "(")){
-      ERROR("No ( in list( retfunc type)");
+      ERROR("No ( in list <retfunc> type");
    }
 
    int preop = opcode;
@@ -506,7 +491,7 @@ void islist(void){
    opcode = preop;
 
    if (!STRSAME(token->word[token->currentrow], ")")){
-      ERROR("No ) in list( retfunc type)");
+      ERROR("No ) in list <retfunc> type");
    }
 
    return;

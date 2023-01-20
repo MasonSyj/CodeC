@@ -1,4 +1,4 @@
-#the condition stage must have a bool func, if something else like length, come with error
+#when second action stage miss a (, this issue will not be discovered if instrus func has a ( to supplement
 
 (
    (IF (EQUAL (LENGTH A) (LENGTH '(1 2)')) ((PRINT "SAME LENGTH")) PRINT "NOT SAME LENGTH")))

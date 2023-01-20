@@ -13,8 +13,13 @@ recycleset* hashset;
 bool interp;
 bool notpass;
 
+int value1;
+int value2;
+
 int rowlen;
 
+lisp* templisp1;
+lisp* templisp2;
 
 void test(){
 
@@ -203,10 +208,7 @@ void listfunc(void){
       return;
    }else if (opcode == CONS){
 
-      
       #ifdef INTERP
-      lisp* templisp1;
-      lisp* templisp2;
       if (notpass){
          templisp1 = list2lisp();
       }
@@ -229,8 +231,8 @@ void listfunc(void){
 
 void intfunc(void){
    islist();
+
    #ifdef INTERP
-   lisp* templisp1;
    if (notpass){
       templisp1 = list2lisp();
    }
@@ -238,18 +240,15 @@ void intfunc(void){
    token->currentrow++;
    
    if (opcode == PLUS){
-
       #ifdef INTERP
-      int value1;
-      int value2;
       if (notpass){
          assert(lisp_isatomic(templisp1));
          value1 = lisp_getval(templisp1);
       }
       #endif
       islist();
+
       #ifdef INTERP
-      lisp* templisp2;
       if (notpass){
          templisp2 = list2lisp();
          assert(lisp_isatomic(templisp2));
@@ -273,10 +272,6 @@ void boolfunc(void){
    islist();
 
    #ifdef INTERP
-   lisp* templisp1;
-   lisp* templisp2;
-   int value1;
-   int value2;
    if (notpass){
       templisp1 = list2lisp();
       assert(lisp_isatomic(templisp1));

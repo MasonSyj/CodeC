@@ -9,19 +9,13 @@
 #include "lisp.h"
 #include "general.h"
 
-#define EXE
-#define ROW 10000
+#define ROW 1000
 #define COL 100
 #define NIL NULL
-#define LISTSTRLEN 1000
-#define BASETEN 10
 #define STRSAME(A,B) (strcmp(A,B) == 0)
 #define ERROR(PHARSE) { fprintf(stderr, "Fatal Error %s occurred in %s, line %d, currentrow %d\n"\
 	, PHARSE, __FILE__, __LINE__, token->currentrow); exit(EXIT_FAILURE);}
-#define CODESIZE 1000
-#define LEFTBRACKET '(' //maybe unnecessary, in case it maybe other type like [] or {}
-#define RIGHTBRACKET ')'
-#define SIZE 1000
+#define SIZE 997
 #define SCALEFACTOR 3
 #define THRESHOLD 0.7
 
@@ -44,7 +38,6 @@ typedef struct recycleset{
    int size;
 }recycleset;
 
-
 typedef struct selffunc{
    char funcname[20];
    char word[ROW][COL];
@@ -63,8 +56,7 @@ typedef struct funcstack{
    lisp* l[ROW];
 }funcstack;
 
-void pass(void);
-void defagain(void);
+
 void exe_recycle(void);
 void lisp_recycle(lisp* newlisp);
 void hashset_init(void);
@@ -77,24 +69,17 @@ int doublehash(lisp* newlisp, int sz, int i);
 int firstprimeaftern(int n);
 int firstprimebeforen(int n);
 bool isprime(int n);
-
+/////
 void Prog(void);
 void instrus(void);
 void instru(void);
 void func(void);
 /////
-bool islistfunc(void);
-bool isintfunc(void);
-bool isboolfunc(void);
-bool isiofunc(void);
-bool isiffunc(void);
-bool isloopfunc(void);
-/////
 void listfunc(void);
 void intfunc(void);
 void boolfunc(void);
 bool conditionjudge(int operand1, int operand2);
-
+/////
 void set(void);
 void print(void);
 void iffunc(void);
@@ -107,20 +92,20 @@ bool isvar(void);
 bool isliteral(void);
 bool isstring(void);
 bool isnil(void);
-
+/////
+bool islistfunc(void);
+bool isintfunc(void);
+bool isboolfunc(void);
+bool isiofunc(void);
+bool isiffunc(void);
+void pass(void);
+bool isloopfunc(void);
+//////
 int rowlength();
 
 /////
 void Lexer(void);
 void elementLexer(char** pstr, parsetype type);
-void ioLexer(char* input);  //extension
 /////
 void test();
 /////
-
-void defun(); //extension
-void selffuncexe(); //extension
-bool isselffunc(); //extension
-
-
-

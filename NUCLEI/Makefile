@@ -18,6 +18,10 @@ IRES := $(NCLS:.ncl=.ires)
 LIBS    := -lm
 
 
+func: functest.c lisp.h
+	$(CC) functest.c linked.c $(RELEASE) -o functest $(LIBS)
+
+
 parse: nuclei.c general.c nuclei.h
 	$(CC) nuclei.c general.c $(RELEASE) -o parse $(LIBS)
 

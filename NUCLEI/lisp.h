@@ -9,6 +9,10 @@
 #define LISPIMPL "Linked"
 
 typedef int atomtype;
+#define LEFTBRACKET '(' //maybe unnecessary, in case it maybe other type like [] or {}
+#define RIGHTBRACKET ')'
+#define LISTSTRLEN 1000
+#define BASETEN 10
 
 typedef struct lisp{
    atomtype val;

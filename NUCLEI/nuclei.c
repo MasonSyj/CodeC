@@ -15,7 +15,6 @@ bool notpass;
 
 int rowlen;
 
-
 void test(){
 
 }
@@ -36,7 +35,7 @@ int main(int argc, char* argv[]){
 
    test();
    newlisps = (lispstack*)calloc(1, sizeof(lispstack));
-   newlisps->arr = (lisp**)calloc(ROW, sizeof(lisp*));
+   newlisps->arr = (lisp**)calloc(SIZE, sizeof(lisp*));
    token = (sourcecode*)calloc(1, sizeof(sourcecode));
    var = (lisp**)calloc(26, sizeof(lisp*));
    hashset_init();

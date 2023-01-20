@@ -1,0 +1,24 @@
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==33015==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000068 (pc 0x000194c6da94 bp 0x00016b962720 sp 0x00016b962710 T0)
+==33015==The signal is caused by a UNKNOWN memory access.
+==33015==Hint: address points to the zero page.
+    #0 0x194c6da94 in flockfile+0x1c (libsystem_c.dylib:arm64e+0x10a94)
+    #1 0x194c7eccc in fgets+0x34 (libsystem_c.dylib:arm64e+0x21ccc)
+    #2 0x1048ad834 in wrap_fgets+0x6c (libclang_rt.asan_osx_dynamic.dylib:arm64e+0x19834)
+    #3 0x10449fca0 in Lexer nuclei.c:570
+    #4 0x10449f328 in main nuclei.c:45
+    #5 0x194a73e4c  (<unknown module>)
+
+==33015==Register values:
+ x[0] = 0x00000001f0103b2c   x[1] = 0x0000000000002710   x[2] = 0x0000000000000000   x[3] = 0x00000001072057d0  
+ x[4] = 0x0000000107203180   x[5] = 0x0000000000000000   x[6] = 0x0000000167968000   x[7] = 0x0000000000000001  
+ x[8] = 0x00000001f0103b2c   x[9] = 0x00000001f010df40  x[10] = 0x0000000107203100  x[11] = 0x00000000ffffffff  
+x[12] = 0x01a7ba4d8a79acc4  x[13] = 0x00000000ffffffff  x[14] = 0x0000000000007e01  x[15] = 0x0000000000000006  
+x[16] = 0x0000000194d5e74c  x[17] = 0x00000001f4f446e8  x[18] = 0x0000000000000000  x[19] = 0x0000000000000000  
+x[20] = 0x0000000000000002  x[21] = 0x0000000107203100  x[22] = 0x0000000000002710  x[23] = 0x0000000194ae9000  
+x[24] = 0x00000001f060b340  x[25] = 0x0000000000000000  x[26] = 0x0000000000000000  x[27] = 0x0000000000000000  
+x[28] = 0x0000000000000000     fp = 0x000000016b962720     lr = 0x0000000194c6da90     sp = 0x000000016b962710  
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV (libsystem_c.dylib:arm64e+0x10a94) in flockfile+0x1c
+==33015==ABORTING

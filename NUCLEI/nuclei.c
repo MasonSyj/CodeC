@@ -198,8 +198,8 @@ void listfunc(void){
       if (notpass){
             newlisps->arr[newlisps->top++] = lisp_cdr(list2lisp());
          }
-      token->currentrow++;
       #endif
+      token->currentrow++;
       return;
    }else if (opcode == CONS){
 
@@ -454,6 +454,13 @@ void loop(void){
 
    #ifdef INTERP
    if (notpass){
+      if (lisp_getval(newlisps->arr[newlisps->top - 1]) == false){
+         --newlisps->top;
+         pass();
+         token->currentrow++;
+         return;
+      }
+      
       int end;
       while (lisp_getval(newlisps->arr[--newlisps->top]) == true){
          instrus();
@@ -464,6 +471,7 @@ void loop(void){
          token->currentrow += 2;
       }
       token->currentrow = end + 1;
+      return;
    }
    #else
       instrus();
@@ -584,16 +592,16 @@ void Lexer(void){
          default: elementLexer(&str, letter); break;
       }
    }
-
+   
+/*
    int i = 0;
-
    while (token->word[i][0] != '\0'){
       printf("%d: ", i);
       puts(token->word[i++]);
    }
 
    printf("---------Separate Line-----------\n");
-
+*/
    free(head);
    free(temp);
 }

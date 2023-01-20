@@ -1,0 +1,22 @@
+#int and bool func seems easier than list because it only returns an atom lisp
+
+(
+   (SET A '(1 2 3 4)')	
+   (SET B '((5 6) (7 8) (9 10))')
+   (SET C LENGTH A)
+   (SET D LENGTH B)
+   (SET E (PLUS C D))
+   (PRINT C)
+   (PRINT D)
+   (PRINT E)
+   (SET F (LESS C D))
+   (SEG G (LESS D C))
+   (SET H (EQUAL C D))
+   (SET I (GREATER C D))
+   (SET J (GREATER CD C))
+   (PRINT F)
+   (PRINT G)
+   (PRINT H)
+   (PRINT I)
+   (PRINT J)
+)

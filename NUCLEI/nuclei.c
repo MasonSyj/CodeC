@@ -737,6 +737,7 @@ void exe_recycle(void){
    for (int i = 0; i < hashset->size; i++){
       if (hashset->list[i]){
          free(hashset->list[i]);
+         hashset->list[i] = NIL;
       }
    }
 }

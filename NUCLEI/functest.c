@@ -8,6 +8,9 @@
 #include "lisp.h"
 
 #define NIL NULL
+#define SIZE 997
+#define THRESHOLD 0.7
+#define SCALEFACTOR 3
 #define STRSAME(A,B) (strcmp(A,B) == 0)
 typedef enum libfunc{CAR, CDR, CONS, PLUS, LENGTH, GREATER, LESS, EQUAL, PRINT, SET, IF, WHILE, DEFUN} libfunc;
 
@@ -22,12 +25,14 @@ typedef struct stack{
    lisp** arr;
 }lispstack;
 
+///
 void exe_recycle(void);
 void lisp_recycle(lisp* newlisp);
 void hashset_init(void);
 void hashset_insert(lisp* singlelisp);
 void hashset_free(void);
 void rehash(void);
+///
 int hash1(lisp* newlisp, int sz);
 int hash2(lisp* newlisp, int sz); 
 int doublehash(lisp* newlisp, int sz, int i);
@@ -57,7 +62,47 @@ bool conditionjudge(int opcode, int operand1, int operand2);
 void simpletest();
 void hardtest();
 
+recycleset* hashset;
+
 void hardtest(){
+   printf("hard test begin...");
+   hashset_init();
+   
+   lisp* temp = lisp_atom(5);
+   for (int i = 0; i < 10; i++){
+      hashset_insert(temp);
+   }
+   assert(hashset->usage == 1); 
+   lisp* temp2 = lisp_atom(6);
+   hashset_insert(temp2);
+   assert(hashset->usage == 2);
+   lisp* temp3 = lisp_cons(temp, temp2);
+   hashset_insert(temp3);
+   assert(hashset->usage == 3); 
+   lisp* temp4a = lisp_atom(8);
+   lisp* temp4b = lisp_atom(8);
+   lisp* temp4 = lisp_cons(temp4a, temp4b);
+   hashset_insert(temp4);
+   assert(hashset->usage == 4);
+   hashset_free();
+   hashset_init();
+   assert(hashset->usage == 0);
+   lisp_recycle(temp);
+   assert(hashset->usage == 1);
+   lisp_recycle(temp2);
+   assert(hashset->usage == 2);
+   lisp_recycle(temp3);
+   assert(hashset->usage == 3);//temp3's car and cdr is inserted already, so only increase by 1
+   lisp_recycle(temp4);
+   assert(hashset->usage == 6);//temp4's head, car and cdr haven't inserted yet, so increase by 3
+   
+   
+   for (int i = 0; i < 750; i++){ // usage / size > threshold, hashset will rehash, 
+      lisp* temp = lisp_atom(rand() % 50000);
+      hashset_insert(temp);
+   }
+
+   assert(hashset->size = 2999);
    
    lisp** testlisparr = (lisp**)calloc(10000, sizeof(lisp*));
    assert(testlisparr);
@@ -67,17 +112,37 @@ void hardtest(){
       assert(testlisparr[i]);
    }
    
+   lisp** secondlisppointer = (lisp**)calloc(10000, sizeof(lisp*));
+   assert(secondlisppointer);
    for (int i = 0; i < 10000; i++){
-      int rand0 = rand() % 1000;
+      secondlisppointer[i] = (lisp*)calloc(1, sizeof(lisp));
+      secondlisppointer[i]->val = rand() % 5000;
+      assert(secondlisppointer[i]);
+   }
+   
+   
+   for (int i = 0; i < 10000; i++){
       int rand1 = rand() % 1000;
       int rand2 = rand() % 1000;
-      testlisparr[rand0] = lisp_cons(testlisparr[rand1], testlisparr[rand2]);
+      secondlisppointer[i] = lisp_cons(secondlisppointer[i], lisp_cons(testlisparr[rand1], testlisparr[rand2]));
    }
-      
+   
+   for(int i = 0; i < 10000; i++){
+      lisp_recycle(secondlisppointer[i]);
+   }
+   
+   exe_recycle();
+   for(int i = 0; i < 10000; i++){
+      assert(testlisparr[i] == NIL);
+   }
+   
+   
+   printf("end.\n");
 }
 
 int main(void){
-   test();
+   simpletest();
+   hardtest();
 }
 
 bool islistfunc(char* str){
@@ -254,6 +319,7 @@ bool isprime(int n){
 
 
 void simpletest(){
+   printf("simple test begin...");
    assert(islistfunc("CAR"));
    assert(islistfunc("CDR"));
    assert(islistfunc("CONS"));
@@ -326,5 +392,81 @@ void simpletest(){
    
    assert(firstprimeaftern(1000) == 1009);
    assert(firstprimebeforen(1000) == 997);
+   printf("end.\n");
 
+}
+
+
+void hashset_init(void){
+   hashset = (recycleset*)calloc(1, sizeof(recycleset));
+   assert(hashset);
+   hashset->list = (lisp**)calloc(SIZE, sizeof(lisp*));
+   assert(hashset->list);
+   hashset->size = SIZE;
+}
+
+void hashset_insert(lisp* singlelisp){
+   int i = 0;
+   while (hashset->list[doublehash(singlelisp, hashset->size, i)]){
+      if (singlelisp == hashset->list[doublehash(singlelisp, hashset->size, i)]){
+         return;
+      }
+      i++;
+   }
+
+   hashset->list[doublehash(singlelisp, hashset->size, i)] = singlelisp;
+   hashset->usage++;
+
+   if ((double)hashset->usage / (double)hashset->size >= THRESHOLD){
+      rehash();
+   }
+}
+
+void rehash(void){
+   int cnt = 0;
+   lisp** templist = (lisp**)calloc(hashset->usage, sizeof(lisp*));
+   for (int i = 0; i < hashset->size; i++){
+      if (hashset->list[i]){
+         templist[cnt++] = hashset->list[i];
+      }
+   }
+   assert(cnt == hashset->usage);
+
+   int newsz = firstprimeaftern(hashset->size * SCALEFACTOR);
+   free(hashset->list);
+   hashset->list = (lisp**)calloc(newsz, sizeof(lisp*));
+   assert(hashset->list);
+   hashset->usage = 0;
+   hashset->size = newsz;
+
+   for (int i = 0; i < cnt; i++){
+      hashset_insert(templist[i]);
+   }
+   free(templist);
+}
+
+void hashset_free(void){
+   free(hashset->list);
+   free(hashset);
+}
+
+void lisp_recycle(lisp* newlisp){
+
+   if (newlisp == NULL){
+      return;
+   }
+   
+   lisp_recycle(lisp_car(newlisp));
+   lisp_recycle(lisp_cdr(newlisp));
+
+   hashset_insert(newlisp);
+}
+
+void exe_recycle(void){
+   for (int i = 0; i < hashset->size; i++){
+      if (hashset->list[i]){
+         free(hashset->list[i]);
+         hashset->list[i] = NIL;
+      }
+   }
 }

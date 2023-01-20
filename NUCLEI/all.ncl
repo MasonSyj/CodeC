@@ -89,6 +89,8 @@
    (IF (EQUAL (LENGTH A) '0')   ((PRINT "A HAS ZERO LENGTH")) ((PRINT "FAILURE")))
    (SET L (CONS '2' NIL))
    (PRINT L)
+   (SET Z (EQUAL (CAR L) '2'))
+   (PRINT Z)
    (IF (EQUAL (CAR L) '2') ((PRINT "L1 has Car 2"))((PRINT "FAILURE")))
    (SET M (CONS '3' (CONS '4' (CONS '5' NIL))))
    (PRINT M)

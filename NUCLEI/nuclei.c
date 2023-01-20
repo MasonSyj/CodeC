@@ -37,7 +37,7 @@ int main(int argc, char* argv[]){
    newlisps = (lispstack*)calloc(1, sizeof(lispstack));
    newlisps->arr = (lisp**)calloc(SIZE, sizeof(lisp*));
    token = (sourcecode*)calloc(1, sizeof(sourcecode));
-   var = (lisp**)calloc(26, sizeof(lisp*));
+   var = (lisp**)calloc(VARNUM, sizeof(lisp*));
    hashset_init();
 
    fp = fopen(argv[1], "r");

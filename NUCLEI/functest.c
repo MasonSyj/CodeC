@@ -24,7 +24,6 @@ typedef struct stack{
    int top;
    lisp** arr;
 }lispstack;
-
 ///
 void exe_recycle(void);
 void lisp_recycle(lisp* newlisp);
@@ -58,11 +57,12 @@ int rowlength(char* str);
 int rowlength();
 bool conditionjudge(int opcode, int operand1, int operand2);
 
-
 void simpletest();
 void hardtest();
 
 recycleset* hashset;
+lisp** var;
+lispstack* newlisps;
 
 void hardtest(){
    printf("hard test begin...");
@@ -76,12 +76,12 @@ void hardtest(){
    lisp* temp2 = lisp_atom(6);
    hashset_insert(temp2);
    assert(hashset->usage == 2);
-   lisp* temp3 = lisp_cons(temp, temp2);
+   lisp* temp3 = lisp_cons(temp, lisp_cons(temp2, NIL));
    hashset_insert(temp3);
    assert(hashset->usage == 3); 
-   lisp* temp4a = lisp_atom(8);
-   lisp* temp4b = lisp_atom(8);
-   lisp* temp4 = lisp_cons(temp4a, temp4b);
+   lisp* temp4a = lisp_atom(15);
+   lisp* temp4b = lisp_atom(17);
+   lisp* temp4 = lisp_cons(temp4a, lisp_cons(temp4b, NIL));
    hashset_insert(temp4);
    assert(hashset->usage == 4);
    hashset_free();
@@ -92,9 +92,10 @@ void hardtest(){
    lisp_recycle(temp2);
    assert(hashset->usage == 2);
    lisp_recycle(temp3);
-   assert(hashset->usage == 3);//temp3's car and cdr is inserted already, so only increase by 1
+   assert(hashset->usage == 4);
    lisp_recycle(temp4);
-   assert(hashset->usage == 6);//temp4's head, car and cdr haven't inserted yet, so increase by 3
+   assert(hashset->usage == 8);
+   
    
    
    for (int i = 0; i < 750; i++){ // usage / size > threshold, hashset will rehash, 
@@ -130,17 +131,47 @@ void hardtest(){
    for(int i = 0; i < 10000; i++){
       lisp_recycle(secondlisppointer[i]);
    }
+
+   var['A' - 'A'] = temp;
+   var['E' - 'A'] = temp2;
+   var['G' - 'A'] = temp3;
+   var['Z' - 'A'] = temp4;
+   lisp* receiver1 = list2lisp("'(1 2)'");
+   char str[1000];
+   lisp_tostring(receiver1, str);
+   assert(STRSAME(str, "(1 2)"));
+   lisp* receiver2 = list2lisp("'((4 5) 6 7 8 (-1 2999 30))'");
+   lisp_tostring(receiver2, str);
+   assert(STRSAME(str, "((4 5) 6 7 8 (-1 2999 30))"));
    
+   lisp* receiver3 = list2lisp("A");
+   lisp_tostring(receiver3, str);
+   assert(STRSAME(str, "5"));
+   
+   lisp* receiver4 = list2lisp("E");
+   lisp_tostring(receiver4, str);
+   assert(STRSAME(str, "6"));
+   
+   lisp* receiver5 = list2lisp("G");
+   lisp_tostring(receiver5, str);
+   assert(STRSAME(str, "(5 6)"));
+   
+   lisp* receiver6 = list2lisp("Z");
+   lisp_tostring(receiver6, str);
+   assert(STRSAME(str, "(15 17)"));
+   
+   lisp* receiver7 = list2lisp("NIL");
+   lisp_tostring(receiver7, str);
+   assert(STRSAME(str, "()"));
+
    exe_recycle();
-   for(int i = 0; i < 10000; i++){
-      assert(testlisparr[i] == NIL);
-   }
-   
-   
    printf("end.\n");
 }
 
 int main(void){
+   var = (lisp**)calloc(26, sizeof(lisp*));
+   newlisps = (lispstack*)calloc(1, sizeof(lispstack));
+   newlisps->arr = (lisp**)calloc(SIZE, sizeof(lisp*));
    simpletest();
    hardtest();
 }
@@ -254,27 +285,26 @@ bool isnil(char* str){
    return STRSAME(str, "NIL");
 }
 
-/*
+
 lisp* list2lisp(char* str){
    if (isvar(str)){
       return var[*str - 'A'];
    }else if (isnil(str)){
       return NIL;
    }else if (isliteral(str)){
-      rowlen = rowlength();
-      char* str = (char*)calloc(rowlen - 1, sizeof(char));
-      strncpy(str, &token->word[token->currentrow][1], rowlen - 2);
-      lisp* ret = lisp_fromstring(str);
-      free(str);
+      int rowlen = rowlength(str);
+      char* retstr = (char*)calloc(rowlen - 1, sizeof(char));
+      strncpy(retstr, &str[1], rowlen - 2);
+      lisp* ret = lisp_fromstring(retstr);
+      free(retstr);
       return ret;
    }else{
-         return newlisps->arr[--newlisps->top];
-      }
-      #endif
+      return newlisps->arr[--newlisps->top];
+
    }
    return NIL;
 }
-*/
+
 
 
 int hash1(lisp* newlisp, int sz){

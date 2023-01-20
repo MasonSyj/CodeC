@@ -9,6 +9,7 @@
 #include "lisp.h"
 #include "general.h"
 
+#define VARNUM 26
 #define ROW 1000
 #define COL 100
 #define NIL NULL
@@ -37,24 +38,6 @@ typedef struct recycleset{
    int usage;
    int size;
 }recycleset;
-
-typedef struct selffunc{
-   char funcname[20];
-   char word[ROW][COL];
-   int firstrow;
-   int lastrow;
-}selffunc;
-
-typedef struct newfunccoll{
-   selffunc** funclist;
-   int top;
-
-}newfunccoll;
-
-typedef struct funcstack{
-   int top;
-   lisp* l[ROW];
-}funcstack;
 
 
 void exe_recycle(void);

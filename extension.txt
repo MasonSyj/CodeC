@@ -1,0 +1,29 @@
+in the previous assessment, part of test looks like this:
+   lisp_free(&l5);
+   assert(!l5);
+and your comment is:
+   /* All other lists have been re-used to build l5
+      so no need to free l4, l3 etc.*/
+
+we as low level programmers know what to free and what not to free. 
+But as users, they may try to them and they may have no clue how to free them.
+
+My extension is to help them free the memory automatically.
+Basic Idea is to make a hashset which records every address of a single lisp.
+e.g. a lisp '(0 1)' contains four lisp struct and a '5' as a atom contains one lisp.
+I record every address and free them at last.
+
+Use set because the two addresses can't be the same.
+Use hash for O(1) search time complexity.
+When the usage takes up 70%, I make size *3.
+ 
+In reality e.g.
+
+SET B '(1 2)'
+SET C B
+
+In my programe, B and C holds the same address.
+And when B is freed, although B is cleared to NULL, C still holds has the address and have no clue the lisp it's pointing to got freed already.
+
+
+

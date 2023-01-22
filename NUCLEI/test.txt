@@ -1,15 +1,6 @@
-outstanding issues:
- 
-   -1. use of temp
-   0.if and loop may not work correctly
-   1.memory leak
-   2.outline the extension features.
-   2.1 defun function
-   2.2 lispsame
-   
+General Ideas: 
 
-In this project,
-at first, different functions should test separately which include either one or two lisps as parameters.
+In this project, at first, different functions should test separately which include either one or two lisps as parameters.
 Lisps are classified into different types, so each should be tested thoroughly.
 Furthermore, different types should be combined to be tested. Like Literal and var, var and ( <func> ).
 
@@ -17,12 +8,38 @@ Furthermore, different types should be combined to be tested. Like Literal and v
 <LIST>     ::= <VAR> | <LITERAL> | "NIL" | "(" <RETFUNC> ")"
 In my work, list are treated(stored) differently
 1. for var, there exist a special space for var A to Z. Every time a user want to set something, just put to this special space.
-But what if it's not set and user try to use this.?
 2. Literal is dynamically transformed into lisp 
 3. Nil is simple
 4. I use a stack to store the last case which is formed by a RETFUNC. For example, (CONS (CAR A) (CAR B)). Since it has a outer func, it can capture or simply use and throw it away. 
-But I've been thinking if the user keep typeing CAR A, CAR A, CAR A. Meaninglessly though, the stack may overflow. (I set the space to 10000)
-And what if user put something that can polluate the later operation.
-Also, what if the user call functions in a recursion way, can different layers of functions collide with each other.
+But I've been thinking if the user keep typeing CAR A, CAR A, CAR A. Meaninglessly though, the stack may overflow. (I set the space to 10000). I don't want to resize it,
+the reason is that when we do recursion too much in C, Programme breaks.
 
-Eventually, different functions and lists in different forms can be utilised at the same time. 
+Eventually, different functions and lists in different forms can be utilised at the same time.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Detailed test methods:
+1. there are core functions like Prog, Instrus which follows the way of the grammar. I test them by correct ncl files.
+2. I tested all cases which the failed in Grammar and the ERROR MACRO function catched the error.
+3. For all functions which support and help my functions(also some for better readablility), I cloned them and pass them necessary variables to test.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+One Fatal issue is, make a smallest example. According to grammar:
+(
+  (PRINT "Hello World")
+)
+
+above example is legal, but if a failed one is like the following:
+
+  (PRINT "Hello World")
+)
+
+#we can think the Prog part miss a '(', but the instrus part have a '('
+#then the latter '(' will be considered from the Prog part.
+#such cases happen in other places.
+#I may try to fix this by add more consrtaints like in the Prog area, it must be a "( )" or "( ( ----"
+#But i think it's a diliemma, because the left '(' can also be interprated as missing from the instrus part.
+
+
+

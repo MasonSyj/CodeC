@@ -1,4 +1,3 @@
-
 #include "nuclei.h"
 
 sourcecode* token;
@@ -6,18 +5,12 @@ lisp** var;
 char varname;
 FILE* fp;
 lispstack* newlisps;
-
 int execode;
 int opcode;
 recycleset* hashset;
 bool interp;
 bool notpass;
-
 int rowlen;
-
-void test(){
-
-}
 
 void pass(void){
    notpass = false;
@@ -33,7 +26,6 @@ int main(int argc, char* argv[]){
       notpass = true;
    #endif
 
-   test();
    newlisps = (lispstack*)calloc(1, sizeof(lispstack));
    newlisps->arr = (lisp**)calloc(SIZE, sizeof(lisp*));
    token = (sourcecode*)calloc(1, sizeof(sourcecode));
@@ -61,7 +53,7 @@ int main(int argc, char* argv[]){
 }
 
 void Prog(void){
-   if (!STRSAME(token->word[token->currentrow++], "(")){
+   if (!(STRSAME(token->word[token->currentrow++], "("))){
       ERROR("No ( statement int Prog Stage?");
    }
 
@@ -591,16 +583,7 @@ void Lexer(void){
          default: elementLexer(&str, letter); break;
       }
    }
-   
-/*
-   int i = 0;
-   while (token->word[i][0] != '\0'){
-      printf("%d: ", i);
-      puts(token->word[i++]);
-   }
 
-   printf("---------Separate Line-----------\n");
-*/
    free(head);
    free(temp);
 }

@@ -10,7 +10,7 @@
 #include "general.h"
 
 #define VARNUM 26
-#define ROW 1000
+#define ROW 10000
 #define COL 100
 #define NIL NULL
 #define STRSAME(A,B) (strcmp(A,B) == 0)
@@ -85,10 +85,8 @@ void pass(void);
 bool isloopfunc(void);
 //////
 int rowlength();
-
-/////
+//////
 void Lexer(void);
 void elementLexer(char** pstr, parsetype type);
 /////
-void test();
-/////
+

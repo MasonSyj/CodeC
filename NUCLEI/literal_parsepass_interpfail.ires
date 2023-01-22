@@ -1,1 +1,1 @@
-Assertion failed: (right != -1), function sublisp_tostring, file linked.c, line 260.
+interp_s: linked.c:260: char *sublisp_tostring(const char *): Assertion `right != -1' failed.

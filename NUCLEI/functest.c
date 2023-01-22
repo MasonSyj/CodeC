@@ -54,7 +54,6 @@ bool isliteral(char* list);
 bool isstring(char* list);
 bool isnil(char* list);
 int rowlength(char* str);
-int rowlength();
 bool conditionjudge(int opcode, int operand1, int operand2);
 
 void simpletest();

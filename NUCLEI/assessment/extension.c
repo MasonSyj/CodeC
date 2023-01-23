@@ -12,10 +12,19 @@ bool interp;
 bool notpass;
 int rowlen;
 
+void pass(void){
+   notpass = false;
+   instrus();
+   notpass = true;
+}
 
 
 int main(int argc, char* argv[]){
    assert(argc == 2);
+
+   #ifdef INTERP
+      notpass = true;
+   #endif
 
    newlisps = (lispstack*)calloc(1, sizeof(lispstack));
    newlisps->arr = (lisp**)calloc(SIZE, sizeof(lisp*));
@@ -169,13 +178,17 @@ void listfunc(void){
    if (opcode == CAR){
 
       #ifdef INTERP
+      if (notpass){
          newlisps->arr[newlisps->top++] = lisp_car(list2lisp());
+      }
       #endif
       token->currentrow++;
       return;
    }else if (opcode == CDR){
       #ifdef INTERP
+      if (notpass){
          newlisps->arr[newlisps->top++] = lisp_cdr(list2lisp());
+      }
       #endif
       token->currentrow++;
       return;
@@ -184,16 +197,20 @@ void listfunc(void){
       #ifdef INTERP
       lisp* templisp1;
       lisp* templisp2;
-      templisp1 = list2lisp();
+      if (notpass){
+         templisp1 = list2lisp();
+      }
       #endif
       token->currentrow++;
 
       islist();
 
       #ifdef INTERP
+      if (notpass){
          templisp2 = list2lisp();
          newlisps->arr[newlisps->top++] = lisp_cons(templisp1, templisp2);
          lisp_recycle(newlisps->arr[newlisps->top - 1]);
+      }
       #endif
       token->currentrow++;
    }
@@ -204,32 +221,40 @@ void intfunc(void){
    islist();
    #ifdef INTERP
    lisp* templisp1;
-   templisp1 = list2lisp();
+   if (notpass){
+      templisp1 = list2lisp();
+   }
    #endif
    token->currentrow++;
    
    if (opcode == PLUS){
 
       #ifdef INTERP
-         int value1;
-         int value2;
+      int value1;
+      int value2;
+      if (notpass){
          assert(lisp_isatomic(templisp1));
          value1 = lisp_getval(templisp1);
+      }
       #endif
       islist();
       #ifdef INTERP
-         lisp* templisp2;
+      lisp* templisp2;
+      if (notpass){
          templisp2 = list2lisp();
          assert(lisp_isatomic(templisp2));
          value2 = lisp_getval(templisp2);
 
          newlisps->arr[newlisps->top++] = lisp_atom(value1 + value2);
          lisp_recycle(newlisps->arr[newlisps->top - 1]);
+      }
       #endif
       token->currentrow++;
    }else{
       #ifdef INTERP
+      if (notpass){
          newlisps->arr[newlisps->top++] = lisp_atom(lisp_length(templisp1));
+      }
       #endif
    }
 }
@@ -238,19 +263,22 @@ void boolfunc(void){
    islist();
 
    #ifdef INTERP
-      lisp* templisp1;
-      lisp* templisp2;
-      int value1;
-      int value2;
+   lisp* templisp1;
+   lisp* templisp2;
+   int value1;
+   int value2;
+   if (notpass){
       templisp1 = list2lisp();
       assert(lisp_isatomic(templisp1));
       value1 = lisp_getval(templisp1);
+   }
    #endif
    
    token->currentrow++;
    islist();
 
    #ifdef INTERP
+   if (notpass){
       templisp2 = list2lisp();
       assert(lisp_isatomic(templisp2));
       value2 = lisp_getval(templisp2);
@@ -259,6 +287,7 @@ void boolfunc(void){
 
       newlisps->arr[newlisps->top++] = lisp_atom((int)result);
       lisp_recycle(newlisps->arr[newlisps->top - 1]);
+   }
    #endif
    token->currentrow++;
 }
@@ -270,7 +299,9 @@ void set(void){
    }
 
    #ifdef INTERP
+   if (notpass){
       varname = token->word[token->currentrow][0];
+   }
    #endif
    token->currentrow++;
 
@@ -278,7 +309,9 @@ void set(void){
 
    islist();
    #ifdef INTERP
+   if (notpass){
       var[varname - 'A'] = list2lisp();
+   }
    #endif
    token->currentrow++;
 }
@@ -286,26 +319,32 @@ void set(void){
 void print(void){
    if (isliteral() || isnil() || isstring()){
       #ifdef INTERP
+      if (notpass){
          fprintf(stdout, "%s\n", token->word[token->currentrow]);
+      }
       #endif
       token->currentrow++;
       return;
    }else if (isvar()){
       #ifdef INTERP
+      if (notpass){
          char varname = token->word[token->currentrow][0];
          char str[ROW];
          lisp_tostring(var[varname - 'A'], str);
          fprintf(stdout, "%s\n", str);
+      }
       #endif
       token->currentrow++;
       return;
    }else if (token->word[token->currentrow][0] == '('){
       islist();
       #ifdef INTERP
+      if (notpass){
          char str[ROW];
          lisp_tostring(newlisps->arr[newlisps->top - 1], str);
          newlisps->top--;
          fprintf(stdout, "%s\n", str);
+      }
       #endif
       token->currentrow++;
       return;
@@ -340,11 +379,13 @@ void iffunc(void){
    #endif
 
    #ifdef INTERP
+   if (notpass){
       if (lisp_getval(exeflag) == true){
          instrus();
       }else{
          pass();
       }
+   }
    #else
       instrus();
    #endif
@@ -355,11 +396,13 @@ void iffunc(void){
    token->currentrow++;
 
    #ifdef INTERP
+   if (notpass){
       if (lisp_getval(exeflag) == false){
          instrus();
       }else{
          pass();
       }
+   }
    #else
       instrus();
    #endif
@@ -373,8 +416,10 @@ void loop(void){
    }
    
    #ifdef INTERP
-      int begin;
+   int begin;
+   if (notpass){
       begin = token->currentrow;
+   }
    #endif
    token->currentrow++;
 
@@ -383,8 +428,10 @@ void loop(void){
    }
    
    #ifdef INTERP
-      int tempop;
+   int tempop;
+   if (notpass){
       tempop = opcode;
+   }
    #endif
 
    if (!STRSAME(token->word[token->currentrow++], ")")){
@@ -396,6 +443,7 @@ void loop(void){
    }
 
    #ifdef INTERP
+   if (notpass){
       if (lisp_getval(newlisps->arr[newlisps->top - 1]) == false){
          --newlisps->top;
          pass();
@@ -414,6 +462,7 @@ void loop(void){
       }
       token->currentrow = end + 1;
       return;
+   }
    #else
       instrus();
       token->currentrow++;
@@ -477,13 +526,16 @@ bool isnil(void){
 lisp* list2lisp(void){
    if (isvar()){
       #ifdef INTERP
+      if (notpass){
          lisp_recycle(var[token->word[token->currentrow][0] - 'A']);
          return var[token->word[token->currentrow][0] - 'A'];
+      }
       #endif
    }else if (isnil()){
       return NIL;
    }else if (isliteral()){
       #ifdef INTERP
+      if (notpass){
          rowlen = rowlength();
          char* str = (char*)calloc(rowlen - 1, sizeof(char));
          strncpy(str, &token->word[token->currentrow][1], rowlen - 2);
@@ -491,11 +543,14 @@ lisp* list2lisp(void){
          lisp_recycle(ret);
          free(str);
          return ret;
+      }
       #endif
    }else{
       #ifdef INTERP
+      if (notpass){
          lisp_recycle(newlisps->arr[newlisps->top - 1]);
          return newlisps->arr[--newlisps->top];
+      }
       #endif
    }
    return NIL;
@@ -559,10 +614,12 @@ void lisp_recycle(lisp* newlisp){
       return;
    }
    #ifdef INTERP
+   if (notpass){
       lisp_recycle(lisp_car(newlisp));
       lisp_recycle(lisp_cdr(newlisp));
 
       hashset_insert(newlisp);
+   }
    #endif
 }
 
@@ -674,18 +731,4 @@ bool conditionjudge(int operand1, int operand2){
       return false;
    }
 }
-
-void pass(){
-   assert(token->word[token->currentrow][0] == '(');
-   int top = 1;
-   while (top != -1){
-      token->currentrow++;
-      if (token->word[token->currentrow][0] == '('){
-         top++;
-      }else if (token->word[token->currentrow][0] == ')'){
-         top--;
-      }
-   }
-}
-
 

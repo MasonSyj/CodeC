@@ -41,21 +41,32 @@ interp_v: nuclei.c linked.c general.c nuclei.h lisp.h general.h
 extension_o: extension.c linked.c general.c nuclei.h lisp.h general.h
 	$(CC) extension.c linked.c general.c $(SANI) -DINTERP -o extension $(LIBS)
 
+functest_driver: functest.c linked.c general.c nuclei.h lisp.h general.h
+	$(CC) functest.c linked.c general.c $(SANI) -o functest $(LIBS)
+
+
 # For all .ncl files, run them and output result to a .pres (prase result) 
 # or .ires (interpretted result) file.
 runall : ./parse_s ./interp_s $(PRES) $(IRES)
+		
 	
-
 parse: parse_s ./parse_s $(PRES)
-	
+		
 
 interp: interp_s ./interp_s $(IRES)
+		
+
+extension: extension_o ./extension  $(ERES)
+
+functest: functest_driver
+	./functest
+
+error: parse_s ./parse_s $(PRES)
+		
+correct: interp_s ./interp_s $(IRES)
 	
 
-extension: clean extension_o ./extension $(ERES)
 	
-	
-
 %.pres:
 	-./parse_s  $*.ncl > $*.pres 2>&1
 %.ires:
@@ -64,4 +75,4 @@ extension: clean extension_o ./extension $(ERES)
 	-./extension $*.ncl > $*.eres 2>&1
 	
 clean:
-	rm -f parse_o parse_s parse_v interp_o interp_s interp_v extension_o $(PRES) $(IRES) $(ERES)
+	rm -f parse_o parse_s parse_v interp_o interp_s interp_v extension_o $(PRES) $(IRES) $(ERES) functest_driver $(ERRORTEST) $(CORRECTEST) 

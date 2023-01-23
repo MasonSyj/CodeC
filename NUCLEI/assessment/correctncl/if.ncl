@@ -1,0 +1,11 @@
+(
+   (PRINT A)
+   (SET A '5')
+   (IF (EQUAL A '10') ((PRINT "EQUAL")) ((PRINT "NOT EQUAL")))
+   (IF (LESS A '10') ((PRINT "LESS")) ((PRINT "NOT LESS")))
+   (IF (GREATER A '3') ((PRINT "GREATER")) ((PRINT "NOT GREATER")))
+   (IF (LESS A '6') ((SET B '(1 2 3 4)')) ((SET C '(1 2 3 4)')))
+   (PRINT B)
+   (PRINT C)
+   (PRINT D)
+)

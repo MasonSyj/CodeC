@@ -1,0 +1,1 @@
+Assertion failed: (right != -1), function sublisp_tostring, file linked.c, line 260.

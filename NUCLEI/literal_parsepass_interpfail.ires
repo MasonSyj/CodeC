@@ -1,0 +1,1 @@
+interp_s: linked.c:260: char *sublisp_tostring(const char *): Assertion `right != -1' failed.
